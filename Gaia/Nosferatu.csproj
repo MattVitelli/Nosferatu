@@ -164,7 +164,6 @@
     <Compile Include="Rendering\Simulators\TerrainGenerator.cs" />
     <Compile Include="Rendering\Simulators\ParticleSimulator.cs" />
     <Compile Include="Rendering\Simulators\PerlinNoiseSimulator.cs" />
-    <Compile Include="Resources\AnimatedFace.cs" />
     <Compile Include="Resources\AnimationSequence.cs" />
     <Compile Include="Resources\TerrainCreationDatablock.cs" />
     <Compile Include="Resources\DinosaurDatablock.cs" />

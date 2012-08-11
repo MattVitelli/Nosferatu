@@ -440,8 +440,6 @@ namespace Gaia.SceneGraph.GameEntities
 
             GFX.Device.SetPixelShaderConstant(0, Vector3.One / new Vector3(DensityFieldWidth, DensityFieldHeight, DensityFieldDepth));
 
-
-
             RenderTarget2D rtGradientMap = new RenderTarget2D(GFX.Device, DensityFieldWidth, DensityFieldHeight, 1, SurfaceFormat.Single);
             int gradStride = DensityFieldWidth * DensityFieldHeight;
             float[] gradientValues = new float[gradStride * DensityFieldDepth];
@@ -509,6 +507,31 @@ namespace Gaia.SceneGraph.GameEntities
 
         void PerformBlur(Texture2D heightmap)
         {
+            Shader heightBlur2DShader = ResourceManager.Inst.GetShader("HeightmapBlurMinMax");
+            RenderTarget2D paramTarget = new RenderTarget2D(GFX.Device, DensityFieldWidth, DensityFieldDepth, 1, SurfaceFormat.Vector4);
+            GFX.Device.SetPixelShaderConstant(GFXShaderConstants.VC_INVTEXRES, Vector2.One / new Vector2(DensityFieldWidth, DensityFieldDepth));
+            GFX.Device.SetPixelShaderConstant(0, Vector2.One / new Vector2(DensityFieldWidth, DensityFieldDepth));
+            heightBlur2DShader.SetupShader();
+            GFX.Device.Textures[0] = heightmap;
+
+            GFX.Device.SetRenderTarget(0, paramTarget);
+            GFXPrimitives.Quad.Render();
+            GFX.Device.SetRenderTarget(0, null);
+
+            Shader gradShader = ResourceManager.Inst.GetShader("GradientHeightmap");
+            GFX.Device.Textures[0] = paramTarget.GetTexture();
+            gradShader.SetupShader();
+
+            RenderTarget2D gradTarget = new RenderTarget2D(GFX.Device, DensityFieldWidth, DensityFieldDepth, 1, SurfaceFormat.Single);
+            GFX.Device.SetRenderTarget(0, gradTarget);
+            GFXPrimitives.Quad.Render();
+            GFX.Device.SetRenderTarget(0, null);
+
+            GFX.Device.Textures[0] = null;
+
+            paramTarget.GetTexture().Save("TestParams.dds", ImageFileFormat.Dds);
+
+
             Shader blurShader = ResourceManager.Inst.GetShader("VoxelBlur3x3x3");
 
             srcTarget = new RenderTarget2D(GFX.Device, DensityFieldWidth, DensityFieldHeight, 1, GFX.Inst.ByteSurfaceFormat);
@@ -518,8 +541,6 @@ namespace Gaia.SceneGraph.GameEntities
             blurShader.SetupShader();
             GFX.Device.SetPixelShaderConstant(0, Vector3.One / new Vector3(DensityFieldWidth, DensityFieldHeight, DensityFieldDepth));
 
-            Texture3D currDensityField = new Texture3D(GFX.Device, DensityFieldWidth, DensityFieldHeight, DensityFieldDepth, 1, TextureUsage.None, GFX.Inst.ByteSurfaceFormat);
-            
             GFX.Device.SamplerStates[0].AddressU = TextureAddressMode.Clamp;
             GFX.Device.SamplerStates[0].AddressV = TextureAddressMode.Clamp;
             GFX.Device.SamplerStates[0].AddressW = TextureAddressMode.Clamp;
@@ -546,10 +567,12 @@ namespace Gaia.SceneGraph.GameEntities
 
             //Lets activate our textures
             for (int i = 0; i < noiseTextures.Length; i++)
-                GFX.Device.Textures[i+1] = noiseTextures[i];
+                GFX.Device.Textures[i+3] = noiseTextures[i];
 
             //CopyDensityTextureData(ref DensityField, currDensityField);
             GFX.Device.Textures[0] = heightmap;
+            GFX.Device.Textures[1] = paramTarget.GetTexture();
+            GFX.Device.Textures[2] = gradTarget.GetTexture();
             for (int z = 0; z < DensityFieldDepth; z++)
             {
                 Vector4 depth = Vector4.One * (float)z / (float)(DensityFieldDepth - 1);
@@ -567,6 +590,51 @@ namespace Gaia.SceneGraph.GameEntities
 
             }
             GFX.Device.Textures[0] = null;
+            /*
+            Texture3D voxelTexture = new Texture3D(GFX.Device, DensityFieldWidth, DensityFieldHeight, DensityFieldDepth, 1, TextureUsage.None, GFX.Inst.ByteSurfaceFormat);
+            switch (GFX.Inst.ByteSurfaceDataType)
+            {
+                case GFXTextureDataType.BYTE:
+                    voxelTexture.SetData<byte>(DensityField);
+                    break;
+                case GFXTextureDataType.COLOR:
+                    Color[] tempColor = new Color[DensityField.Length];
+                    for(int i = 0; i < tempColor.Length; i++)
+                        tempColor[i] = new Color(DensityField[i], DensityField[i], DensityField[i], DensityField[i]);
+                    voxelTexture.SetData<Color>(tempColor);
+                    tempColor = null;
+                    break;
+                case GFXTextureDataType.SINGLE:
+                    float[] tempFloat = new float[DensityField.Length];
+                    float invScale = 1.0f / 255.0f;
+                    for (int i = 0; i < tempFloat.Length; i++)
+                        tempFloat[i] = (float)DensityField[i] * invScale;
+                    voxelTexture.SetData<float>(tempFloat);
+                    tempFloat = null;
+                    break;
+            }
+
+            Shader blurShaderGeneric = ResourceManager.Inst.GetShader("VoxelBlurGeneric");
+            blurShaderGeneric.SetupShader();
+            GFX.Device.Textures[0] = voxelTexture;
+            for (int z = 0; z < DensityFieldDepth; z++)
+            {
+                Vector4 depth = Vector4.One * (float)z / (float)(DensityFieldDepth - 1);
+                GFX.Device.SetVertexShaderConstant(0, depth); //Set our current depth
+
+                GFX.Device.SetRenderTarget(0, srcTarget);
+
+                GFXPrimitives.Quad.Render();
+
+                GFX.Device.SetRenderTarget(0, null);
+
+                //Now the copying stage.
+                ExtractDensityTextureData(ref DensityField, z);
+
+            }
+            GFX.Device.Textures[0] = null;
+            voxelTexture.Dispose();
+            */
 
             GFX.Device.DepthStencilBuffer = dsOld;
             GFX.Device.RenderState.DepthBufferEnable = true;

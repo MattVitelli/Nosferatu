@@ -35,6 +35,12 @@ namespace Gaia.Resources
         }
     }
 
+    public class InteractNode
+    {
+        public BoundingBox Dimensions;
+        public string NodeName;
+    }
+
     public class Mesh : IResource
     {
         string name;
@@ -52,6 +58,9 @@ namespace Gaia.Resources
         SortedList<string, List<ModelPart> > LODS = new SortedList<string, List<ModelPart> >();
         SortedList<string, AnimationNode> namesToNodes = new SortedList<string, AnimationNode>();
         SortedList<string, Matrix> inverseMatrices = new SortedList<string, Matrix>();
+
+        InteractNode[] interactNodes;
+
         AnimationNode[] rootNodes;
         BoundingBox meshBounds;
         TriangleMesh collisionMesh;
@@ -115,6 +124,11 @@ namespace Gaia.Resources
         public AnimationNode[] GetNodes()
         {
             return nodes;
+        }
+
+        public InteractNode[] GetInteractNodes()
+        {
+            return interactNodes;
         }
 
         class ModelPart
@@ -528,6 +542,7 @@ namespace Gaia.Resources
         {
             List<ModelPart> meshes = new List<ModelPart>();
             ModelPart collisionMesh = null;
+            List<ModelPart> interactables = new List<ModelPart>();
             for (int i = 0; i < parts.Length; i++)
             {
                 string[] meshName = parts[i].name.Split(':');
@@ -540,28 +555,44 @@ namespace Gaia.Resources
                 }
                 else
                 {
-                    if (!LODS.ContainsKey(meshName[0]))
-                        LODS.Add(meshName[0], new List<ModelPart>());
-                    int currLODValue = int.Parse(meshName[1].Substring(3));
-                    parts[i].name = currLODValue.ToString();
-                    bool addedPart = false;
-                    for(int j = 0; j < LODS[meshName[0]].Count; j++)
+                    if (meshName[0] == "INTERACT")
                     {
-                        int LODValue = int.Parse(LODS[meshName[0]][j].name);
-                        if(currLODValue < LODValue)
-                        {
-                            LODS[meshName[0]].Insert(j, parts[i]);
-                            addedPart = true;
-                            break;
-                        }
+                        interactables.Add(parts[i]);
                     }
-                    if (!addedPart)
-                        LODS[meshName[0]].Add(parts[i]);
+                    else
+                    {
+                        if (!LODS.ContainsKey(meshName[0]))
+                            LODS.Add(meshName[0], new List<ModelPart>());
+                        int currLODValue = int.Parse(meshName[1].Substring(3));
+                        parts[i].name = currLODValue.ToString();
+                        bool addedPart = false;
+                        for (int j = 0; j < LODS[meshName[0]].Count; j++)
+                        {
+                            int LODValue = int.Parse(LODS[meshName[0]][j].name);
+                            if (currLODValue < LODValue)
+                            {
+                                LODS[meshName[0]].Insert(j, parts[i]);
+                                addedPart = true;
+                                break;
+                            }
+                        }
+                        if (!addedPart)
+                            LODS[meshName[0]].Add(parts[i]);
+                    }
                 }
             }
 
             if (collisionMesh != null)
                 CreateCollisionMesh(collisionMesh);
+
+            interactNodes = new InteractNode[interactables.Count];
+            for (int i = 0; i < interactables.Count; i++)
+            {
+                interactNodes[i] = new InteractNode();
+                interactNodes[i].NodeName = interactables[i].name;
+                interactNodes[i].Dimensions = interactables[i].bounds;
+            }
+
             parts = meshes.ToArray();
         }
 
@@ -813,6 +844,7 @@ namespace Gaia.Resources
                 }
             }
         }
+
         /*
         public void Render(Matrix transform, SortedList<string, AnimationNode> animNodes, RenderView view, bool performCulling)
         {
@@ -851,6 +883,7 @@ namespace Gaia.Resources
             }
         }
         */
+
         void CreateInstanceData()
         {
             VertexPNTTI[] vertData = new VertexPNTTI[vertexCount];
@@ -1038,25 +1071,6 @@ namespace Gaia.Resources
                         break;
                 }
             }
-            /*
-            LoadMS3D(filename);
-
-            ModifyMesh();
-
-            CreateInstanceData();
-
-            if (useImposter)
-            {
-                CreateImposter();
-            }
-
-            vertices = new VertexPNTTI[vertexCount];
-            vertexBuffer.GetData<VertexPNTTI>(vertices);
-            */
-            /*
-            if(useCollision)
-                CreateCollisionMesh();
-            */
         }
 
         void IResource.Destroy()

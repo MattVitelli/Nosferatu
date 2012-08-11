@@ -28,7 +28,7 @@ namespace Gaia.SceneGraph.GameEntities
         float aspectRatio;
         float fieldOfView;
 
-        float forwardSpeed = 18.5f;
+        float forwardSpeed = 15.5f;
         float backwardSpeed = 7.5f;
         float strafeSpeed = 15f;
         float targetDistance = 15;
@@ -89,7 +89,6 @@ namespace Gaia.SceneGraph.GameEntities
                 }
                 rotation = this.Transformation.GetRotation();
                 transform = Matrix.CreateRotationX(rotation.X) * Matrix.CreateRotationY(rotation.Y);// *Matrix.CreateRotationZ(rotation.Z);
-                target = transform.Forward + this.Transformation.GetPosition();
             }
             else
                 transform = Matrix.CreateLookAt(this.Transformation.GetPosition(), this.target, Vector3.Up);
@@ -105,7 +104,10 @@ namespace Gaia.SceneGraph.GameEntities
             if (InputManager.Inst.IsKeyDown(GameKey.MoveLeft))
                 moveDir -= transform.Right * strafeSpeed * Math.Min(1.0f, 0.2f + InputManager.Inst.GetPressTime(GameKey.MoveLeft) / 1.25f);
 
-            this.Transformation.SetPosition(this.Transformation.GetPosition() + moveDir * Time.GameTime.ElapsedTime);
+            this.Transformation.SetPosition(this.Transformation.GetPosition() + moveDir * Time.GameTime.ElapsedTime * 5);
+
+            if ((cameraBitFlag & (int)CameraFlags.USETARGET) == 0)
+                target = transform.Forward + this.Transformation.GetPosition();
             
         }
 
