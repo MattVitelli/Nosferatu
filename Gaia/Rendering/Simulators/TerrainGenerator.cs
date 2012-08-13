@@ -71,16 +71,19 @@ namespace Gaia.Rendering.Simulators
             texturesLoaded = true;
             randomIslandTextures = new TextureResource[] 
             { 
+                ResourceManager.Inst.GetTexture("Textures/HeightMap/level1.dds"),
+                /*
                 ResourceManager.Inst.GetTexture("Textures/HeightMap/island1.dds"), 
                 ResourceManager.Inst.GetTexture("Textures/HeightMap/island2.dds"), 
                 ResourceManager.Inst.GetTexture("Textures/HeightMap/island3.dds"), 
                 ResourceManager.Inst.GetTexture("Textures/HeightMap/island4.dds"), 
                 ResourceManager.Inst.GetTexture("Textures/HeightMap/island5.dds"), 
                 ResourceManager.Inst.GetTexture("Textures/HeightMap/island6.dds"), 
-                ResourceManager.Inst.GetTexture("Textures/HeightMap/island7.dds") 
+                ResourceManager.Inst.GetTexture("Textures/HeightMap/island7.dds")
+                */
             };
 
-            creationDatablock = ResourceManager.Inst.GetTerrainCreationDatablock("Island");
+            creationDatablock = ResourceManager.Inst.GetTerrainCreationDatablock("Level1");//"Island");
         }
 
         struct PlacementParameters
