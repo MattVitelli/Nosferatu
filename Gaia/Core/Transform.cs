@@ -24,6 +24,8 @@ namespace Gaia.Core
             scale = Vector3.One;
             worldMatrix = Matrix.Identity;
             objectMatrix = Matrix.Identity;
+            bounds.Min = Vector3.One * -1;
+            bounds.Max = Vector3.One;
             dirtyMatrix = true;
         }
 
@@ -49,6 +51,9 @@ namespace Gaia.Core
         public void SetRotation(Vector3 rotation)
         {
             this.rotation = rotation;
+            rotation.X = MathHelper.WrapAngle(rotation.X);
+            rotation.Y = MathHelper.WrapAngle(rotation.Y);
+            rotation.Z = MathHelper.WrapAngle(rotation.Z);
             dirtyMatrix = true;
         }
 
@@ -84,6 +89,8 @@ namespace Gaia.Core
 
         public BoundingBox GetBounds()
         {
+            if (dirtyMatrix)
+                UpdateMatrix();
             return bounds;
         }
 
@@ -113,7 +120,7 @@ namespace Gaia.Core
             }
             
             objectMatrix = Matrix.Invert(worldMatrix);
-            bounds.Min = Vector3.Transform(-Vector3.One, worldMatrix);
+            bounds.Min = Vector3.Transform(Vector3.One*-1, worldMatrix);
             bounds.Max = Vector3.Transform(Vector3.One, worldMatrix);
         }
     }

@@ -15,5 +15,7 @@ namespace Gaia.SceneGraph.GameEntities
         Windmill = 5,
         Well = 6,
         RadioTower = 7,
+        Tomb = 8,
+        Camp = 9,
     }
 }

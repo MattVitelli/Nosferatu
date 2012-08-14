@@ -44,7 +44,7 @@ namespace Gaia.SceneGraph.GameEntities
         Gaia.Resources.Material terrainMaterial;
 
         Matrix textureMatrix = Matrix.Identity;
-        float TerrainSize = 768;
+        float TerrainSize = 768; 
 
         RenderTarget2D srcTarget;
         Texture3D[] noiseTextures;

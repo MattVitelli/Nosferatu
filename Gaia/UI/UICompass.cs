@@ -34,7 +34,9 @@ namespace Gaia.UI
 
         public void RemoveMarker(Transform transform)
         {
-            markers.Remove(transform);
+            int index = markers.IndexOf(transform);
+            if (index >= 0 && index < markers.Count)
+                markers.RemoveAt(index);
         }
 
         public UICompass()

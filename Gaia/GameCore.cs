@@ -253,7 +253,7 @@ namespace Gaia
             if (timeTilGC <= 0)
             {
                 GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced);
-                GC.WaitForFullGCComplete();
+                GC.WaitForFullGCComplete(-1);
                 timeTilGC = GCCollectInterval;
             }
             

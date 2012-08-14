@@ -11,13 +11,14 @@ namespace Gaia.SceneGraph.GameEntities
     {
         public Mesh Mesh;
         public Transform Transform;
+        public bool RenderImposters = true;
     };
 
     public class ForestManager : Entity
     {
         public KDTree<ForestElement> visibleMeshes = new KDTree<ForestElement>(SceneCompareFunction);
         Mesh mesh;
-        const int entityCount = 1000;
+        const int entityCount = 1500;
 
         public override void OnAdd(Scene scene)
         {
@@ -88,7 +89,16 @@ namespace Gaia.SceneGraph.GameEntities
             if (node == null || view.GetFrustum().Contains(node.bounds) == ContainmentType.Disjoint)
                 return;
 
-            node.element.Mesh.Render(node.element.Transform.GetTransform(), view, false);
+            if(view.GetRenderType() == RenderViewType.MAIN)
+            {
+                float distToCamera = Vector3.DistanceSquared(node.element.Transform.GetPosition(), view.GetPosition());
+                node.element.RenderImposters = (distToCamera >= Mesh.IMPOSTER_DISTANCE_SQUARED);
+            }
+            
+            if(node.element.RenderImposters)
+                node.element.Mesh.RenderImposters(node.element.Transform.GetTransform(), view, false);
+            else
+                node.element.Mesh.Render(node.element.Transform.GetTransform(), view, false);
             RecursivelyRender(node.leftChild, view);
             RecursivelyRender(node.rightChild, view);
         }

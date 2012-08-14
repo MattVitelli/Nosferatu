@@ -121,6 +121,7 @@
     <Compile Include="Editors\ModelSelector.Designer.cs">
       <DependentUpon>ModelSelector.cs</DependentUpon>
     </Compile>
+    <Compile Include="Game\CampTrigger.cs" />
     <Compile Include="Game\GasStation.cs" />
     <Compile Include="Game\HuntScreen.cs" />
     <Compile Include="Game\InteractBody.cs" />
@@ -128,6 +129,7 @@
     <Compile Include="Game\Chest.cs" />
     <Compile Include="Game\PlayerScreen.cs" />
     <Compile Include="Game\PowerPlant.cs" />
+    <Compile Include="Game\Trigger.cs" />
     <Compile Include="Game\Weapon.cs" />
     <Compile Include="Input\InputManager.cs" />
     <Compile Include="Physics\CharacterBody.cs" />
@@ -144,7 +146,6 @@
     <Compile Include="Rendering\GFXShaderConstants.cs" />
     <Compile Include="Rendering\GFXVertexDeclarations.cs" />
     <Compile Include="Rendering\RenderElementManagers\FoliageElementManager.cs" />
-    <Compile Include="Rendering\RenderElementManagers\TerrainElementManager.cs" />
     <Compile Include="Rendering\RenderElementManagers\DecalElementManager.cs" />
     <Compile Include="Rendering\RenderElementManagers\GUIElementManager.cs" />
     <Compile Include="Rendering\RenderElementManagers\PostProcessReflectionsElementManager.cs" />
@@ -186,7 +187,6 @@
     <Compile Include="SceneGraph\GameEntities\Actor.cs" />
     <Compile Include="SceneGraph\GameEntities\AnimatedModel.cs" />
     <Compile Include="SceneGraph\GameEntities\Camera.cs" />
-    <Compile Include="SceneGraph\GameEntities\ClutterPlacement.cs" />
     <Compile Include="SceneGraph\GameEntities\ForestManager.cs" />
     <Compile Include="SceneGraph\GameEntities\Landmarks.cs" />
     <Compile Include="SceneGraph\GameEntities\Raptor.cs" />
@@ -195,7 +195,6 @@
     <Compile Include="SceneGraph\GameEntities\FoliageCluster.cs" />
     <Compile Include="SceneGraph\GameEntities\GrassPlacement.cs" />
     <Compile Include="SceneGraph\GameEntities\Light.cs" />
-    <Compile Include="SceneGraph\GameEntities\Lsystem.cs" />
     <Compile Include="SceneGraph\GameEntities\Model.cs" />
     <Compile Include="SceneGraph\GameEntities\ParticleEmitter.cs" />
     <Compile Include="SceneGraph\Entity.cs" />
@@ -204,13 +203,10 @@
     <Compile Include="SceneGraph\GameEntities\Player.cs" />
     <Compile Include="SceneGraph\GameEntities\Terrain.cs" />
     <Compile Include="SceneGraph\GameEntities\TerrainVoxel.cs" />
-    <Compile Include="SceneGraph\GameEntities\TerrainHeightmap.cs" />
-    <Compile Include="SceneGraph\GameEntities\Tree.cs" />
     <Compile Include="SceneGraph\GameEntities\ViewModel.cs" />
     <Compile Include="SceneGraph\Scene.cs" />
     <Compile Include="Sound\Sound2D.cs" />
     <Compile Include="Sound\Sound3D.cs" />
-    <Compile Include="TerrainHelper\Clipmap.cs" />
     <Compile Include="UI\UIAnimation.cs" />
     <Compile Include="UI\UIButton.cs" />
     <Compile Include="UI\UICompass.cs" />

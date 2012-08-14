@@ -17,15 +17,13 @@ namespace Gaia.Game
     public class PlayerScreen : UIScreen
     {
         UICompass compass;
-        UIButton scoreLabel;
         UIButton journalStatus;
         UIButton interactButton;
         UIButton interactStatus;
-        UIButton crosshair;
+        //UIButton crosshair;
         UIList list;
 
         Scene scene;
-        bool addedMarker = false;
 
         const float interactDist = 3.5f;
         const float journalFadeInTime = 1.5f;
@@ -37,22 +35,36 @@ namespace Gaia.Game
 
         Transform playerTransform;
 
+        static PlayerScreen inst = null;
+
+        public static PlayerScreen GetInst() { return inst; }
+
+        public bool IsVampireAwake = false;
+
+        public bool HasAmulet = false;
+
+        public bool HasKeycard = false;
+
+        public bool UsedRadio = false;
+
+        public bool ActivatedPower = false;
+
+        public bool HasFuel = false;
+
         public PlayerScreen() : base()
         {
+            inst = this;
             this.scene = new Scene();
             compass = new UICompass();
             compass.Scale = new Vector2(0.35f, 0.05f);
             compass.Position = new Vector2(0, -0.85f);
-
+            /*
             crosshair = new UIButton(ResourceManager.Inst.GetTexture("UI/Game/crossHair.dds"), Vector4.One, string.Empty);
             crosshair.Position = Vector2.Zero;
             crosshair.Scale = Vector2.One * 0.035f;
-
-            scoreLabel = new UIButton(null, Vector4.One, "Score:");
-            scoreLabel.Position = new Vector2(0.7f, 0.85f);
-           
+            */
             journalStatus = new UIButton(null, Vector4.One, "Journal Updated!");
-            journalStatus.Position = new Vector2(-0.7f, 0.85f);
+            journalStatus.Position = new Vector2(0, 0.15f);// new Vector2(-0.7f, 0.85f);
             journalStatus.SetVisible(false);
 
             interactStatus = new UIButton(null, Vector4.One, "Examine Object");
@@ -60,8 +72,8 @@ namespace Gaia.Game
             interactStatus.SetVisible(false);
 
             interactButton = new UIButton(ResourceManager.Inst.GetTexture("UI/Game/interact.dds"), Vector4.One, string.Empty);
-            interactButton.Position = crosshair.Position;
-            interactButton.Scale = crosshair.Scale * 1.15f;
+            interactButton.Position = Vector2.Zero;
+            interactButton.Scale = Vector2.One * 0.035f * 1.15f;
             interactButton.SetVisible(false);
 
             list = new UIList();
@@ -79,12 +91,28 @@ namespace Gaia.Game
             list.SetColor(new Vector4(0.15f, 0.15f, 0.15f, 1.0f));
             //this.controls.Add(list);
 
-            this.controls.Add(crosshair);
+            //this.controls.Add(crosshair);
             this.controls.Add(journalStatus);
             this.controls.Add(compass);
             this.controls.Add(interactStatus);
             this.controls.Add(interactButton);
-            this.controls.Add(scoreLabel);
+        }
+
+        public void AddMarker(Transform transform)
+        {
+            compass.AddMarker(transform);
+        }
+
+        public void RemoveMarker(Transform transform)
+        {
+            compass.RemoveMarker(transform);
+        }
+
+        public void AddJournalEntry(string description)
+        {
+            journalFadeTime = 0;
+            journalEntryAdded = true;
+            journalStatus.SetText(description);
         }
 
         void PerformInteraction()
@@ -99,7 +127,7 @@ namespace Gaia.Game
             Segment seg = new Segment(origin, lookDir * interactDist);
              
             scene.GetPhysicsEngine().CollisionSystem.SegmentIntersect(out dist, out skin, out pos, out normal, seg, pred);
-            if (skin != null)
+            if (skin != null && skin.Owner != null && ((InteractBody)skin.Owner).Node != null)
             {
                 InteractBody body = (InteractBody)skin.Owner;
                 InteractNode node = body.Node;
@@ -107,7 +135,7 @@ namespace Gaia.Game
                 //skin.Owner
                 interactStatus.SetText(node.GetInteractText());
 
-                crosshair.SetVisible(false);
+                //crosshair.SetVisible(false);
                 interactButton.SetVisible(true);
                 interactStatus.SetVisible(true);
 
@@ -118,7 +146,7 @@ namespace Gaia.Game
             }
             else
             {
-                crosshair.SetVisible(true);
+                //crosshair.SetVisible(true);
                 interactButton.SetVisible(false);
                 interactStatus.SetVisible(false);
             }
@@ -151,21 +179,7 @@ namespace Gaia.Game
             {
                 playerTransform = camera.Transformation;
                 compass.SetTransformation(playerTransform);
-                scoreLabel.SetText(camera.Transformation.GetPosition().ToString());
                 PerformInteraction();
-            }
-
-            Entity testEnt = scene.FindEntity("scene_geom2");
-            if (testEnt != null && !addedMarker)
-            {
-                compass.AddMarker(testEnt.Transformation);
-                addedMarker = true;
-            }
-
-            if (Input.InputManager.Inst.IsKeyDown(Gaia.Input.GameKey.Interact))
-            {
-                journalFadeTime = 0;
-                journalEntryAdded = true;
             }
 
             if(journalEntryAdded)

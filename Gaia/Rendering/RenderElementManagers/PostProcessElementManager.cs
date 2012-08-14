@@ -281,6 +281,7 @@ namespace Gaia.Rendering
 
         public void AddElement(Material material, RenderElement element)
         {
+            return;
             if (!Elements.ContainsKey(material))
                 Elements.Add(material, new Queue<RenderElement>());
             Elements[material].Enqueue(element);
@@ -288,6 +289,7 @@ namespace Gaia.Rendering
 
         void DrawElement(Material key)
         {
+            /*
             while (Elements[key].Count > 0)
             {
                 RenderElement currElem = Elements[key].Dequeue();
@@ -301,6 +303,7 @@ namespace Gaia.Rendering
 
                     if (binLength > GFXShaderConstants.NUM_INSTANCES)
                         binLength = GFXShaderConstants.NUM_INSTANCES;
+                    
                     if (currElem.Transform.Length > 1)
                     {
                         // Upload transform matrices as shader constants.
@@ -312,8 +315,9 @@ namespace Gaia.Rendering
                         GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_WORLD, currElem.Transform);
                     }
                     GFX.Device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, currElem.StartVertex, currElem.VertexCount * binLength, 0, currElem.PrimitiveCount * binLength);
+                    
                 }
-            }
+            }*/
         }
 
         void RenderRefractive()
@@ -399,7 +403,7 @@ namespace Gaia.Rendering
 
             RenderCompositeFirstPerson();
 
-            RenderColorCorrection();
+            //RenderColorCorrection();
 
             GFX.Inst.ResetState();
         }

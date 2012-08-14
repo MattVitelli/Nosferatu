@@ -106,6 +106,7 @@ namespace Gaia.SceneGraph
 
         public void RemoveEntity(string name)
         {
+            Entities[name].OnDestroy();
             Entities.Remove(name);
         }
 
@@ -180,6 +181,7 @@ namespace Gaia.SceneGraph
         void InitializePhysics()
         {
             world = new PhysicsSystem();
+            
             //world.CollisionSystem = new CollisionSystemGrid(64, 64, 64, 5, 5, 5);
             //physicSystem.CollisionSystem = new CollisionSystemBrute();
             world.CollisionSystem = new CollisionSystemSAP();
@@ -189,10 +191,9 @@ namespace Gaia.SceneGraph
             world.CollisionSystem.UseSweepTests = true;
             world.Gravity = new Vector3(0, -10, 0);//PhysicsHelper.GravityEarth, 0);
             
-            world.NumCollisionIterations = 16;
-            world.NumContactIterations = 16;
+            world.NumCollisionIterations = 30;
+            world.NumContactIterations = 30;
             world.NumPenetrationRelaxtionTimesteps = 30;
-            
         }
 
         public void ResetScene()
@@ -303,6 +304,12 @@ namespace Gaia.SceneGraph
             (MainTerrain as TerrainVoxel).GetLandmarkTransform(MapLandmark.Docks, shack.Transformation, shack.GetMesh().GetBounds());
             AddEntity("Shack", shack);
 
+            InteractObject key = new InteractObject(null, "Key");
+            key.SetInteractNode(new PickupNode(key, PickupName.Key, "Power Plant Key")); 
+            key.Transformation.SetPosition(shack.Transformation.GetPosition());
+            key.Transformation.SetRotation(shack.Transformation.GetRotation());
+            AddEntity("Key", key);
+
             Model arena = new Model("Arena");
             (MainTerrain as TerrainVoxel).GetLandmarkTransform(MapLandmark.Meadow, arena.Transformation, arena.GetMesh().GetBounds());
             AddEntity("Arena", arena);
@@ -318,6 +325,31 @@ namespace Gaia.SceneGraph
             Model tower = new Model("RadioTower");
             (MainTerrain as TerrainVoxel).GetLandmarkTransform(MapLandmark.RadioTower, tower.Transformation, tower.GetMesh().GetBounds());
             AddEntity("RadioTower", tower);
+
+            Model crypt = new Model("TombStone");
+            (MainTerrain as TerrainVoxel).GetLandmarkTransform(MapLandmark.Tomb, crypt.Transformation, crypt.GetMesh().GetBounds());
+            AddEntity("Crypt", crypt);
+
+            InteractObject amulet = new InteractObject(null, "Amulet");
+            amulet.SetInteractNode(new PickupNode(amulet, PickupName.Amulet, "Amulet"));
+            amulet.Transformation.SetPosition(crypt.Transformation.GetPosition());
+            amulet.Transformation.SetRotation(crypt.Transformation.GetRotation());
+            AddEntity("Amulet", amulet);
+
+
+            Model tent = new Model("Tent");
+            (MainTerrain as TerrainVoxel).GetLandmarkTransform(MapLandmark.Camp, tent.Transformation, tent.GetMesh().GetBounds());
+            AddEntity("Tent", tent);
+
+            Model campfire = new Model("Campfire");
+            campfire.Transformation = tent.Transformation;
+            AddEntity("CampFire", campfire);
+
+            CampTrigger campTrigger = new CampTrigger();
+            campTrigger.Transformation.SetPosition(tent.Transformation.GetPosition());
+            campTrigger.Transformation.SetScale(Vector3.One * 15);
+            AddEntity("CampTrigger", campTrigger);
+
         }
 
         void InitializeRenderViews()

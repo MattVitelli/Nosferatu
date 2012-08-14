@@ -73,6 +73,17 @@ namespace Gaia.SceneGraph.GameEntities
                 collision.SetNewTransform(ref collisionTransform);
             }
         }
+
+        public override void OnDestroy()
+        {
+            base.OnDestroy();
+            if (collision != null)
+            {
+                scene.GetPhysicsEngine().CollisionSystem.RemoveCollisionSkin(collision);
+                collision.RemoveAllPrimitives();
+                collision.Owner = null;
+            }
+        }
         /*
         public void UpdateAnimation()
         {

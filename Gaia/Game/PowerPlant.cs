@@ -25,29 +25,37 @@ namespace Gaia.Game
             (scene.MainTerrain as TerrainVoxel).GetLandmarkTransform(MapLandmark.PowerPlant, powerPlant.Transformation, powerPlant.GetMesh().GetBounds());
             //powerPlant.Transformation.SetPosition(powerPlant.Transformation.GetPosition()-Vector3.Up*94);
             Vector3 pos = powerPlant.Transformation.GetPosition();
+            Vector3 rot = powerPlant.Transformation.GetRotation();
             powerPlantTransform = powerPlant.Transformation;
-            (switchA.interactNode as SwitchNode).SetInteractObject(switchA);
-            (switchB.interactNode as SwitchNode).SetInteractObject(switchB);
-            (switchC.interactNode as SwitchNode).SetInteractObject(switchC);
-            (switchD.interactNode as SwitchNode).SetInteractObject(switchD);
+            (switchA.GetInteractNode() as SwitchNode).SetInteractObject(switchA);
+            (switchB.GetInteractNode() as SwitchNode).SetInteractObject(switchB);
+            (switchC.GetInteractNode() as SwitchNode).SetInteractObject(switchC);
+            (switchD.GetInteractNode() as SwitchNode).SetInteractObject(switchD);
 
             powerPlantFence.Transformation = powerPlant.Transformation;
+            
             switchA.Transformation.SetPosition(pos);
+            switchA.Transformation.SetRotation(rot);
+            
             switchB.Transformation.SetPosition(pos);
+            switchB.Transformation.SetRotation(rot);
+            
             switchC.Transformation.SetPosition(pos);
-            switchD.Transformation.SetPosition(pos);
+            switchC.Transformation.SetRotation(rot);
 
-            switchA.interactNode.OnInteract();
-            switchD.interactNode.OnInteract();
+            switchD.Transformation.SetPosition(pos);
+            switchD.Transformation.SetRotation(rot);
+
+            //switchA.interactNode.OnInteract();
+            //switchD.interactNode.OnInteract();
 
             scene.AddEntity("PowerPlant", powerPlant);
             scene.AddEntity("PowerPlantFence", powerPlantFence);
-            /*
+            
             scene.AddEntity("SwitchA", switchA);
             scene.AddEntity("SwitchB", switchB);
             scene.AddEntity("SwitchC", switchC);
             scene.AddEntity("SwitchD", switchD);
-            */
         }
 
         public Vector3 GetPosition()

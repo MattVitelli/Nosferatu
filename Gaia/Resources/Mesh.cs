@@ -59,6 +59,8 @@ namespace Gaia.Resources
         SortedList<string, AnimationNode> namesToNodes = new SortedList<string, AnimationNode>();
         SortedList<string, Matrix> inverseMatrices = new SortedList<string, Matrix>();
 
+        List<Matrix> cachedTransforms = new List<Matrix>();
+
         InteractNode[] interactNodes;
 
         AnimationNode[] rootNodes;
@@ -77,7 +79,7 @@ namespace Gaia.Resources
 
         const float IMPOSTER_DISTANCE = 120;
 
-        const float IMPOSTER_DISTANCE_SQUARED = IMPOSTER_DISTANCE * IMPOSTER_DISTANCE;
+        public const float IMPOSTER_DISTANCE_SQUARED = IMPOSTER_DISTANCE * IMPOSTER_DISTANCE;
 
         public void LoadMesh()
         {
@@ -138,7 +140,7 @@ namespace Gaia.Resources
             public string name;
             public Material material;
             public BoundingBox bounds;
-            public List<Matrix> cachedTransforms = new List<Matrix>();
+            //public List<Matrix> cachedTransforms = new List<Matrix>();
         }
 
         struct ModelVertex
@@ -712,19 +714,21 @@ namespace Gaia.Resources
         public void RenderPostSceneQuery(RenderView view)
         {
             addedToView = false;
-            for (int i = 0; i < parts.Length; i++)
+            if (cachedTransforms.Count > 0)
             {
-                if (parts[i].cachedTransforms.Count > 0)
+                for (int i = 0; i < parts.Length; i++)
                 {
-                    parts[i].renderElementInstanced.Transform = parts[i].cachedTransforms.ToArray();
+                    parts[i].renderElementInstanced.Transform = null;
+                    parts[i].renderElementInstanced.Transform = cachedTransforms.ToArray();
                     view.AddElement(parts[i].material, parts[i].renderElementInstanced);
-                    parts[i].cachedTransforms.Clear();
                 }
+                cachedTransforms.Clear();
             }
             if (imposterGeometry != null)
             {
                 if (imposterGeometry.cachedTransforms.Count > 0)
                 {
+                    imposterGeometry.Element.Transform = null;
                     imposterGeometry.Element.Transform = imposterGeometry.cachedTransforms.ToArray();
                     view.AddElement(imposterGeometry.ImposterMaterial, imposterGeometry.Element);
                     imposterGeometry.cachedTransforms.Clear();
@@ -738,6 +742,7 @@ namespace Gaia.Resources
             if (!addedToView)
             {
                 view.AddMeshToRender(this);
+                addedToView = true;
             }
 
             if (performCulling)
@@ -751,12 +756,9 @@ namespace Gaia.Resources
                 }
                 frustum.Matrix = oldMat;
             }
-            else
+            else if (imposterGeometry != null)
             {
-                if (imposterGeometry != null)
-                {
-                    imposterGeometry.cachedTransforms.Add(imposterGeometry.Scale * transform);
-                }
+                imposterGeometry.cachedTransforms.Add(imposterGeometry.Scale * transform);
             }
         }
 
@@ -765,6 +767,7 @@ namespace Gaia.Resources
             if (!addedToView)
             {
                 view.AddMeshToRender(this);
+                addedToView = true;
             }
 
             float distToCamera = Vector3.DistanceSquared(transform.Translation, view.GetPosition());
@@ -773,42 +776,28 @@ namespace Gaia.Resources
                 BoundingFrustum frustum = view.GetFrustum();
                 Matrix oldMat = frustum.Matrix;
                 frustum.Matrix = transform * view.GetViewProjection();
-
-                if (imposterGeometry != null && distToCamera >= IMPOSTER_DISTANCE_SQUARED && frustum.Contains(meshBounds) != ContainmentType.Disjoint)
+                if (frustum.Contains(meshBounds) != ContainmentType.Disjoint)
+                    cachedTransforms.Add(transform);
+                /*
+                for (int i = 0; i < parts.Length; i++)
                 {
-                    imposterGeometry.cachedTransforms.Add(imposterGeometry.Scale * transform);
-                }
-                else
-                {
-                    for (int i = 0; i < parts.Length; i++)
-                    {
-                        if (frustum.Contains(parts[i].bounds) != ContainmentType.Disjoint)
-                        {
-                            parts[i].cachedTransforms.Add(transform);
-                            /*
-                            RenderElement srcElem = parts[i].renderElement;
-                            RenderElement element = srcElem;
-                            element.Transform = new Matrix[1] { transform };
-                            view.AddElement(parts[i].material, element);
-                            */
-                        }
-                    }
-                }
-                frustum.Matrix = oldMat;
-            }
-            else
-            {
-                if (imposterGeometry != null && distToCamera >= IMPOSTER_DISTANCE_SQUARED)
-                {
-                    imposterGeometry.cachedTransforms.Add(imposterGeometry.Scale * transform);
-                }
-                else
-                {
-                    for (int i = 0; i < parts.Length; i++)
+                    if (frustum.Contains(parts[i].bounds) != ContainmentType.Disjoint)
                     {
                         parts[i].cachedTransforms.Add(transform);
                     }
                 }
+                */
+                frustum.Matrix = oldMat;
+            }
+            else
+            {
+                cachedTransforms.Add(transform);
+                /*
+                for (int i = 0; i < parts.Length; i++)
+                {
+                    parts[i].cachedTransforms.Add(transform);
+                }
+                */
             }
         }
 
