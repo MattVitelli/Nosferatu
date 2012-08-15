@@ -58,9 +58,9 @@ namespace Gaia
         /// </summary>
         protected override void LoadContent()
         {
+            new SoundEngine();
             new GFX(this.GraphicsDevice, this.Content);
             new InputManager();
-            new SoundEngine();
             new ResourceManager();
             ResourceManager.Inst.LoadResources();
 

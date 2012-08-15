@@ -52,9 +52,12 @@ namespace Gaia.Sound
         {
         }
 
-        public Sound2D(string soundName)
+        public Sound2D(string soundName, bool looped, bool paused)
         {
-            sound = SoundEngine.Device.Play2D(ResourceManager.Inst.GetSoundEffect(soundName).Sound, loop, paused, false);
+            this.loop = looped;
+            this.paused = paused;
+            SoundEffect soundEffect = ResourceManager.Inst.GetSoundEffect(soundName);
+            this.sound = SoundEngine.Device.Play2D(soundEffect.Sound, loop, paused, false);
         }
     }
 }

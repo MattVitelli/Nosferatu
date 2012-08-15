@@ -13,7 +13,7 @@ namespace Gaia.Resources
         float maxDist = 1;
         float volume = 1;
 
-        public ISoundSource Sound;
+        public ISoundSource Sound { get { return sound; } }
 
         public string Name { get { return name; } }
 

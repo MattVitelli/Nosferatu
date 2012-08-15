@@ -222,12 +222,12 @@
   <ItemGroup>
     <Content Include="Game.ico" />
     <Content Include="GameThumbnail.png" />
-    <Content Include="Libs\ikpFlac.dll">
+    <None Include="Libs\ikpFlac.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Libs\ikpMP3.dll">
+    </None>
+    <None Include="Libs\ikpMP3.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <NestedContentProject Include="Content\Content.contentproj">

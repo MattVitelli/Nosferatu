@@ -220,6 +220,13 @@ namespace Gaia.Rendering.RenderViews
             }
         }
 
+        public void SetBlurTarget(Vector3 target, Vector3 forward)
+        {
+            PostProcessElementManager ppMgr = (PostProcessElementManager)ElementManagers[RenderPass.PostProcess];
+            ppMgr.BlurTarget = target;
+            ppMgr.ForwardVec = forward;
+        }
+
         public override void Render()
         {
             base.Render();

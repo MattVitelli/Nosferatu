@@ -35,11 +35,13 @@ namespace Gaia.Resources
 
         public void PauseAudio()
         {
+            return;
             engine.SetAllSoundsPaused(true);
         }
 
         public void ResumeAudio()
         {
+            return;
             engine.SetAllSoundsPaused(false);
         }
     }

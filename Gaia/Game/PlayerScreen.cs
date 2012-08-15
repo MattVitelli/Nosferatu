@@ -6,6 +6,8 @@ using Gaia.SceneGraph;
 using Gaia.Core;
 using Gaia.Resources;
 using Gaia.Input;
+using Gaia.Rendering.RenderViews;
+using Gaia.Sound;
 
 using Microsoft.Xna.Framework;
 
@@ -50,6 +52,8 @@ namespace Gaia.Game
         public bool ActivatedPower = false;
 
         public bool HasFuel = false;
+
+        Sound2D bgSound;
 
         public PlayerScreen() : base()
         {
@@ -96,6 +100,8 @@ namespace Gaia.Game
             this.controls.Add(compass);
             this.controls.Add(interactStatus);
             this.controls.Add(interactButton);
+            bgSound = new Sound2D("Crickets", true, false);
+            bgSound.Paused = false;
         }
 
         public void AddMarker(Transform transform)
@@ -180,6 +186,12 @@ namespace Gaia.Game
                 playerTransform = camera.Transformation;
                 compass.SetTransformation(playerTransform);
                 PerformInteraction();
+            }
+            MainRenderView view = (MainRenderView)scene.MainCamera;
+            Entity enemy = scene.FindEntity("Amulet");
+            if (enemy != null)
+            {
+                view.SetBlurTarget(enemy.Transformation.GetPosition(), Vector3.Normalize(camera.Transformation.GetTransform().Forward));
             }
 
             if(journalEntryAdded)

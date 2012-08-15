@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Gaia.Resources;
 using Gaia.Rendering.RenderViews;
 using Gaia.Rendering.Geometry;
+using Gaia.Core;
 
 namespace Gaia.Rendering
 {
@@ -36,6 +37,10 @@ namespace Gaia.Rendering
         float waterScale = 120;
         float waveScale = 10;
         BoundingBox waveMeshBounds;
+
+        public Vector3 BlurTarget;
+
+        public Vector3 ForwardVec;
 
         public PostProcessElementManager(MainRenderView renderView)
             : base(renderView)
@@ -173,6 +178,27 @@ namespace Gaia.Rendering
             GFX.Device.Textures[1] = mainRenderView.DepthMap.GetTexture();
             GFX.Device.SetPixelShaderConstant(0, mainRenderView.GetViewProjection());
             GFX.Device.SetPixelShaderConstant(4, prevViewProjection);
+
+
+            Vector3 posToVec = BlurTarget - renderView.GetPosition();
+            float len = posToVec.Length();
+            posToVec /= len;
+            float blurCoeff = MathHelper.Clamp(Vector3.Dot(posToVec, ForwardVec)-0.35f, 0.0f, 1.0f);
+                
+            blurCoeff *= (float)Math.Pow(MathHelper.Clamp(1.0f-len/40.0f,0.0f,1.0f),0.5f);
+            
+            Vector4 transformedVec = Vector4.Transform(new Vector4(BlurTarget, 1.0f), renderView.GetViewProjection());
+            transformedVec /= transformedVec.W;
+            transformedVec.Y *= -1;
+            transformedVec = (transformedVec + Vector4.One) * 0.5f;
+            
+            Vector3 blurVector = new Vector3(transformedVec.X, transformedVec.Y, blurCoeff);
+            float blinkAnim = MathHelper.Clamp((float)Math.Cos(Time.RenderTime.TotalTime * 1.20458) * 0.5f + 0.5f, 0.0f, 1.0f);
+            blinkAnim = MathHelper.Clamp((float)Math.Pow(blinkAnim, 0.25) * 2.5f - 0.7f, 0.0f, 1.0f);
+            Vector2 ellipse = new Vector2(2.07846f, 1.06f) * new Vector2(Math.Max(blinkAnim, 0.7f), blinkAnim);
+
+            GFX.Device.SetPixelShaderConstant(10, blurVector);
+            GFX.Device.SetPixelShaderConstant(11, ellipse);
 
             GFXPrimitives.Quad.Render();
             prevViewProjection = mainRenderView.GetViewProjection();
