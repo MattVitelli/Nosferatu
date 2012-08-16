@@ -95,6 +95,7 @@
   <ItemGroup>
     <Compile Include="Animation\AnimationLayer.cs" />
     <Compile Include="Core\ByteConverter.cs" />
+    <Compile Include="Core\CustomList.cs" />
     <Compile Include="Core\NormalTransform.cs" />
     <Compile Include="Core\JitterConverter.cs" />
     <Compile Include="Core\KDTree.cs" />
@@ -129,6 +130,7 @@
     <Compile Include="Game\Chest.cs" />
     <Compile Include="Game\PlayerScreen.cs" />
     <Compile Include="Game\PowerPlant.cs" />
+    <Compile Include="Game\SoundMaster.cs" />
     <Compile Include="Game\Trigger.cs" />
     <Compile Include="Game\Weapon.cs" />
     <Compile Include="Input\InputManager.cs" />

@@ -214,7 +214,12 @@ namespace Gaia.Rendering
         public void RenderGUI()
         {
             guiManager.Render();
-            
+        }
+
+        public void CleanupPostFrame()
+        {
+            for(int i = 0; i < 4; i++)
+                GFX.Device.VertexTextures[i] = null;
         }
     }
 }

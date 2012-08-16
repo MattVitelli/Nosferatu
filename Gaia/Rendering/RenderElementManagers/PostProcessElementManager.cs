@@ -20,6 +20,11 @@ namespace Gaia.Rendering
         Shader godRayShader;
         Shader gaussBlurHShader;
         Shader gaussBlurVShader;
+
+        Shader boxBlurHShader;
+        Shader boxBlurVShader;
+        Shader bloomShader;
+
         TextureResource colorCorrectTexture;
 
         TextureResource oceanTexture;
@@ -33,6 +38,9 @@ namespace Gaia.Rendering
         Matrix prevViewProjection = Matrix.Identity; //Used for motion blur
 
         MainRenderView mainRenderView; //Used to access GBuffer
+
+        float bloomBias = 0.492f;
+        float bloomMultiplier = 1.45f;
 
         float waterScale = 120;
         float waveScale = 10;
@@ -53,9 +61,11 @@ namespace Gaia.Rendering
             colorCorrectShader = ResourceManager.Inst.GetShader("ColorCorrect");
             colorCorrectTexture = ResourceManager.Inst.GetTexture("Textures/Color Correction/colorRamp0.dds");
             godRayShader = ResourceManager.Inst.GetShader("GodRay");
-
+            bloomShader = ResourceManager.Inst.GetShader("Bloom");
             gaussBlurHShader = ResourceManager.Inst.GetShader("GaussH");
             gaussBlurVShader = ResourceManager.Inst.GetShader("GaussV");
+            boxBlurHShader = ResourceManager.Inst.GetShader("BoxH");
+            boxBlurVShader = ResourceManager.Inst.GetShader("BoxV");
 
             oceanShader = ResourceManager.Inst.GetShader("Ocean");
             oceanScreenSpaceShader = ResourceManager.Inst.GetShader("OceanPP");
@@ -107,27 +117,76 @@ namespace Gaia.Rendering
             mainRenderView.RenderFirstPerson();
         }
 
-        public void BlurParticles()
+        public enum BlurFilter
         {
-            GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_INVTEXRES, Vector2.One / new Vector2(mainRenderView.ParticleBuffer.Width, mainRenderView.ParticleBuffer.Height));
+            Box,
+            Gauss,
+            Bilateral
+        };
+        public void BlurRenderTarget(RenderTarget2D target, BlurFilter filterType, int blurPasses)
+        {
+            Vector2 invRes = Vector2.One / new Vector2(target.Width, target.Height);
+            GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_INVTEXRES, invRes);
             GFX.Device.SetPixelShaderConstant(0, Vector4.One * 1);
-            GFX.Device.SetPixelShaderConstant(1, Vector2.One / new Vector2(mainRenderView.ParticleBuffer.Width, mainRenderView.ParticleBuffer.Height));
+            GFX.Device.SetPixelShaderConstant(1, invRes);
 
-            for (int i = 0; i < 2; i++)
+            Shader activeHShader = boxBlurHShader;
+            Shader activeVShader = boxBlurVShader;
+            switch (filterType)
             {
-                GFX.Device.Textures[0] = mainRenderView.ParticleBuffer.GetTexture();
-                GFX.Device.SetRenderTarget(0, mainRenderView.ParticleBuffer);
-                gaussBlurHShader.SetupShader();
+                case BlurFilter.Gauss:
+                    activeHShader = gaussBlurHShader;
+                    activeVShader = gaussBlurVShader;
+                    break;
+            }
+
+            for (int i = 0; i < blurPasses; i++)
+            {
+                GFX.Device.Textures[0] = target.GetTexture();
+                GFX.Device.SetRenderTarget(0, target);
+                activeHShader.SetupShader();
                 GFXPrimitives.Quad.Render();
                 GFX.Device.SetRenderTarget(0, null);
 
-                GFX.Device.Textures[0] = mainRenderView.ParticleBuffer.GetTexture();
+                GFX.Device.Textures[0] = target.GetTexture();
 
-                GFX.Device.SetRenderTarget(0, mainRenderView.ParticleBuffer);
-                gaussBlurVShader.SetupShader();
+                GFX.Device.SetRenderTarget(0, target);
+                activeVShader.SetupShader();
                 GFXPrimitives.Quad.Render();
                 GFX.Device.SetRenderTarget(0, null);
             }
+        }
+
+        public void DownsampleGlow(RenderTarget2D colorMap, RenderTarget2D lightMap, RenderTarget2D dataMap, RenderTarget2D emissiveMap)
+        {
+            bloomShader.SetupShader();
+            for(int i = 0; i <= 2; i++)
+                GFX.Inst.SetTextureFilter(i, TextureFilter.Linear);
+            GFX.Device.Textures[0] = colorMap.GetTexture();
+            GFX.Device.Textures[1] = lightMap.GetTexture();
+            GFX.Device.Textures[2] = dataMap.GetTexture();
+            Vector2 invRes = Vector2.One / new Vector2(colorMap.Width, colorMap.Height);
+            GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_INVTEXRES, invRes);
+            GFX.Device.SetPixelShaderConstant(0, new Vector2(bloomBias, bloomMultiplier));
+            GFX.Device.SetRenderTarget(0, emissiveMap);
+            GFX.Device.Clear(Color.TransparentBlack);
+            GFXPrimitives.Quad.Render();
+            GFX.Device.SetRenderTarget(0, null);
+
+            BlurRenderTarget(emissiveMap, BlurFilter.Box, 4);
+        }
+
+        void RenderBloom()
+        {
+            GFX.Device.RenderState.SourceBlend = Blend.One;
+            GFX.Device.RenderState.DestinationBlend = Blend.One;
+            basicImageShader.SetupShader();
+            GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_INVTEXRES, Vector2.One / new Vector2(mainRenderView.EmissiveMap.Width, mainRenderView.EmissiveMap.Height));
+            GFX.Device.Textures[0] = mainRenderView.EmissiveMap.GetTexture();
+            GFX.Inst.SetTextureFilter(0, TextureFilter.Linear);
+            GFXPrimitives.Quad.Render();
+            GFX.Inst.SetTextureFilter(0, TextureFilter.Point);
+            GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_INVTEXRES, Vector2.One / GFX.Inst.DisplayRes);
         }
 
         void RenderCompositeParticles()
@@ -194,7 +253,7 @@ namespace Gaia.Rendering
             
             Vector3 blurVector = new Vector3(transformedVec.X, transformedVec.Y, blurCoeff);
             float blinkAnim = MathHelper.Clamp((float)Math.Cos(Time.RenderTime.TotalTime * 1.20458) * 0.5f + 0.5f, 0.0f, 1.0f);
-            blinkAnim = MathHelper.Clamp((float)Math.Pow(blinkAnim, 0.25) * 2.5f - 0.7f, 0.0f, 1.0f);
+            blinkAnim = 1;// MathHelper.Clamp((float)Math.Pow(blinkAnim, 0.25) * 2.5f - 0.7f, 0.0f, 1.0f);
             Vector2 ellipse = new Vector2(2.07846f, 1.06f) * new Vector2(Math.Max(blinkAnim, 0.7f), blinkAnim);
 
             GFX.Device.SetPixelShaderConstant(10, blurVector);
@@ -392,8 +451,6 @@ namespace Gaia.Rendering
             GFX.Device.RenderState.CullMode = CullMode.None;
 
             GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_MODELVIEW, mainRenderView.GetInverseViewProjectionLocal());
-            
-            
         }
 
         public override void Render()
@@ -414,12 +471,13 @@ namespace Gaia.Rendering
             RenderComposite();
 
             //RenderOcean();
-
-            RenderCompositeParticles();
-
             RenderRefractive();
 
+            RenderBloom();
+
             RenderFog();
+
+            RenderCompositeParticles();
 
             //RenderGodRays();
 

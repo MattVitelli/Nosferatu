@@ -24,14 +24,13 @@ namespace Gaia.Resources
 
         public Matrix Scale;
 
-        public List<Matrix> cachedTransforms = new List<Matrix>();
-
         public Imposter(Mesh mesh)
         {
             Element = GFXPrimitives.CreateBillboardElement();
             ImposterMaterial = new Material();
             Vector3 scale = (mesh.GetBounds().Max - mesh.GetBounds().Min);
             Scale = Matrix.CreateScale(scale);
+            Element.Transform = Scale;
         }
     }
 
@@ -59,7 +58,14 @@ namespace Gaia.Resources
         SortedList<string, AnimationNode> namesToNodes = new SortedList<string, AnimationNode>();
         SortedList<string, Matrix> inverseMatrices = new SortedList<string, Matrix>();
 
-        List<Matrix> cachedTransforms = new List<Matrix>();
+        Texture2D[] instanceTexture = new Texture2D[3];
+        Texture2D[] imposterInstanceTexture = new Texture2D[3];
+
+        Vector4[] instanceTemp;
+        Vector4[] imposterInstanceTemp;
+
+        int instanceCount = 0;
+        int imposterInstanceCount = 0;
 
         InteractNode[] interactNodes;
 
@@ -74,6 +80,8 @@ namespace Gaia.Resources
         Imposter imposterGeometry = null;
 
         bool useImposter = false;
+
+        bool useInstancing = false;
 
         bool addedToView = false;
 
@@ -90,12 +98,22 @@ namespace Gaia.Resources
             LoadMS3D(filename);
 
             ModifyMesh();
-
-            CreateInstanceData();
-
+            
             if (useImposter)
             {
                 CreateImposter();
+            }
+
+            if (useInstancing)
+            {
+                CreateInstanceData();
+                if (useImposter)
+                {
+                    imposterInstanceTemp = new Vector4[instanceTemp.Length];
+                    imposterInstanceCount = 0;
+                    for (int i = 0; i < imposterInstanceTexture.Length; i++)
+                        imposterInstanceTexture[i] = new Texture2D(GFX.Device, GFXShaderConstants.INSTANCE_TEXTURE_SIZE, GFXShaderConstants.INSTANCE_TEXTURE_SIZE, 1, TextureUsage.None, SurfaceFormat.Vector4);
+                }
             }
 
             vertices = new VertexPNTTI[vertexCount];
@@ -140,7 +158,6 @@ namespace Gaia.Resources
             public string name;
             public Material material;
             public BoundingBox bounds;
-            //public List<Matrix> cachedTransforms = new List<Matrix>();
         }
 
         struct ModelVertex
@@ -663,38 +680,55 @@ namespace Gaia.Resources
                 parts[i].renderElement.VertexBuffer = vertexBuffer;
         }
 
-        /*
-        void CreateCollisionMesh()
+        void InjectTransform(ref Matrix transform, ref Vector4[] transformField, ref int transformCount, ref Texture2D[] transformTextures)
         {
-            List<TriangleVertexIndices> indices = new List<TriangleVertexIndices>();
-            List<Vector3> vertices = new List<Vector3>(vertexCount);
+            int stride = transformTextures[0].Width * transformTextures[0].Height;
+            int idxA = transformCount;
+            int idxB = idxA + stride;
+            int idxC = idxB + stride;
+            transformField[idxA].X = transform.M11;
+            transformField[idxA].Y = transform.M21;
+            transformField[idxA].Z = transform.M31;
+            transformField[idxA].W = transform.M41;
 
-            VertexPNTTI[] verts = new VertexPNTTI[vertexCount];
-            vertexBuffer.GetData<VertexPNTTI>(verts);
-            
-            for (int i = 0; i < verts.Length; i++)
+            transformField[idxB].X = transform.M12;
+            transformField[idxB].Y = transform.M22;
+            transformField[idxB].Z = transform.M32;
+            transformField[idxB].W = transform.M42;
+
+            transformField[idxC].X = transform.M13;
+            transformField[idxC].Y = transform.M23;
+            transformField[idxC].Z = transform.M33;
+            transformField[idxC].W = transform.M43;
+            transformCount = transformCount+1;
+            /*
+            if (idxA + 1 >= GFXShaderConstants.NUM_INSTANCES)
             {
-                vertices.Add(JitterConverter.ToJitter(Vector4.Transform(verts[i].Position, nodes[(int)verts[i].Index].Transform)));
-            }
+                Vector4[] temp = new Vector4[instanceTexture[0].Width * instanceTexture[0].Height];
+                int startIndex = transformCount - GFXShaderConstants.NUM_INSTANCES;
+                transformTextures[0].GetData<Vector4>(temp);
+                Array.Copy(transformField, 0, temp, startIndex, GFXShaderConstants.NUM_INSTANCES);
+                transformTextures[0].SetData<Vector4>(temp);
 
-            for (int i = 0; i < parts.Length; i++)
-            {
-                RenderElement srcElem = parts[i].renderElement;
-                ushort[] indexData = new ushort[srcElem.PrimitiveCount * 3];
-                srcElem.IndexBuffer.GetData<ushort>(indexData);
-                TriangleVertexIndices tvi;
-                for (int j = 0; j < indexData.Length; ++j)
-                {
-                    tvi.I0 = indexData[j * 3 + 0];
-                    tvi.I1 = indexData[j * 3 + 1];
-                    tvi.I2 = indexData[j * 3 + 2];
-                    indices.Add(tvi);
-                }
-            }
+                transformTextures[1].GetData<Vector4>(temp);
+                Array.Copy(transformField, GFXShaderConstants.NUM_INSTANCES, temp, startIndex, GFXShaderConstants.NUM_INSTANCES);
+                transformTextures[1].SetData<Vector4>(temp);
 
-            collisionMesh = new Octree(vertices, indices);
+                transformTextures[2].GetData<Vector4>(temp);
+                Array.Copy(transformField, GFXShaderConstants.NUM_INSTANCES*2, temp, startIndex, GFXShaderConstants.NUM_INSTANCES);
+                transformTextures[2].SetData<Vector4>(temp);
+                temp = null;
+            }
+            */
         }
-        */
+
+        void FinalizeInstanceTexture(ref Vector4[] transforms, ref Texture2D[] transformTextures)
+        {
+            int stride = transformTextures[0].Width * transformTextures[0].Height;
+            transformTextures[0].SetData<Vector4>(transforms, 0, stride, SetDataOptions.None);
+            transformTextures[1].SetData<Vector4>(transforms, stride, stride, SetDataOptions.None);
+            transformTextures[2].SetData<Vector4>(transforms, stride*2, stride, SetDataOptions.None);
+        }
 
         public void RenderNoLOD(Matrix transform, RenderView view)
         {
@@ -705,46 +739,54 @@ namespace Gaia.Resources
                 if (frustum.Contains(parts[i].bounds) != ContainmentType.Disjoint)
                 {
                     RenderElement element = parts[i].renderElement;
-                    element.Transform = new Matrix[1] { transform };
+                    element.Transform = transform;
                     view.AddElement(parts[i].material, element);
                 }
             }
         }
-
+        
         public void RenderPostSceneQuery(RenderView view)
         {
+            if (!useInstancing)
+                return;
+
             addedToView = false;
-            if (cachedTransforms.Count > 0)
+            if (instanceCount > 0)
             {
+                FinalizeInstanceTexture(ref instanceTemp, ref instanceTexture);
                 for (int i = 0; i < parts.Length; i++)
                 {
-                    parts[i].renderElementInstanced.Transform = null;
-                    parts[i].renderElementInstanced.Transform = cachedTransforms.ToArray();
+                    for(int j = 0; j < instanceTexture.Length; j++)
+                        parts[i].material.SetVertexTexture(j, instanceTexture[j]);
+                    parts[i].renderElementInstanced.InstanceCount = instanceCount;
                     view.AddElement(parts[i].material, parts[i].renderElementInstanced);
                 }
-                cachedTransforms.Clear();
+                instanceCount = 0;
             }
             if (imposterGeometry != null)
-            {
-                if (imposterGeometry.cachedTransforms.Count > 0)
+            {  
+                if (imposterInstanceCount > 0)
                 {
-                    imposterGeometry.Element.Transform = null;
-                    imposterGeometry.Element.Transform = imposterGeometry.cachedTransforms.ToArray();
+                    FinalizeInstanceTexture(ref imposterInstanceTemp, ref imposterInstanceTexture);
+                    imposterGeometry.Element.InstanceCount = imposterInstanceCount;
+                    for (int j = 0; j < instanceTexture.Length; j++)
+                        imposterGeometry.ImposterMaterial.SetVertexTexture(j, imposterInstanceTexture[j]);
                     view.AddElement(imposterGeometry.ImposterMaterial, imposterGeometry.Element);
-                    imposterGeometry.cachedTransforms.Clear();
+                    imposterInstanceCount = 0;
                 }
             }
 
         }
-
+        
         public void RenderImposters(Matrix transform, RenderView view, bool performCulling)
         {
-            if (!addedToView)
+            
+            if (useInstancing && !addedToView)
             {
                 view.AddMeshToRender(this);
                 addedToView = true;
             }
-
+            
             if (performCulling)
             {
                 BoundingFrustum frustum = view.GetFrustum();
@@ -752,52 +794,74 @@ namespace Gaia.Resources
                 frustum.Matrix = transform * view.GetViewProjection();
                 if (imposterGeometry != null && frustum.Contains(meshBounds) != ContainmentType.Disjoint)
                 {
-                    imposterGeometry.cachedTransforms.Add(imposterGeometry.Scale * transform);
+                    Matrix tempTransform = imposterGeometry.Scale * transform;
+                    if (useInstancing)
+                        InjectTransform(ref tempTransform, ref imposterInstanceTemp, ref imposterInstanceCount, ref imposterInstanceTexture);
+                    else
+                    {
+                        imposterGeometry.Element.Transform = imposterGeometry.Scale * transform;
+                        view.AddElement(imposterGeometry.ImposterMaterial, imposterGeometry.Element);
+                    }
                 }
                 frustum.Matrix = oldMat;
             }
             else if (imposterGeometry != null)
             {
-                imposterGeometry.cachedTransforms.Add(imposterGeometry.Scale * transform);
+                if (useInstancing)
+                    InjectTransform(ref transform, ref imposterInstanceTemp, ref imposterInstanceCount, ref imposterInstanceTexture);
+                else
+                {
+                    imposterGeometry.Element.Transform = imposterGeometry.Scale * transform;
+                    view.AddElement(imposterGeometry.ImposterMaterial, imposterGeometry.Element);
+                }
             }
         }
 
         public void Render(Matrix transform, RenderView view, bool performCulling)
         {
-            if (!addedToView)
+
+            if (useInstancing && !addedToView)
             {
                 view.AddMeshToRender(this);
                 addedToView = true;
             }
-
-            float distToCamera = Vector3.DistanceSquared(transform.Translation, view.GetPosition());
+            
             if (performCulling)
             {
                 BoundingFrustum frustum = view.GetFrustum();
                 Matrix oldMat = frustum.Matrix;
                 frustum.Matrix = transform * view.GetViewProjection();
                 if (frustum.Contains(meshBounds) != ContainmentType.Disjoint)
-                    cachedTransforms.Add(transform);
-                /*
-                for (int i = 0; i < parts.Length; i++)
                 {
-                    if (frustum.Contains(parts[i].bounds) != ContainmentType.Disjoint)
+                    if(useInstancing)
+                        InjectTransform(ref transform, ref instanceTemp, ref instanceCount, ref instanceTexture);
+                    else
                     {
-                        parts[i].cachedTransforms.Add(transform);
+                        for (int i = 0; i < parts.Length; i++)
+                        {
+                            if (frustum.Contains(parts[i].bounds) != ContainmentType.Disjoint)
+                            {
+                                parts[i].renderElement.Transform = transform;
+                                view.AddElement(parts[i].material, parts[i].renderElement);
+                            }
+                        }
                     }
+                    
                 }
-                */
                 frustum.Matrix = oldMat;
             }
             else
             {
-                cachedTransforms.Add(transform);
-                /*
-                for (int i = 0; i < parts.Length; i++)
+                if(useInstancing)
+                    InjectTransform(ref transform, ref instanceTemp, ref instanceCount, ref instanceTexture);
+                else
                 {
-                    parts[i].cachedTransforms.Add(transform);
+                    for (int i = 0; i < parts.Length; i++)
+                    {
+                        parts[i].renderElement.Transform = transform;
+                        view.AddElement(parts[i].material, parts[i].renderElement);
+                    }
                 }
-                */
             }
         }
 
@@ -814,7 +878,7 @@ namespace Gaia.Resources
                     {
                         RenderElement element = parts[i].renderElement;
                         element.VertexBuffer = animBuffer;
-                        element.Transform = new Matrix[] { transform };
+                        element.Transform = transform;
                         element.IsAnimated = true;
                         view.AddElement(parts[i].material, element);
                     }
@@ -827,7 +891,7 @@ namespace Gaia.Resources
                 {
                     RenderElement element = parts[i].renderElement;
                     element.VertexBuffer = animBuffer;
-                    element.Transform = new Matrix[] { transform };
+                    element.Transform = transform;
                     element.IsAnimated = true;
                     view.AddElement(parts[i].material, element);
                 }
@@ -875,6 +939,11 @@ namespace Gaia.Resources
 
         void CreateInstanceData()
         {
+            instanceTemp = new Vector4[GFXShaderConstants.INSTANCE_TEXTURE_SIZE*GFXShaderConstants.INSTANCE_TEXTURE_SIZE * 3];
+            instanceCount = 0;
+            for (int i = 0; i < instanceTexture.Length; i++)
+                instanceTexture[i] = new Texture2D(GFX.Device, GFXShaderConstants.INSTANCE_TEXTURE_SIZE, GFXShaderConstants.INSTANCE_TEXTURE_SIZE, 1, TextureUsage.None, SurfaceFormat.Vector4);
+
             VertexPNTTI[] vertData = new VertexPNTTI[vertexCount];
             vertexBuffer.GetData<VertexPNTTI>(vertData);
             VertexPNTTI[] instVerts = new VertexPNTTI[vertexCount * GFXShaderConstants.NUM_INSTANCES];
@@ -1057,6 +1126,9 @@ namespace Gaia.Resources
                         break;
                     case "useimposter":
                         useImposter = bool.Parse(attrib.Value);
+                        break;
+                    case "useinstancing":
+                        useInstancing = bool.Parse(attrib.Value);
                         break;
                 }
             }

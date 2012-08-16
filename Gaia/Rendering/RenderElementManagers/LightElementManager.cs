@@ -6,15 +6,16 @@ using Microsoft.Xna.Framework.Graphics;
 using Gaia.Resources;
 using Gaia.Rendering.RenderViews;
 using Gaia.SceneGraph.GameEntities;
+using Gaia.Core;
 namespace Gaia.Rendering
 {
     public class LightElementManager : RenderElementManager
     {
-        public Queue<Light> AmbientLights = new Queue<Light>();
-        public Queue<Light> DirectionalLights = new Queue<Light>();
-        public Queue<Light> DirectionalShadowLights = new Queue<Light>();
-        public Queue<Light> PointLights = new Queue<Light>();
-        public Queue<Light> SpotLights = new Queue<Light>();
+        public CustomList<Light> AmbientLights = new CustomList<Light>();
+        public CustomList<Light> DirectionalLights = new CustomList<Light>();
+        public CustomList<Light> DirectionalShadowLights = new CustomList<Light>();
+        public CustomList<Light> PointLights = new CustomList<Light>();
+        public CustomList<Light> SpotLights = new CustomList<Light>();
 
         Shader ambientLightShader;
         Shader directionalLightShader;
@@ -60,9 +61,9 @@ namespace Gaia.Rendering
 
             ambientLightShader.SetupShader();
 
-            while (AmbientLights.Count > 0)
+            for(int i = 0; i < AmbientLights.Count; i++)
             {
-                Light currLight = AmbientLights.Dequeue();
+                Light currLight = AmbientLights[i];
                 GFX.Device.SetPixelShaderConstant(GFXShaderConstants.PC_LIGHTCOLOR, currLight.Color);
                 GFXPrimitives.Cube.Render();
             }
@@ -70,9 +71,9 @@ namespace Gaia.Rendering
 
             directionalLightShader.SetupShader();
 
-            while (DirectionalLights.Count > 0)
+            for(int i = 0; i < DirectionalLights.Count; i++)
             {
-                Light currLight = DirectionalLights.Dequeue();
+                Light currLight = DirectionalLights[i];
                 SetupLightParameters(currLight);
                 GFXPrimitives.Cube.Render();
             }
@@ -83,9 +84,9 @@ namespace Gaia.Rendering
             GFX.Device.SamplerStates[3].MipFilter = TextureFilter.None;
 
             GFX.Device.SetPixelShaderConstant(0, renderView.GetView());
-            while (DirectionalShadowLights.Count > 0)
+            for(int i = 0; i < DirectionalShadowLights.Count; i++)
             {
-                Light currLight = DirectionalShadowLights.Dequeue();
+                Light currLight = DirectionalShadowLights[i];
                 SetupLightParameters(currLight);
                 Texture2D shadowMap = currLight.GetShadowMap();
                 GFX.Device.Textures[3] = shadowMap;
@@ -101,22 +102,28 @@ namespace Gaia.Rendering
             GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_MODELVIEW, renderView.GetViewProjection());
 
             pointLightShader.SetupShader();
-            while (PointLights.Count > 0)
+            for(int i = 0; i < PointLights.Count; i++)
             {
-                Light currLight = PointLights.Dequeue();
+                Light currLight = PointLights[i];
                 GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_WORLD, currLight.Transformation.GetTransform());
                 SetupLightParameters(currLight);
                 GFXPrimitives.Cube.Render();
             }
 
             spotLightShader.SetupShader();
-            while (SpotLights.Count > 0)
+            for(int i = 0; i < SpotLights.Count; i++)
             {
-                Light currLight = SpotLights.Dequeue();
+                Light currLight = SpotLights[i];
                 GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_WORLD, currLight.Transformation.GetTransform());
                 SetupLightParameters(currLight);
                 GFXPrimitives.Cube.Render();
             }
+
+            AmbientLights.Clear();
+            DirectionalLights.Clear();
+            DirectionalShadowLights.Clear();
+            PointLights.Clear();
+            SpotLights.Clear();
 
             GFX.Inst.ResetState();
         }

@@ -15,6 +15,8 @@ namespace Gaia.Rendering.RenderViews
         public RenderTarget2D DataMap;
         public RenderTarget2D LightMap;
 
+        public RenderTarget2D EmissiveMap;
+
         public RenderTarget2D ParticleBuffer;
 
         public ResolveTexture2D BackBufferTexture;
@@ -77,6 +79,8 @@ namespace Gaia.Rendering.RenderViews
             NormalMap = new RenderTarget2D(GFX.Device, width, height, 1, SurfaceFormat.HalfVector2);
             DataMap = new RenderTarget2D(GFX.Device, width, height, 1, SurfaceFormat.Color);
             LightMap = new RenderTarget2D(GFX.Device, width, height, 1, SurfaceFormat.Color);
+
+            EmissiveMap = new RenderTarget2D(GFX.Device, width / 4, height / 4, 1, SurfaceFormat.Color);
 
             ParticleBuffer = new RenderTarget2D(GFX.Device, width / 8, height / 8, 1, SurfaceFormat.Color);
 
@@ -266,19 +270,16 @@ namespace Gaia.Rendering.RenderViews
             GFX.Device.SetRenderTarget(0, null);
 
             GFX.Device.SetRenderTarget(0, ParticleBuffer);
-            GFX.Device.Clear(Color.TransparentBlack);
-            GFX.Device.SetRenderTarget(0, null);
-            /*
-            GFX.Device.SetRenderTarget(0, ParticleBuffer);
-            GFX.Device.SetPixelShaderConstant(0, Vector2.One / new Vector2(ParticleBuffer.Width, ParticleBuffer.Height));
+            GFX.Device.SetPixelShaderConstant(0, Vector2.One / new Vector2(DepthMap.Width, DepthMap.Height));
             GFX.Inst.SetTextureFilter(2, TextureFilter.Point);
             GFX.Device.Textures[2] = DepthMap.GetTexture();
             GFX.Device.Clear(Color.TransparentBlack);
             ElementManagers[RenderPass.Particles].Render();
             GFX.Device.SetRenderTarget(0, null);
             PostProcessElementManager mgr = (PostProcessElementManager)ElementManagers[RenderPass.PostProcess];
-            mgr.BlurParticles();
-            */
+            mgr.BlurRenderTarget(ParticleBuffer, PostProcessElementManager.BlurFilter.Gauss, 2);
+            mgr.DownsampleGlow(ColorMap, LightMap, DataMap, EmissiveMap);
+            
             GFX.Device.Clear(Color.TransparentBlack);
             GFX.Device.SetPixelShaderConstant(3, scene.GetMainLightDirection()); //Light Direction for sky
             ElementManagers[RenderPass.Sky].Render(); //This'll change the modelview

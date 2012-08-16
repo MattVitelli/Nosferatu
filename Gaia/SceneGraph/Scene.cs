@@ -345,6 +345,14 @@ namespace Gaia.SceneGraph
             campfire.Transformation = tent.Transformation;
             AddEntity("CampFire", campfire);
 
+            ParticleEmitter flameEmitter = new ParticleEmitter(ResourceManager.Inst.GetParticleEffect("Fire0"), 300);
+            flameEmitter.Transformation.SetPosition(campfire.Transformation.GetPosition() + Vector3.Up * 1.5f);
+            AddEntity("FireEffect", flameEmitter);
+
+            ParticleEmitter smokeEmitter = new ParticleEmitter(ResourceManager.Inst.GetParticleEffect("Smoke4"), 300);
+            smokeEmitter.Transformation.SetPosition(campfire.Transformation.GetPosition() + Vector3.Up * 3.0f);
+            AddEntity("SmokeEffect", smokeEmitter);
+
             CampTrigger campTrigger = new CampTrigger();
             campTrigger.Transformation.SetPosition(tent.Transformation.GetPosition());
             campTrigger.Transformation.SetScale(Vector3.One * 15);
@@ -471,6 +479,7 @@ namespace Gaia.SceneGraph
                     }
 
                     RenderViews[i][j].Render();
+                    GFX.Inst.CleanupPostFrame();
                 }
             }
         }

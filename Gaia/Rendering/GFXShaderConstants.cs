@@ -7,6 +7,7 @@ namespace Gaia.Rendering
     public static class GFXShaderConstants
     {
         public static int VC_MODELVIEW = 0;
+        public static int VC_INSTANCE_OFFSET = 30;
         public static int VC_USERDEF0 = 4;
         public static int VC_WORLD = 16;
         public static int VC_TEXGEN = 8;
@@ -35,11 +36,13 @@ namespace Gaia.Rendering
         
         public static int NUM_INSTANCES = 60;
 
-        public static int MAX_PARTICLES = 256*256; //That's a LOT of particles. Interestingly enough, this only takes up about a kilobyte
+        public static int MAX_PARTICLES = 128*128; //That's a LOT of particles. Interestingly enough, this only takes up about a kilobyte
 
         public static int MAX_PARTICLECOLORS = 16;
 
         public static int MAX_PARTICLEFORCES = 4;
+
+        public static int INSTANCE_TEXTURE_SIZE = 64; 
 
         public static int PC_PARTICLECOLORS = 2;
 
@@ -92,10 +95,14 @@ namespace Gaia.Rendering
             {
                 using (StreamWriter wr = new StreamWriter(fs))
                 {
+                    wr.WriteLine("#ifndef _SHADER_CONST_");
+                    wr.WriteLine("#define _SHADER_CONST_");
+
                     WriteDefine(wr, "MAX_PARTICLES", MAX_PARTICLES);
                     WriteDefine(wr, "MAX_PARTICLECOLORS", MAX_PARTICLECOLORS);
                     WriteDefine(wr, "MAX_PARTICLEFORCES", MAX_PARTICLEFORCES);
                     WriteDefine(wr, "NUM_INSTANCES", NUM_INSTANCES); //Instancing
+                    WriteDefine(wr, "INSTANCE_TEXTURE_SIZE", (float)INSTANCE_TEXTURE_SIZE);
                     WriteDefine(wr, "NUM_SPLITS", NUM_SPLITS); //Cascade shadow maps
                     WriteDefine(wr, "GRASSFALLOFF", GRASSFALLOFF);
                     WriteDefine(wr, "ALPHACUTOFF", (float)ALPHACUTOFF / 255.0f);
@@ -107,6 +114,7 @@ namespace Gaia.Rendering
                     WriteCommand(wr, "VC_TEXGEN", VC_TEXGEN);
                     WriteCommand(wr, "VC_TIME", VC_TIME);
                     WriteCommand(wr, "VC_USERDEF0", VC_USERDEF0);
+                    WriteCommand(wr, "VC_INSTANCE_OFFSET", VC_INSTANCE_OFFSET);
 
                     WriteCommand(wr, "PC_AMBIENT", PC_AMBIENT);
                     WriteCommand(wr, "PC_DIFFUSE", PC_DIFFUSE);
@@ -127,6 +135,8 @@ namespace Gaia.Rendering
                     WriteCommand(wr, "PC_PARTICLEVARS", PC_PARTICLEVARS);
                     WriteCommand(wr, "PC_EYEPOSPHYSICS", PC_EYEPOSPHYSICS);
                     WriteCommand(wr, "PC_VIEWMATRIXPHYSICS", PC_VIEWMATRIXPHYSICS);
+
+                    wr.Write("#endif");
                 }
             }
 

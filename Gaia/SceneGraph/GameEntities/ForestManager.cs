@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 using Gaia.Resources;
 using Gaia.Core;
 using Gaia.Rendering.RenderViews;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace Gaia.SceneGraph.GameEntities
 {

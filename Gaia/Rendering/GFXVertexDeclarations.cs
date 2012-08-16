@@ -46,18 +46,23 @@ namespace Gaia.Rendering
 
     public struct VertexParticles
     {
-        public Vector2 Index;
+        public Vector2 Position;
+        public float Index;
 
-        public static int SizeInBytes = (2) * sizeof(float);
+        public static int SizeInBytes = 3 * sizeof(float);
 
         public static VertexElement[] VertexElements = new VertexElement[]
-         {
+        {
              new VertexElement( 0, 0, VertexElementFormat.Vector2, 
                                       VertexElementMethod.Default, 
                                       VertexElementUsage.Position, 0),
-         };
-        public VertexParticles(Vector2 index)
+             new VertexElement( 0, sizeof(float)*2, VertexElementFormat.Single, 
+                                      VertexElementMethod.Default, 
+                                      VertexElementUsage.TextureCoordinate, 0),
+        };
+        public VertexParticles(Vector2 position, float index)
         {
+            Position = position;
             Index = index;
         }
     }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 
+using Gaia.Core;
 using Gaia.Resources;
 namespace Gaia.Rendering.RenderViews
 {
@@ -36,7 +37,7 @@ namespace Gaia.Rendering.RenderViews
         Matrix worldMatrix;
 
         protected SortedList<RenderPass, RenderElementManager> ElementManagers;
-        protected List<Mesh> meshesToRender = new List<Mesh>();
+        protected CustomList<Mesh> meshesToRender = new CustomList<Mesh>();
 
         bool dirtyMatrix;
         bool updateViewProjLocal = true;
@@ -70,20 +71,21 @@ namespace Gaia.Rendering.RenderViews
         public virtual void AddElement(Material material, RenderElement element)
         {
         }
-
+        
         public void AddMeshToRender(Mesh mesh)
         {
             meshesToRender.Add(mesh);
         }
-
+        
         public virtual void Render()
         {
+            
             for (int i = 0; i < meshesToRender.Count; i++)
             {
                 meshesToRender[i].RenderPostSceneQuery(this);
             }
             meshesToRender.Clear();
-
+            
             GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_MODELVIEW, GetViewProjection());
             GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_EYEPOS, GetEyePosShader());
             GFX.Device.SetPixelShaderConstant(GFXShaderConstants.PC_EYEPOS, GetEyePosShader());

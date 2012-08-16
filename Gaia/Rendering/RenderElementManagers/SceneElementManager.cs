@@ -4,11 +4,12 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Gaia.Rendering.RenderViews;
 using Gaia.Resources;
+using Gaia.Core;
 namespace Gaia.Rendering
 {
     public class SceneElementManager : RenderElementManager
     {
-        protected SortedList<Material, List<RenderElement>> Elements = new SortedList<Material, List<RenderElement>>();
+        protected SortedList<Material, CustomList<RenderElement>> Elements = new SortedList<Material, CustomList<RenderElement>>();
         protected Matrix[] tempTransforms = new Matrix[GFXShaderConstants.NUM_INSTANCES];
 
         public SceneElementManager(RenderView renderView) : base(renderView) { }
@@ -16,7 +17,7 @@ namespace Gaia.Rendering
         public virtual void AddElement(Material material, RenderElement element)
         {
             if (!Elements.ContainsKey(material))
-                Elements.Add(material, new List<RenderElement>());
+                Elements.Add(material, new CustomList<RenderElement>());
             Elements[material].Add(element);
         }
 
@@ -26,10 +27,12 @@ namespace Gaia.Rendering
                 GFX.Device.VertexDeclaration = currElem.VertexDec;
             GFX.Device.Indices = currElem.IndexBuffer;
             GFX.Device.Vertices[0].SetSource(currElem.VertexBuffer, 0, currElem.VertexStride);
-            for (int j = 0; j < currElem.Transform.Length; j += GFXShaderConstants.NUM_INSTANCES)
+            GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_WORLD, currElem.Transform);
+            if (currElem.InstanceCount == 0)
+                currElem.InstanceCount = 1;
+            for (int j = 0; j < currElem.InstanceCount; j += GFXShaderConstants.NUM_INSTANCES)
             {
-                
-                int binLength = currElem.Transform.Length - j;
+                int binLength = currElem.InstanceCount - j;
 
                 if (binLength > GFXShaderConstants.NUM_INSTANCES)
                     binLength = GFXShaderConstants.NUM_INSTANCES;
@@ -37,19 +40,10 @@ namespace Gaia.Rendering
                 if (currElem.IsAnimated)
                     binLength = 1;
 
-                if (currElem.Transform.Length > 1 && !currElem.IsAnimated)
-                {
-                    // Upload transform matrices as shader constants.
-                    Array.Copy(currElem.Transform, j, tempTransforms, 0, binLength);
-                    GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_WORLD, tempTransforms);
-                }
-                else
-                {
-                    GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_WORLD, currElem.Transform);
-                }
+                GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_INSTANCE_OFFSET, Vector4.One * j); 
+
                 GFX.Device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, currElem.StartVertex, currElem.VertexCount * binLength, 0, currElem.PrimitiveCount * binLength);
             }
-            //currElem.Transform = null; //THIS IS REALLY FREAKIN IMPORTANT!! 
         }
 
         public override void Render()

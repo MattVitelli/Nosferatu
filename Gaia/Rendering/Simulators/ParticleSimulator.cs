@@ -39,18 +39,12 @@ namespace Gaia.Rendering.Simulators
             }
 
             updatePhysicsShader = new Shader();
-            updatePhysicsShader.VSTarget = 2;
-            updatePhysicsShader.PSTarget = 3;
             updatePhysicsShader.CompileFromFiles("Shaders/Simulation/ParticlePhysicsP.hlsl", "Shaders/Simulation/ParticlesV.hlsl");
 
             updateColorShader = new Shader();
-            updateColorShader.VSTarget = 2;
-            updateColorShader.PSTarget = 3;
             updateColorShader.CompileFromFiles("Shaders/Simulation/ParticleColorsP.hlsl", "Shaders/Simulation/ParticlesV.hlsl");
 
             updateSizeShader = new Shader();
-            updateSizeShader.VSTarget = 2;
-            updateSizeShader.PSTarget = 3;
             updateSizeShader.CompileFromFiles("Shaders/Simulation/ParticleSizeP.hlsl", "Shaders/Simulation/ParticlesV.hlsl");
             
         }

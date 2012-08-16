@@ -380,19 +380,19 @@ namespace Gaia.SceneGraph.GameEntities
                     switch (type)
                     {
                         case LightType.Ambient:
-                            lightMgr.AmbientLights.Enqueue(this);
+                            lightMgr.AmbientLights.Add(this);
                             break;
                         case LightType.Directional:
                             if (castsShadows)
-                                lightMgr.DirectionalShadowLights.Enqueue(this);
+                                lightMgr.DirectionalShadowLights.Add(this);
                             else
-                                lightMgr.DirectionalLights.Enqueue(this);
+                                lightMgr.DirectionalLights.Add(this);
                             break;
                         case LightType.Point:
-                            lightMgr.PointLights.Enqueue(this);
+                            lightMgr.PointLights.Add(this);
                             break;
                         case LightType.Spot:
-                            lightMgr.SpotLights.Enqueue(this);
+                            lightMgr.SpotLights.Add(this);
                             break;
                     }
                 }

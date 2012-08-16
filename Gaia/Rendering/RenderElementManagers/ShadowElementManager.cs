@@ -43,7 +43,7 @@ namespace Gaia.Rendering
                 }
                 for(int j = 0; j < Elements[key].Count; j++)
                 {
-                    if (Elements[key][j].Transform.Length > 1 || Elements[key][j].IsAnimated)
+                    if (Elements[key][j].InstanceCount > 0 || Elements[key][j].IsAnimated)
                     {
                         if (activeShader != shadowShaderInst)
                             shadowShaderInst.SetupShader();

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Xml;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 using Gaia.Rendering;
 using Gaia.Core;
@@ -16,8 +17,10 @@ namespace Gaia.Resources
         public string Name { get { return name; } }
 
         const int textureCounts = 16;
+        const int vertexTextureCounts = 4;
 
         TextureResource[] textures = new TextureResource[textureCounts];
+        Texture2D[] vertexTextures = new Texture2D[vertexTextureCounts];
 
         bool Transparent;
         bool Refract;
@@ -131,6 +134,12 @@ namespace Gaia.Resources
                             textures[index] = ResourceManager.Inst.GetTexture(attrib.Value);
                         break;
 
+                    case "vertextexture":
+                        int index2 = int.Parse(attribs[1]);
+                        if (index2 >= 0 && index2 < vertexTextureCounts)
+                            vertexTextures[index2] = (Texture2D)ResourceManager.Inst.GetTexture(attrib.Value).GetTexture();
+                        break;
+
                     case "shader":
                         shader = ResourceManager.Inst.GetShader(attrib.Value);
                         break;
@@ -167,6 +176,18 @@ namespace Gaia.Resources
                     GFX.Device.SamplerStates[i].MaxMipLevel = textures[i].GetTexture().LevelOfDetail;
                 }
             }
+
+            for (int i = 0; i < vertexTextures.Length; i++)
+            {
+                if (vertexTextures[i] != null)
+                    GFX.Device.VertexTextures[i] = vertexTextures[i];
+            }
+        }
+
+        public void SetVertexTexture(int index, Texture2D texture)
+        {
+            if (index >= 0 && index < vertexTextures.Length)
+                vertexTextures[index] = texture;
         }
 
         public void SetTexture(int index, TextureResource texture)

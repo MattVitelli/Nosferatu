@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Gaia.Resources;
 using Gaia.Rendering.RenderViews;
 using Gaia.Rendering.Geometry;
+using Gaia.Core;
 
 namespace Gaia.Rendering
 {
@@ -131,9 +132,9 @@ namespace Gaia.Rendering
     {
         Shader basicImageShader;
 
-        Queue<GUIElement> Elements = new Queue<GUIElement>();
-        Queue<GUITextElement> TextElements = new Queue<GUITextElement>();
-        Queue<GUIElementTC> ElementsTC = new Queue<GUIElementTC>();
+        CustomList<GUIElement> Elements = new CustomList<GUIElement>();
+        CustomList<GUITextElement> TextElements = new CustomList<GUITextElement>();
+        CustomList<GUIElementTC> ElementsTC = new CustomList<GUIElementTC>();
 
         Texture2D whiteTexture;
 
@@ -179,17 +180,17 @@ namespace Gaia.Rendering
 
         public void AddElement(GUIElement element)
         {
-            Elements.Enqueue(element);
+            Elements.Add(element);
         }
 
         public void AddElement(GUITextElement element)
         {
-            TextElements.Enqueue(element);
+            TextElements.Add(element);
         }
 
         public void AddElement(GUIElementTC element)
         {
-            ElementsTC.Enqueue(element);
+            ElementsTC.Add(element);
         }
 
         void DrawQuad(Vector4 TCMinMax)
@@ -223,23 +224,25 @@ namespace Gaia.Rendering
             basicImageShader.SetupShader();
             GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_INVTEXRES, Vector2.Zero);
 
-            while (Elements.Count > 0)
+            for(int i = 0; i < Elements.Count; i++)
             {
-                GUIElement elem = Elements.Dequeue();
+                GUIElement elem = Elements[i];
                 GFX.Device.Textures[0] = (elem.Image == null) ? whiteTexture : elem.Image;
                 GFX.Device.SetVertexShaderConstant(0, elem.ScaleOffset);
                 GFX.Device.SetPixelShaderConstant(0, elem.Color);
                 GFXPrimitives.Quad.Render();
             }
+            Elements.Clear();
 
-            while (ElementsTC.Count > 0)
+            for(int i = 0; i < ElementsTC.Count; i++)
             {
-                GUIElementTC elem = ElementsTC.Dequeue();
+                GUIElementTC elem = ElementsTC[i];
                 GFX.Device.Textures[0] = (elem.Image == null) ? whiteTexture : elem.Image;
                 GFX.Device.SetVertexShaderConstant(0, elem.ScaleOffset);
                 GFX.Device.SetPixelShaderConstant(0, elem.Color);
                 DrawQuad(elem.TCMinMax);
             }
+            ElementsTC.Clear();
 
             GFX.Device.RenderState.AlphaBlendEnable = false;
 
@@ -251,9 +254,9 @@ namespace Gaia.Rendering
         private void DrawTextElements()
         {
             spriteBatch.Begin(SpriteBlendMode.AlphaBlend, SpriteSortMode.Deferred, SaveStateMode.SaveState);
-            while (TextElements.Count > 0)
+            for(int i = 0; i < TextElements.Count; i++)
             {
-                GUITextElement element = TextElements.Dequeue();
+                GUITextElement element = TextElements[i];
                 Vector2 pos = element.Position * new Vector2(0.5f, -0.5f) + Vector2.One * 0.5f;
                 pos *= GFX.Inst.DisplayRes;
                 Vector2 textSize = DefaultFont.MeasureString(element.Text);
@@ -261,6 +264,7 @@ namespace Gaia.Rendering
                 //spriteBatch.DrawString(DefaultFont, element.Text, pos, new Color(element.Color));
                 spriteBatch.DrawString(DefaultFont, element.Text, pos, new Color(element.Color), 0, Vector2.Zero, element.Size, SpriteEffects.None, 0);
             }
+            TextElements.Clear();
             spriteBatch.End();
         }
     }

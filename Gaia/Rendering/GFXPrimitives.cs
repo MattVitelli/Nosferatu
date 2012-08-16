@@ -128,26 +128,42 @@ namespace Gaia.Rendering
             indexBufferInstanced.SetData<ushort>(instIB);
         }
     }
-
+    
     public class ParticleGeometry
     {
-        public VertexParticles[] particles = new VertexParticles[GFXShaderConstants.MAX_PARTICLES];
+        public VertexBuffer VertexBuffer;
+        public IndexBuffer IndexBuffer;
 
-        float[] particleSizeBuffer = new float[GFXShaderConstants.MAX_PARTICLES];
-
-        public void UpdateParticles(int textureSize)
+        public ParticleGeometry()
         {
-            Vector2 invRes = Vector2.One / (float)textureSize;
-            for (int j = 0; j < textureSize; j++)
+            int particleCount = GFXShaderConstants.MAX_PARTICLES;
+            VertexParticles[] verts = new VertexParticles[particleCount * 4];
+            uint[] indices = new uint[particleCount * 6];
+
+            for (int i = 0; i < particleCount; i++)
             {
-                for (int i = 0; i < textureSize; i++)
-                {
-                    int index = i + j * textureSize;
-                    particles[index].Index.X = invRes.X * i;
-                    particles[index].Index.Y = invRes.Y * j;
-                    particles[index].Index += 0.5f * invRes;
-                }
+                int vertIndex = i * 4;
+
+                int ibIndex = i * 6;
+
+                verts[vertIndex] = new VertexParticles(new Vector2(1, -1), i);
+                verts[vertIndex + 1] = new VertexParticles(new Vector2(-1, -1), i);
+                verts[vertIndex + 2] = new VertexParticles(new Vector2(-1, 1), i);
+                verts[vertIndex + 3] = new VertexParticles(new Vector2(1, 1), i);
+
+                indices[ibIndex] = (uint)vertIndex;
+                indices[ibIndex + 1] = (uint)(vertIndex + 1);
+                indices[ibIndex + 2] = (uint)(vertIndex + 2);
+                indices[ibIndex + 3] = (uint)(vertIndex + 2);
+                indices[ibIndex + 4] = (uint)(vertIndex + 3);
+                indices[ibIndex + 5] = (uint)vertIndex;
             }
+
+            VertexBuffer = new VertexBuffer(GFX.Device, verts.Length * VertexParticles.SizeInBytes, BufferUsage.None);
+            VertexBuffer.SetData<VertexParticles>(verts);
+
+            IndexBuffer = new IndexBuffer(GFX.Device, sizeof(uint) * indices.Length, BufferUsage.None, IndexElementSize.ThirtyTwoBits);
+            IndexBuffer.SetData<uint>(indices);
         }
     }
 

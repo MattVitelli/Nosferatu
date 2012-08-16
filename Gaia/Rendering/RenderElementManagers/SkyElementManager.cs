@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 using Gaia.Resources;
 using Gaia.Rendering.RenderViews;
+using Gaia.Core;
 
 namespace Gaia.Rendering
 {
@@ -27,7 +28,7 @@ namespace Gaia.Rendering
 
     public class SkyElementManager : RenderElementManager
     {
-        public List<SkyRenderElement> Elements = new List<SkyRenderElement>();
+        public CustomList<SkyRenderElement> Elements = new CustomList<SkyRenderElement>();
 
         Shader skyShaderPrepass;
         Shader skyShader;

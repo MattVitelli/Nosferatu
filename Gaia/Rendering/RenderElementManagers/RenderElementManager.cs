@@ -7,7 +7,7 @@ using Gaia.Rendering.RenderViews;
 
 namespace Gaia.Rendering
 {
-    public class RenderElement
+    public struct RenderElement
     {
         public int StartVertex;
 
@@ -17,7 +17,7 @@ namespace Gaia.Rendering
 
         public int PrimitiveCount;
         
-        public Matrix[] Transform;
+        public Matrix Transform;
 
         public IndexBuffer IndexBuffer;
 
@@ -27,6 +27,7 @@ namespace Gaia.Rendering
 
         public bool IsAnimated;
 
+        public int InstanceCount;
     }
 
     public abstract class RenderElementManager

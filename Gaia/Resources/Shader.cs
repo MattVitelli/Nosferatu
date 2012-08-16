@@ -15,9 +15,6 @@ namespace Gaia.Resources
         PixelShader ps;
         VertexShader vs;
         bool compiled = false;
-
-        public int VSTarget = 2;
-        public int PSTarget = 3;
         string errorMessage = null;
 
         void IResource.Destroy()
@@ -43,12 +40,6 @@ namespace Gaia.Resources
                         break;
                     case "vsfilename":
                         vsFileName = attrib.Value;
-                        break;
-                    case "pstarget":
-                        PSTarget = int.Parse(attrib.Value);
-                        break;
-                    case "vstarget":
-                        VSTarget = int.Parse(attrib.Value);
                         break;
                     case "name":
                         name = attrib.Value;
