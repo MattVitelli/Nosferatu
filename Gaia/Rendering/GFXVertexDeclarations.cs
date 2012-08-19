@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Graphics.PackedVector;
+
+using Gaia.Core;
 
 namespace Gaia.Rendering
 {
@@ -265,6 +268,29 @@ namespace Gaia.Rendering
         }
     }
 
+    public struct VertexPNCompressed
+    {
+        public Vector3 Position;
+        public HalfVector2 Normal;
+
+        public static int SizeInBytes = (4) * sizeof(float);
+
+        public static VertexElement[] VertexElements = new VertexElement[]
+         {
+             new VertexElement( 0, 0, VertexElementFormat.Vector3, 
+                                      VertexElementMethod.Default, 
+                                      VertexElementUsage.Position, 0),
+             new VertexElement( 0, sizeof(float)*3, VertexElementFormat.HalfVector2, 
+                                      VertexElementMethod.Default, 
+                                      VertexElementUsage.Normal, 0),
+         };
+        public VertexPNCompressed(Vector3 position, Vector3 normal)
+        {
+            Position = position;
+            Normal = new HalfVector2(MathUtils.CompressNormal(normal));
+        }
+    }
+
     public struct VertexPN
     {
         public Vector3 Position;
@@ -300,6 +326,7 @@ namespace Gaia.Rendering
         public static VertexDeclaration PNTTBDec;
         public static VertexDeclaration AnimDec;
         public static VertexDeclaration PNDec;
+        public static VertexDeclaration PNCompressedDec;
         public static VertexDeclaration ParticlesDec;
 
         public static void Initialize()
@@ -314,6 +341,7 @@ namespace Gaia.Rendering
             PTIDec = new VertexDeclaration(GFX.Device, VertexPTI.VertexElements);
             AnimDec = new VertexDeclaration(GFX.Device, VertexAnimation.VertexElements);
             ParticlesDec = new VertexDeclaration(GFX.Device, VertexParticles.VertexElements);
+            PNCompressedDec = new VertexDeclaration(GFX.Device, VertexPNCompressed.VertexElements);
         }
     }
 }

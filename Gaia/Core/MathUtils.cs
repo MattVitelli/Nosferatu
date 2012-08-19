@@ -27,6 +27,15 @@ namespace Gaia.Core
             return srcBounds;
         }
 
+        public static Vector2 CompressNormal(Vector3 normal)
+        {
+            float scale = 1.7777f;
+            Vector2 enc = new Vector2(normal.X, normal.Y) / (normal.Z + 1);
+            enc /= scale;
+            enc = (enc + Vector2.One) * 0.5f;
+            return enc;
+        }
+
         public static Matrix Invert3x3(Matrix matrix)
         {
             Matrix destMat = Matrix.Identity;

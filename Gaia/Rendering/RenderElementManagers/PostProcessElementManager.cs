@@ -39,8 +39,8 @@ namespace Gaia.Rendering
 
         MainRenderView mainRenderView; //Used to access GBuffer
 
-        float bloomBias = 0.492f;
-        float bloomMultiplier = 1.45f;
+        float bloomBias = 0.1492f;
+        float bloomMultiplier = 3.75f;
 
         float waterScale = 120;
         float waveScale = 10;
@@ -127,8 +127,8 @@ namespace Gaia.Rendering
         {
             Vector2 invRes = Vector2.One / new Vector2(target.Width, target.Height);
             GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_INVTEXRES, invRes);
-            GFX.Device.SetPixelShaderConstant(0, Vector4.One * 1);
-            GFX.Device.SetPixelShaderConstant(1, invRes);
+            GFX.Device.SetPixelShaderConstant(1, Vector4.One * 0.015f);
+            GFX.Device.SetPixelShaderConstant(0, invRes);
 
             Shader activeHShader = boxBlurHShader;
             Shader activeVShader = boxBlurVShader;
