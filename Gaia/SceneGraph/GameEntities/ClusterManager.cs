@@ -22,21 +22,21 @@ namespace Gaia.SceneGraph.GameEntities
         int camY;
         int camZ;
 
-        string meshName;
+        string[] meshNames;
         int clustersPerBlock;
 
         bool alignToSurface = false;
 
-        public ClusterManager(string meshName, int clustersPerBlock) : base()
+        public ClusterManager(string[] meshNames, int clustersPerBlock) : base()
         {
-            this.meshName = meshName;
+            this.meshNames = meshNames;
             this.clustersPerBlock = clustersPerBlock;
         }
 
-        public ClusterManager(string meshName, int clustersPerBlock, bool alignToSurface)
+        public ClusterManager(string[] meshNames, int clustersPerBlock, bool alignToSurface)
             : base()
         {
-            this.meshName = meshName;
+            this.meshNames = meshNames;
             this.clustersPerBlock = clustersPerBlock;
             this.alignToSurface = alignToSurface;
         }
@@ -57,7 +57,7 @@ namespace Gaia.SceneGraph.GameEntities
                         {
                             Vector3 origin = new Vector3(x, y, z) * CloudBlockScale;
                             BoundingBox searchRegion = new BoundingBox(origin, origin + Vector3.One * CloudBlockScale);
-                            ForestManager cluster = new ForestManager(meshName, clustersPerBlock, searchRegion);
+                            ForestManager cluster = new ForestManager(meshNames, clustersPerBlock, searchRegion);
                             cluster.alignToSurface = alignToSurface;
                             cluster.OnAdd(this.scene);
                             clusterCollection.Add(idx, cluster);

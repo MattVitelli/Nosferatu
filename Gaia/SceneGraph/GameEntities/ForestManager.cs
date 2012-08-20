@@ -19,11 +19,11 @@ namespace Gaia.SceneGraph.GameEntities
     public class ForestManager : Entity
     {
         public KDTree<ForestElement> visibleMeshes = new KDTree<ForestElement>(SceneCompareFunction);
-        Mesh mesh;
+        Mesh[] meshes;
         const int defaultEntityCount = 1500;
 
         int entityCount = defaultEntityCount;
-        string meshName;
+        string[] meshNames;
 
         BoundingBox region;
 
@@ -34,15 +34,15 @@ namespace Gaia.SceneGraph.GameEntities
 
         bool isEnabled = false;
 
-        public ForestManager(string name, int clusterCount)
+        public ForestManager(string[] names, int clusterCount)
         {
-            meshName = name;
+            meshNames = names;
             entityCount = clusterCount;
         }
 
-        public ForestManager(string name, int clusterCount, BoundingBox region)
+        public ForestManager(string[] names, int clusterCount, BoundingBox region)
         {
-            meshName = name;
+            meshNames = names;
             useRegion = true;
             this.region = region;
             entityCount = clusterCount;
@@ -51,7 +51,10 @@ namespace Gaia.SceneGraph.GameEntities
         public override void OnAdd(Scene scene)
         {
             base.OnAdd(scene);
-            mesh = ResourceManager.Inst.GetMesh(meshName);
+            meshes = new Mesh[meshNames.Length];
+            for(int i = 0; i < meshNames.Length; i++)
+                meshes[i] = ResourceManager.Inst.GetMesh(meshNames[i]);
+
             List<TriangleGraph> availableTriangles = null;
             if (useRegion)
             {
@@ -88,7 +91,8 @@ namespace Gaia.SceneGraph.GameEntities
                         element.Transform.SetRotation(new Vector3(0, (float)RandomHelper.RandomGen.NextDouble() * MathHelper.TwoPi, 0));
  
                 element.Transform.SetPosition(pos);
-                element.Mesh = mesh;
+                int randMeshIndex = RandomHelper.RandomGen.Next(i % meshes.Length);
+                element.Mesh = meshes[randMeshIndex];
                 visibleMeshes.AddElement(element, false);
             }
             isEnabled = true;
@@ -154,9 +158,9 @@ namespace Gaia.SceneGraph.GameEntities
             }
             
             if(node.element.RenderImposters)
-                node.element.Mesh.RenderImposters(node.element.Transform.GetTransform(), view, true);
+                node.element.Mesh.RenderImposters(node.element.Transform.GetTransform(), view, false);
             else
-                node.element.Mesh.Render(node.element.Transform.GetTransform(), view, true);
+                node.element.Mesh.Render(node.element.Transform.GetTransform(), view, false);
             RecursivelyRender(node.leftChild, view);
             RecursivelyRender(node.rightChild, view);
         }
