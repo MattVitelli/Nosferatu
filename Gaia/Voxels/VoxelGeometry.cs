@@ -10,7 +10,7 @@ namespace Gaia.Voxels
 {
     public class VoxelGeometry
     {
-        public VertexPN[] verts = null;
+        public VertexPNCompressed[] verts = null;
         public ushort[] ib = null;
         int PrimitiveCount = 0;
         SortedList<int, List<TriangleGraph>> collisionGraph = new SortedList<int, List<TriangleGraph>>();
@@ -34,8 +34,8 @@ namespace Gaia.Voxels
         void InitializeRenderElement()
         {
             renderElement = new RenderElement();
-            renderElement.VertexDec = GFXVertexDeclarations.PNDec;
-            renderElement.VertexStride = VertexPN.SizeInBytes;
+            renderElement.VertexDec = GFXVertexDeclarations.PNCompressedDec;
+            renderElement.VertexStride = VertexPNCompressed.SizeInBytes;
             renderElement.StartVertex = 0;
         }
 
@@ -132,8 +132,8 @@ namespace Gaia.Voxels
         public void GenerateGeometry(ref byte[] DensityField, byte IsoValue, int DensityFieldWidth, int DensityFieldHeight, int DensityFieldDepth, int Width, int Height, int Depth, int xOrigin, int yOrigin, int zOrigin, Vector3 ratio, Matrix transform)
         {
             DestroyBuffers();
-            
-            List<VertexPN> _vertices = new List<VertexPN>();
+
+            List<VertexPNCompressed> _vertices = new List<VertexPNCompressed>();
             List<ushort> _indices = new List<ushort>();
             SortedList<int, ushort> _edgeToIndices = new SortedList<int, ushort>();
             collisionGraph.Clear();
@@ -220,7 +220,9 @@ namespace Gaia.Voxels
                                     {
                                         _edgeToIndices.Add(idx, (ushort)_vertices.Count);
                                         
-                                        _vertices.Add(GenerateVertex(VoxelHelper.NewTriangleTable2[cubeindex, i + j], VectorCache, NormalCache, DensityCache, IsoValue));
+                                        VertexPN vert = GenerateVertex(VoxelHelper.NewTriangleTable2[cubeindex, i + j], VectorCache, NormalCache, DensityCache, IsoValue);
+                                        
+                                        _vertices.Add(new VertexPNCompressed(vert.Position, vert.Normal));
                                     }
                                     _indices.Add(_edgeToIndices[idx]);
                                 }
@@ -255,8 +257,8 @@ namespace Gaia.Voxels
             if (verts.Length > 0)
             {
                 renderElement.VertexCount = verts.Length;
-                renderElement.VertexBuffer = new VertexBuffer(GFX.Device, verts.Length * VertexPN.SizeInBytes, BufferUsage.WriteOnly);
-                renderElement.VertexBuffer.SetData<VertexPN>(verts);
+                renderElement.VertexBuffer = new VertexBuffer(GFX.Device, verts.Length * VertexPNCompressed.SizeInBytes, BufferUsage.WriteOnly);
+                renderElement.VertexBuffer.SetData<VertexPNCompressed>(verts);
             }
             if (ib.Length > 0)
             {

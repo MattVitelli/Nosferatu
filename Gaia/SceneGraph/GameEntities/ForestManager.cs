@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
+using Gaia.Voxels;
 using Gaia.Resources;
 using Gaia.Core;
 using Gaia.Rendering.RenderViews;
@@ -19,23 +20,78 @@ namespace Gaia.SceneGraph.GameEntities
     {
         public KDTree<ForestElement> visibleMeshes = new KDTree<ForestElement>(SceneCompareFunction);
         Mesh mesh;
-        const int entityCount = 1500;
+        const int defaultEntityCount = 1500;
+
+        int entityCount = defaultEntityCount;
+        string meshName;
+
+        BoundingBox region;
+
+        public bool randomizeScale = false;
+        bool useRegion = false;
+        public bool randomizeOrientation = true;
+        public bool alignToSurface = false;
+
+        bool isEnabled = false;
+
+        public ForestManager(string name, int clusterCount)
+        {
+            meshName = name;
+            entityCount = clusterCount;
+        }
+
+        public ForestManager(string name, int clusterCount, BoundingBox region)
+        {
+            meshName = name;
+            useRegion = true;
+            this.region = region;
+            entityCount = clusterCount;
+        }
 
         public override void OnAdd(Scene scene)
         {
-            mesh = ResourceManager.Inst.GetMesh("Cecropia");
             base.OnAdd(scene);
+            mesh = ResourceManager.Inst.GetMesh(meshName);
+            List<TriangleGraph> availableTriangles = null;
+            if (useRegion)
+            {
+                scene.MainTerrain.GetTrianglesInRegion(RandomHelper.RandomGen, out availableTriangles, region);
+                if (availableTriangles.Count == 0)
+                {
+                    isEnabled = false;
+                    return;
+                }
+            }
             for(int i = 0; i < entityCount; i++)
             {
                 Vector3 pos;
                 Vector3 normal;
-                scene.MainTerrain.GenerateRandomTransform(RandomHelper.RandomGen, out pos, out normal);
+                if (useRegion)
+                {
+                    int index = i % availableTriangles.Count;
+                    int randIndex = RandomHelper.RandomGen.Next(index);
+                    normal = availableTriangles[randIndex].Normal;
+                    pos = availableTriangles[randIndex].GeneratePointInTriangle(RandomHelper.RandomGen);
+                }
+                else
+                    scene.MainTerrain.GenerateRandomTransform(RandomHelper.RandomGen, out pos, out normal);
                 ForestElement element = new ForestElement();
-                element.Transform = new Transform();
+                element.Transform = (alignToSurface) ? new NormalTransform() : new Transform();
+                if (alignToSurface)
+                {
+                    NormalTransform transform = (NormalTransform)element.Transform;
+                    transform.ConformToNormal(normal);
+                    if (randomizeOrientation)
+                        transform.SetAngle((float)RandomHelper.RandomGen.NextDouble() * MathHelper.TwoPi);
+                }
+                else if(randomizeOrientation)
+                        element.Transform.SetRotation(new Vector3(0, (float)RandomHelper.RandomGen.NextDouble() * MathHelper.TwoPi, 0));
+ 
                 element.Transform.SetPosition(pos);
                 element.Mesh = mesh;
                 visibleMeshes.AddElement(element, false);
             }
+            isEnabled = true;
             visibleMeshes.BuildTree();
             RecursivelyBuildBounds(visibleMeshes.GetRoot());
         }
@@ -81,7 +137,8 @@ namespace Gaia.SceneGraph.GameEntities
 
         public override void OnRender(RenderView view)
         {
-            RecursivelyRender(visibleMeshes.GetRoot(), view);
+            if (isEnabled)
+                RecursivelyRender(visibleMeshes.GetRoot(), view);
             base.OnRender(view);
         }
 
@@ -97,9 +154,9 @@ namespace Gaia.SceneGraph.GameEntities
             }
             
             if(node.element.RenderImposters)
-                node.element.Mesh.RenderImposters(node.element.Transform.GetTransform(), view, false);
+                node.element.Mesh.RenderImposters(node.element.Transform.GetTransform(), view, true);
             else
-                node.element.Mesh.Render(node.element.Transform.GetTransform(), view, false);
+                node.element.Mesh.Render(node.element.Transform.GetTransform(), view, true);
             RecursivelyRender(node.leftChild, view);
             RecursivelyRender(node.rightChild, view);
         }

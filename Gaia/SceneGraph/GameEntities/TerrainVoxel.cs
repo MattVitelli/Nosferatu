@@ -22,7 +22,7 @@ namespace Gaia.SceneGraph.GameEntities
         public byte IsoValue = 127; //Defines density field isosurface cutoff value (ie the transition between solid and empty space)
                                     //so if a voxel had an element of 127 or lower, that would be empty space. A value higher than 127
                                     //Would be solid space.
-        public int VoxelGridSize = 8; //Defines how many voxel geometries we have (used to balance performance)
+        public int VoxelGridSize = 32; //Defines how many voxel geometries we have (used to balance performance)
         public int DensityFieldWidth = 129; //Density field is (2^n)+1 in size. (e.g. 65, 129, 257, 513) 
         public int DensityFieldHeight;
         public int DensityFieldDepth;
@@ -354,7 +354,6 @@ namespace Gaia.SceneGraph.GameEntities
         void GenerateTerrainProcedurally()
         {
             Texture2D heightMap = GFX.Inst.TerrainGen.GenerateTerrain(257, 257, out landmarks);
-            heightMap.Save("HeightMap.dds", ImageFileFormat.Dds);
             DensityFieldWidth = heightMap.Width;
             DensityFieldDepth = DensityFieldWidth;
             DensityFieldHeight = ((DensityFieldWidth - 1) / 4) + 1;
@@ -528,9 +527,6 @@ namespace Gaia.SceneGraph.GameEntities
             GFX.Device.SetRenderTarget(0, null);
 
             GFX.Device.Textures[0] = null;
-
-            paramTarget.GetTexture().Save("TestParams.dds", ImageFileFormat.Dds);
-
 
             Shader blurShader = ResourceManager.Inst.GetShader("VoxelBlur3x3x3");
 
