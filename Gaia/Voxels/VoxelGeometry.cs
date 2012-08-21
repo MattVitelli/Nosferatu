@@ -26,6 +26,14 @@ namespace Gaia.Voxels
 
         public bool CanRender = false;
 
+        ushort voxelIndex = 0;
+
+        public VoxelGeometry(ushort voxelIndex)
+        {
+            this.voxelIndex = voxelIndex;
+            InitializeRenderElement();
+        }
+
         public VoxelGeometry()
         {
             InitializeRenderElement();
@@ -232,7 +240,7 @@ namespace Gaia.Voxels
                                 Vector3 v0 = Vector3.Transform(_vertices[id0].Position, transform);
                                 Vector3 v1 = Vector3.Transform(_vertices[id1].Position, transform);
                                 Vector3 v2 = Vector3.Transform(_vertices[id2].Position, transform);
-                                TriangleGraph graph = new TriangleGraph(id0, id1, id2, v0, v1, v2);
+                                TriangleGraph graph = new TriangleGraph(this.voxelIndex, id0, id1, id2, v0, v1, v2);
                                 for (int j = 0; j < edgeIndices.Length; j++)
                                     collisionGraph[edgeIndices[j]].Add(graph);
 

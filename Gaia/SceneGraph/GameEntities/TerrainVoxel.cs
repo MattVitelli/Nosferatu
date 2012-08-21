@@ -59,7 +59,6 @@ namespace Gaia.SceneGraph.GameEntities
         public int[] surfaceIndices;
 
         List<TriangleGraph> availableTriangles;
-
         SortedList<int, Vector4> landmarks;
 
         public TerrainVoxel()
@@ -164,6 +163,11 @@ namespace Gaia.SceneGraph.GameEntities
         {
             int randomIndex = rand.Next(0, availableTriangles.Count);
             TriangleGraph triangle = availableTriangles[randomIndex];
+            while (usedLandmarkTriangles.ContainsKey(triangle.ID))
+            {
+                randomIndex = rand.Next(0, availableTriangles.Count);
+                triangle = availableTriangles[randomIndex];
+            }
             position = triangle.GeneratePointInTriangle(RandomHelper.RandomGen);
             normal = triangle.Normal;
             return;
@@ -194,7 +198,12 @@ namespace Gaia.SceneGraph.GameEntities
 
         public override bool GetTrianglesInRegion(Random rand, out List<TriangleGraph> availableTriangles, BoundingBox region)
         {
-            
+            return GetTrianglesInRegion(rand, out availableTriangles, region, false);
+        }
+
+        public override bool GetTrianglesInRegion(Random rand, out List<TriangleGraph> availableTriangles, BoundingBox region, bool isLandmark)
+        {
+
             Vector3 invRegionMin = Vector3.Transform(region.Min, this.Transformation.GetObjectSpace());
             Vector3 invRegionMax = Vector3.Transform(region.Max, this.Transformation.GetObjectSpace());
             //region.Min = invRegionMin;
@@ -230,7 +239,7 @@ namespace Gaia.SceneGraph.GameEntities
                         if (Voxels[voxelIndex].CanRender)
                         {
                             KDTree<TriangleGraph> collisionTree = Voxels[voxelIndex].GetCollisionTree();
-                            PerformKDRegionSearch(collisionTree.GetRoot(), ref region, availableTriangles);
+                            PerformKDRegionSearch(collisionTree.GetRoot(), ref region, availableTriangles, isLandmark);
                         }
                     }
                 }
@@ -323,7 +332,7 @@ namespace Gaia.SceneGraph.GameEntities
             region.Max = pos + sides;
             region.Min.Y = this.Transformation.GetBounds().Min.Y;
             region.Max.Y = this.Transformation.GetBounds().Max.Y;
-            if (GetTrianglesInRegion(RandomHelper.RandomGen, out triangles, region))
+            if (GetTrianglesInRegion(RandomHelper.RandomGen, out triangles, region, true))
             {
                 TriangleGraph bestTri = triangles[0];
                 float bestDist = Vector3.DistanceSquared(bestTri.Centroid, pos);
@@ -337,6 +346,16 @@ namespace Gaia.SceneGraph.GameEntities
                     }
                 }
                 transform.SetPosition(bestTri.GeneratePointInTriangle(RandomHelper.RandomGen));
+                BoundingBox newRegion = transform.TransformBounds(meshBounds);
+                triangles = null;
+                if (GetTrianglesInRegion(RandomHelper.RandomGen, out triangles, region, true))
+                {
+                    for (int i = 0; i < triangles.Count; i++)
+                    {
+                        if(!usedLandmarkTriangles.ContainsKey(triangles[i].ID))
+                            usedLandmarkTriangles.Add(triangles[i].ID, (char)1);
+                    }
+                }
             }
         }
 
@@ -353,7 +372,7 @@ namespace Gaia.SceneGraph.GameEntities
 
         void GenerateTerrainProcedurally()
         {
-            Texture2D heightMap = GFX.Inst.TerrainGen.GenerateTerrain(129, 129, out landmarks);
+            Texture2D heightMap = GFX.Inst.TerrainGen.GenerateTerrain(257, 257, out landmarks);
             DensityFieldWidth = heightMap.Width;
             DensityFieldDepth = DensityFieldWidth;
             DensityFieldHeight = ((DensityFieldWidth - 1) / 4) + 1;
@@ -831,7 +850,7 @@ namespace Gaia.SceneGraph.GameEntities
                         VoxelBounds[idx].Min = Vector3.Transform(VoxelBounds[idx].Min, Transformation.GetTransform());
                         VoxelBounds[idx].Max = Vector3.Transform(VoxelBounds[idx].Max, Transformation.GetTransform());
 
-                        Voxels[idx] = new VoxelGeometry();
+                        Voxels[idx] = new VoxelGeometry((ushort)idx);
                         Voxels[idx].renderElement.Transform = new Matrix[1] { Transformation.GetTransform() };
                         Vector3 geometryRatio = 2.0f*Vector3.One / new Vector3(DensityFieldWidth-1,DensityFieldHeight-1,DensityFieldDepth-1);
                         Voxels[idx].GenerateGeometry(ref DensityField, IsoValue, DensityFieldWidth, DensityFieldHeight, DensityFieldDepth, VoxelGridSize, VoxelGridSize, VoxelGridSize, x * VoxelGridSize, y * VoxelGridSize, z * VoxelGridSize, geometryRatio, this.Transformation.GetTransform());

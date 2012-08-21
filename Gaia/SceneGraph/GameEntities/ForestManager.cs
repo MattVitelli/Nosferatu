@@ -14,6 +14,7 @@ namespace Gaia.SceneGraph.GameEntities
         public Mesh Mesh;
         public Transform Transform;
         public bool RenderImposters = true;
+        public BoundingBox Bounds;
     };
 
     public class ForestManager : Entity
@@ -98,6 +99,10 @@ namespace Gaia.SceneGraph.GameEntities
             isEnabled = true;
             visibleMeshes.BuildTree();
             RecursivelyBuildBounds(visibleMeshes.GetRoot());
+
+            KDNode<ForestElement> root = visibleMeshes.GetRoot();
+            root.bounds.Min -= Vector3.One * 1.15f;
+            root.bounds.Max += Vector3.One * 1.15f;
         }
 
         static int SceneCompareFunction(ForestElement elementA, ForestElement elementB, int axis)
@@ -125,13 +130,13 @@ namespace Gaia.SceneGraph.GameEntities
             RecursivelyBuildBounds(node.rightChild);
             
             node.bounds = node.element.Transform.TransformBounds(node.element.Mesh.GetBounds());
-
+            node.element.Bounds = node.bounds;
             if (node.leftChild != null)
             {
                 node.bounds.Min = Vector3.Min(node.leftChild.bounds.Min, node.bounds.Min);
                 node.bounds.Max = Vector3.Max(node.leftChild.bounds.Max, node.bounds.Max);
             }
-
+            
             if (node.rightChild != null)
             {
                 node.bounds.Min = Vector3.Min(node.rightChild.bounds.Min, node.bounds.Min);
@@ -156,11 +161,14 @@ namespace Gaia.SceneGraph.GameEntities
                 float distToCamera = Vector3.DistanceSquared(node.element.Transform.GetPosition(), view.GetPosition());
                 node.element.RenderImposters = (distToCamera >= Mesh.IMPOSTER_DISTANCE_SQUARED);
             }
-            
-            if(node.element.RenderImposters)
-                node.element.Mesh.RenderImposters(node.element.Transform.GetTransform(), view, false);
-            else
-                node.element.Mesh.Render(node.element.Transform.GetTransform(), view, false);
+
+            //if (view.GetFrustum().Contains(node.element.Bounds) != ContainmentType.Disjoint)
+            {
+                if (node.element.RenderImposters)
+                    node.element.Mesh.RenderImposters(node.element.Transform.GetTransform(), view, false);
+                else
+                    node.element.Mesh.Render(node.element.Transform.GetTransform(), view, false);
+            }
             RecursivelyRender(node.leftChild, view);
             RecursivelyRender(node.rightChild, view);
         }

@@ -94,7 +94,7 @@ namespace Gaia.Game
             list.Items.AddRange(testStrings);
             list.SetColor(new Vector4(0.15f, 0.15f, 0.15f, 1.0f));
             //this.controls.Add(list);
-
+            compass.AddCustomMarker(scene.FindEntity("Tent").Transformation, ResourceManager.Inst.GetTexture("UI/Game/Home.dds"));
             //this.controls.Add(crosshair);
             this.controls.Add(journalStatus);
             this.controls.Add(compass);

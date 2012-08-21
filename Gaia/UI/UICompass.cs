@@ -9,6 +9,18 @@ using Gaia.Resources;
 
 namespace Gaia.UI
 {
+    public class CustomMarker
+    {
+        public Transform transform;
+        public Texture2D markerImage;
+
+        public CustomMarker(Transform transform, Texture2D texture)
+        {
+            this.transform = transform;
+            this.markerImage = texture;
+        }
+    }
+
     public class UICompass : UIControl
     {
         string[] compassDirs = { "W", "N", "E", "S" };
@@ -21,6 +33,7 @@ namespace Gaia.UI
 
         Transform currTransform = null;
         List<Transform> markers = new List<Transform>();
+        List<CustomMarker> customMarkers = new List<CustomMarker>();
 
         public void SetTransformation(Transform transform)
         {
@@ -30,6 +43,11 @@ namespace Gaia.UI
         public void AddMarker(Transform transform)
         {
             markers.Add(transform);
+        }
+
+        public void AddCustomMarker(Transform transform, TextureResource texture)
+        {
+            customMarkers.Add(new CustomMarker(transform, texture.GetTexture() as Texture2D));
         }
 
         public void RemoveMarker(Transform transform)
@@ -78,6 +96,24 @@ namespace Gaia.UI
                     Vector2 markerMin = textPos - Vector2.One * 0.05f;
                     Vector2 markerMax = textPos + Vector2.One * 0.05f;
                     GUIElement markerElem = new GUIElement(markerMin, markerMax, markerImage, new Vector4(1.0f, 0, 0, 1.0f));
+                    GFX.Inst.GetGUI().AddElement(markerElem);
+                }
+            }
+
+            for (int i = 0; i < customMarkers.Count; i++)
+            {
+                Vector3 dir = customMarkers[i].transform.GetPosition() - currTransform.GetPosition();
+                float theta = 0.5f + 0.5f * (float)Math.Atan2(dir.Z, dir.X) / MathHelper.Pi;
+                if (theta < minTC.X)
+                    theta++;
+                if (minTC.X < theta && theta < maxTC.X)
+                {
+                    float lerpAmount = (theta - minTC.X) / (maxTC.X - minTC.X);
+                    Vector2 textPos = Vector2.Lerp(min, max, lerpAmount);
+                    textPos.Y = (min.Y + max.Y) * 0.5f;
+                    Vector2 markerMin = textPos - Vector2.One * 0.05f;
+                    Vector2 markerMax = textPos + Vector2.One * 0.05f;
+                    GUIElement markerElem = new GUIElement(markerMin, markerMax, customMarkers[i].markerImage, Vector4.One);
                     GFX.Inst.GetGUI().AddElement(markerElem);
                 }
             }

@@ -9,6 +9,8 @@ namespace Gaia.SceneGraph.GameEntities
 {
     public abstract class Terrain : Entity
     {
+        protected SortedList<ulong, char> usedLandmarkTriangles = new SortedList<ulong, char>();
+
         public virtual void GenerateRandomTransform(Random rand, out Vector3 position, out Vector3 normal)
         {
             position = Vector3.Zero;
@@ -16,6 +18,12 @@ namespace Gaia.SceneGraph.GameEntities
         }
 
         public virtual bool GetTrianglesInRegion(Random rand, out List<TriangleGraph> availableTriangles, BoundingBox region)
+        {
+            availableTriangles = null;
+            return false;
+        }
+
+        public virtual bool GetTrianglesInRegion(Random rand, out List<TriangleGraph> availableTriangles, BoundingBox region, bool isLandmark)
         {
             availableTriangles = null;
             return false;
@@ -38,9 +46,9 @@ namespace Gaia.SceneGraph.GameEntities
 
         }
 
-        protected void PerformKDRegionSearch(KDNode<TriangleGraph> node, ref BoundingBox region, List<TriangleGraph> triangleCollection)
+        protected void PerformKDRegionSearch(KDNode<TriangleGraph> node, ref BoundingBox region, List<TriangleGraph> triangleCollection, bool isLandmark)
         {
-            if (node != null)
+            if (node != null && (isLandmark || !usedLandmarkTriangles.ContainsKey(node.element.ID)))
             {
                 if (region.Contains(node.element.Centroid) != ContainmentType.Disjoint
                     || region.Contains(node.element.GetVertex0()) != ContainmentType.Disjoint
@@ -49,9 +57,9 @@ namespace Gaia.SceneGraph.GameEntities
                 {
                     triangleCollection.Add(node.element);
                 }
-                PerformKDRegionSearch(node.leftChild, ref region, triangleCollection);
+                PerformKDRegionSearch(node.leftChild, ref region, triangleCollection, isLandmark);
 
-                PerformKDRegionSearch(node.rightChild, ref region, triangleCollection);
+                PerformKDRegionSearch(node.rightChild, ref region, triangleCollection, isLandmark);
             }
         }
 

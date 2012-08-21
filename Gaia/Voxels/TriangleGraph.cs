@@ -80,11 +80,13 @@ namespace Gaia.Voxels
             invB = 1.0f / ((acDiff.Y * p1.X) + (acDiff.X * p1.Y) + acCrossDiff);
         }
 
-        public TriangleGraph(ushort index0, ushort index1, ushort index2, Vector3 p0, Vector3 p1, Vector3 p2)
+        public TriangleGraph(ushort voxelIndex, ushort index0, ushort index1, ushort index2, Vector3 p0, Vector3 p1, Vector3 p2)
         {
             ID = (ulong)index0;
-            ID += ((ulong)index1 << sizeof(ushort));
-            ID += ((ulong)index2 << sizeof(ushort) * 2);
+            int stride = sizeof(ushort)*8;
+            ID |= ((ulong)index1 << stride);
+            ID |= ((ulong)index2 << (stride * 2));
+            ID |= ((ulong)voxelIndex << (stride * 3));
             this.p0 = p0;
             this.p1 = p1;
             this.p2 = p2;

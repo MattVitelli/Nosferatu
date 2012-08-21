@@ -25,7 +25,7 @@ namespace Gaia.SceneGraph.GameEntities
         {
             base.OnAdd(scene);
 
-            camera = scene.MainPlayer;
+            camera = (Camera)scene.FindEntity("MainCamera");
         }
 
         public void SetEnabled(bool enabled)
@@ -53,7 +53,7 @@ namespace Gaia.SceneGraph.GameEntities
             if (isControllable)
             {
                 Vector3 velocity = Vector3.Zero;
-                Vector3 rot = scene.MainPlayer.Transformation.GetRotation();
+                Vector3 rot = camera.Transformation.GetRotation();
                 Matrix transform = Matrix.CreateRotationY(rot.Y);
                 forwardVector = transform.Forward;
                 strafeVector = transform.Right;

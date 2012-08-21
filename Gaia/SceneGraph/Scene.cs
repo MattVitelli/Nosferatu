@@ -27,7 +27,7 @@ namespace Gaia.SceneGraph
         
         public RenderView MainCamera;
 
-        public Camera MainPlayer;
+        public Player MainPlayer;
 
         public Terrain MainTerrain;
 
@@ -172,10 +172,10 @@ namespace Gaia.SceneGraph
 
         void CreateTeams()
         {
-            Player player = new Player();
-            player.SetEnabled(true);
-            player.SetControllable(true);
-            Entities.Add("Player", player);
+            MainPlayer = new Player();
+            MainPlayer.SetEnabled(true);
+            MainPlayer.SetControllable(true);
+            Entities.Add("Player", MainPlayer);
         }
 
         void InitializePhysics()
@@ -336,11 +336,10 @@ namespace Gaia.SceneGraph
             amulet.Transformation.SetRotation(crypt.Transformation.GetRotation());
             AddEntity("Amulet", amulet);
 
-
-            Model tent = new Model("Tent");
+            Model tent = new Model("MilitaryTent");
             (MainTerrain as TerrainVoxel).GetLandmarkTransform(MapLandmark.Camp, tent.Transformation, tent.GetMesh().GetBounds());
             AddEntity("Tent", tent);
-
+            /*
             Model campfire = new Model("Campfire");
             campfire.Transformation = tent.Transformation;
             AddEntity("CampFire", campfire);
@@ -352,7 +351,7 @@ namespace Gaia.SceneGraph
             ParticleEmitter smokeEmitter = new ParticleEmitter(ResourceManager.Inst.GetParticleEffect("Smoke4"), 300);
             smokeEmitter.Transformation.SetPosition(campfire.Transformation.GetPosition() + Vector3.Up * 3.0f);
             AddEntity("SmokeEffect", smokeEmitter);
-
+            */
             CampTrigger campTrigger = new CampTrigger();
             campTrigger.Transformation.SetPosition(tent.Transformation.GetPosition());
             campTrigger.Transformation.SetScale(Vector3.One * 15);
@@ -383,9 +382,7 @@ namespace Gaia.SceneGraph
             MainTerrain.Transformation.SetScale(new Vector3(1, height / width, 1) * width);
             */
 
-            MainPlayer = new Camera();
-            
-            Entities.Add("MainCamera", MainPlayer);
+            Entities.Add("MainCamera", new Camera());
             
             Entities.Add("Terrain", MainTerrain);
             Entities.Add("Light", MainLight);
@@ -435,7 +432,7 @@ namespace Gaia.SceneGraph
             model.Model.SetCustomMatrix(Matrix.CreateScale(0.09f)*Matrix.CreateRotationX(-MathHelper.PiOver2));
             //model.UpdateAnimation();
             Entities.Add("TestCharacter", model);
-            */
+            
             AnimatedModel model2 = new AnimatedModel("AlphaRaptor");
             (MainTerrain as TerrainVoxel).GetLandmarkTransform(MapLandmark.Docks, model2.Transformation, model2.Model.GetMeshBounds());
             model2.Transformation.SetPosition(model2.Transformation.GetPosition() + Vector3.Up * 10);
@@ -443,14 +440,13 @@ namespace Gaia.SceneGraph
             model2.Model.SetCustomMatrix(Matrix.CreateScale(0.12f) * Matrix.CreateRotationX(-MathHelper.PiOver2));
             //model.UpdateAnimation();
             Entities.Add("TestCharacter2", model2);
-
+            */
             AddEntity("Raptor", new Raptor(ResourceManager.Inst.GetDinosaurDatablock("AlphaRaptor")));
             /*
             InteractObject weaponCrate = new InteractObject(new ChestNode("Weapon Box"), "WeaponBox");
             weaponCrate.Transformation.SetPosition(Vector3.Up * 30.0f);
             Entities.Add("weaponCrate", weaponCrate);
             */
-
 
             CreateTeams();          
             

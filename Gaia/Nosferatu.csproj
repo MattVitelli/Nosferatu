@@ -123,6 +123,7 @@
       <DependentUpon>ModelSelector.cs</DependentUpon>
     </Compile>
     <Compile Include="Game\CampTrigger.cs" />
+    <Compile Include="Game\AIDirector.cs" />
     <Compile Include="Game\GasStation.cs" />
     <Compile Include="Game\HuntScreen.cs" />
     <Compile Include="Game\InteractBody.cs" />
