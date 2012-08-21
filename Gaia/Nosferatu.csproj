@@ -124,11 +124,12 @@
     </Compile>
     <Compile Include="Game\CampTrigger.cs" />
     <Compile Include="Game\AIDirector.cs" />
+    <Compile Include="Game\InteractTrigger.cs" />
     <Compile Include="Game\GasStation.cs" />
     <Compile Include="Game\HuntScreen.cs" />
     <Compile Include="Game\InteractBody.cs" />
-    <Compile Include="Game\InteractEntity.cs" />
-    <Compile Include="Game\Chest.cs" />
+    <Compile Include="Game\InteractNode.cs" />
+    <Compile Include="Game\InteractObject.cs" />
     <Compile Include="Game\PlayerScreen.cs" />
     <Compile Include="Game\PowerPlant.cs" />
     <Compile Include="Game\SoundMaster.cs" />

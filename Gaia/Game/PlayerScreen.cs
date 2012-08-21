@@ -27,7 +27,7 @@ namespace Gaia.Game
 
         Scene scene;
 
-        const float interactDist = 3.5f;
+        const float MAX_INTERACT_DIST = 3.5f;
         const float journalFadeInTime = 1.5f;
         const float journalFadeOutTime = 2.0f;
         float journalFadeTime = 0;
@@ -52,6 +52,8 @@ namespace Gaia.Game
         public bool ActivatedPower = false;
 
         public bool HasFuel = false;
+
+        public List<InteractTrigger> interactables = new List<InteractTrigger>();
 
         Sound2D bgSound;
 
@@ -121,22 +123,62 @@ namespace Gaia.Game
             journalStatus.SetText(description);
         }
 
-        void PerformInteraction()
+        public void AddInteractable(InteractTrigger trigger)
         {
-            Vector3 ray = Vector3.Zero;
-            float dist;
+            interactables.Add(trigger);
+        }
+
+        public void RemoveInteractable(InteractTrigger trigger)
+        {
+            int index = interactables.IndexOf(trigger);
+            if (index >= 0 && index < interactables.Count)
+                interactables.RemoveAt(index);
+        }
+
+        InteractNode GetInteractNode(Microsoft.Xna.Framework.Ray lookRay)
+        {
+            float collisionDist;
             CollisionSkin skin = null;
             Vector3 pos, normal;
- 
+            Segment seg = new Segment(lookRay.Position, lookRay.Direction * MAX_INTERACT_DIST);
+            scene.GetPhysicsEngine().CollisionSystem.SegmentIntersect(out collisionDist, out skin, out pos, out normal, seg, pred);
+
+            float bestDist = (skin != null) ? collisionDist : float.PositiveInfinity;
+            InteractNode bestNode = null;
+            for (int i = 0; i < interactables.Count; i++)
+            {
+                InteractObject interactObj = interactables[i].GetInteractObject();
+                
+                BoundingBox bounds =  interactObj.Transformation.TransformBounds(interactObj.GetMesh().GetBounds());
+                float? intersection = lookRay.Intersects(bounds);
+                if (intersection.HasValue)
+                {
+                    float dist = intersection.Value;
+                    if (dist < bestDist && dist <= MAX_INTERACT_DIST)
+                    {
+                        bestDist = dist;
+                        bestNode = interactObj.GetInteractNode();
+                    }
+                }
+            }
+            return bestNode;
+        }
+
+        void PerformInteraction()
+        { 
             Vector3 origin = playerTransform.GetPosition();
             Vector3 lookDir = playerTransform.GetTransform().Forward;
-            Segment seg = new Segment(origin, lookDir * interactDist);
-             
-            scene.GetPhysicsEngine().CollisionSystem.SegmentIntersect(out dist, out skin, out pos, out normal, seg, pred);
-            if (skin != null && skin.Owner != null && ((InteractBody)skin.Owner).Node != null)
+
+            Microsoft.Xna.Framework.Ray lookRay;
+            lookRay.Position = origin;
+            lookRay.Direction = lookDir;
+
+            InteractNode node = GetInteractNode(lookRay);
+            //scene.GetPhysicsEngine().CollisionSystem.SegmentIntersect(out dist, out skin, out pos, out normal, seg, pred);
+            if (node != null)//skin != null && skin.Owner != null && ((InteractBody)skin.Owner).Node != null)
             {
-                InteractBody body = (InteractBody)skin.Owner;
-                InteractNode node = body.Node;
+                //InteractBody body = (InteractBody)skin.Owner;
+                //InteractNode node = body.Node;
                 //Do collision detection at a later date!
                 //skin.Owner
                 interactStatus.SetText(node.GetInteractText());

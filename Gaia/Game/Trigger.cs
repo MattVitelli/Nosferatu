@@ -17,7 +17,7 @@ namespace Gaia.Game
 
         public override void OnUpdate()
         {
-            Vector3 playerPos = scene.MainPlayer.Transformation.GetPosition();
+            Vector3 playerPos = scene.MainCamera.GetPosition();
             BoundingBox bounds = this.Transformation.GetBounds();
             if (bounds.Contains(playerPos) != ContainmentType.Disjoint)
             {
