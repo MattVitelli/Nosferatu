@@ -33,6 +33,12 @@ namespace Gaia.Physics
 
         private bool doJump = false;
 
+        bool grounded = false;
+        public bool IsGrounded
+        {
+            get { return grounded; }
+        }
+
         Vector3 contactNormal = Vector3.Up;
         public Vector3 GetContactNormal()
         {
@@ -48,6 +54,8 @@ namespace Gaia.Physics
         public override void AddExternalForces(float dt)
         {
             ClearForces();
+
+            grounded = (CollisionSkin.Collisions.Count > 1);
 
             if (doJump)
             {

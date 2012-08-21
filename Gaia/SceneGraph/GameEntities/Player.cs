@@ -8,7 +8,7 @@ using Gaia.Resources;
 using Gaia.Voxels;
 using Gaia.Rendering;
 using Gaia.Game;
-
+using Gaia.Sound;
 namespace Gaia.SceneGraph.GameEntities
 {
     public class Player : Actor
@@ -17,6 +17,9 @@ namespace Gaia.SceneGraph.GameEntities
         protected bool isControllable = false;
 
         Camera camera;
+
+        const string painSoundName = "HumanPain";
+        const string deathSoundName = "HumanDeath";
 
         public override void OnAdd(Scene scene)
         {
@@ -91,6 +94,15 @@ namespace Gaia.SceneGraph.GameEntities
 
                 body.DesiredVelocity = velocity * (7.5f + sprintCoeff);
             }
+        }
+
+        public override void ApplyDamage(float damage)
+        {
+            base.ApplyDamage(damage);
+            if (IsDead())
+                new Sound2D(deathSoundName, false, false);
+            else
+                new Sound2D(painSoundName, false, false);
         }
 
         public override void OnUpdate()

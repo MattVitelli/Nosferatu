@@ -57,7 +57,7 @@ namespace Gaia.SceneGraph.GameEntities
             this.castsShadows = castsShadows;
             if (castsShadows)
             {
-                CreateCascadeShadows(1024);
+                CreateCascadeShadows(256);
             }
         }
 
@@ -266,7 +266,7 @@ namespace Gaia.SceneGraph.GameEntities
             float far = mainCamera.GetFarPlane();
             splitDepths[0] = near;
             splitDepths[GFXShaderConstants.NUM_SPLITS] = far;
-            const float splitConstant = 0.99f;
+            float splitConstant = 0.99f;
             for (int i = 1; i < splitDepths.Length - 1; i++)
                 splitDepths[i] = splitConstant * near * (float)Math.Pow(far / near, i / N) + (1.0f - splitConstant) * ((near + (i / N)) * (far - near));
 

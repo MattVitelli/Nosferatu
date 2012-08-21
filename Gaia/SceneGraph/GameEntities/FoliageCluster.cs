@@ -182,7 +182,7 @@ namespace Gaia.SceneGraph.GameEntities
                     }
                 }
 
-                renderElements[i].Transform = elemsMatrix[0];// elemsMatrix.ToArray();
+                renderElements[i].Transform = elemsMatrix.ToArray();
                 view.AddElement(key, renderElements[i]);
             }
             base.OnRender(view);

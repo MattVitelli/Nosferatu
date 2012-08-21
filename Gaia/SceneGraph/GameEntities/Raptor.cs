@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Gaia.Core;
 using Gaia.Resources;
+using Gaia.Sound;
 namespace Gaia.SceneGraph.GameEntities
 {
     public class Raptor : Actor
@@ -30,6 +31,9 @@ namespace Gaia.SceneGraph.GameEntities
         const float SIGHT_DISTANCE = 120;
         const float ATTACK_DISTANCE = 5;
         const float MIN_ATTACK_DISTANCE = 3;
+
+        const float MAX_IDLE_SOUNDTIME = 6.5f;
+        float idleSoundTime = 0;
 
         int wanderMovesCount;
         Vector3 wanderPosition;
@@ -79,11 +83,12 @@ namespace Gaia.SceneGraph.GameEntities
             else
             {
                 //model.SetAnimationLayer(IDLE_NAME, 0.0f);
+                /*
                 float walkWeight = MathHelper.Clamp(1 - vel / 3.5f, 0.0f, 1.0f);
                 float runWeight = 1.0f - walkWeight;
                 if (walkWeight > 0.5f)
                     model.GetAnimationLayer().SetActiveAnimation(datablock.GetAnimation(DinosaurAnimationsSimple.Walk), false);
-                else
+                else*/
                     model.GetAnimationLayer().SetActiveAnimation(datablock.GetAnimation(DinosaurAnimationsSimple.Run), false);
             }
             if (state == RaptorState.Attack)
@@ -93,6 +98,7 @@ namespace Gaia.SceneGraph.GameEntities
                     string attackAnim = datablock.GetAnimation(DinosaurAnimationsSimple.Attack);
                     model.GetAnimationLayer().AddAnimation(attackAnim, true);
                     animationDelay = ResourceManager.Inst.GetAnimation(attackAnim).EndTime;
+                    new Sound3D(datablock.AttackSoundEffect, this.Transformation.GetPosition());
                 }
             }
             //grounding.SetForwardVector(Vector3.Normalize(velocityVector));
@@ -114,7 +120,7 @@ namespace Gaia.SceneGraph.GameEntities
             // Reached the destination position
             if (wanderVectorLength < DISTANCE_EPSILON)
             {
-                Random rand = new Random();
+                Random rand = RandomHelper.RandomGen;
                 // Generate new random position
                 if (wanderMovesCount < WANDER_MAX_MOVES)
                 {
@@ -188,11 +194,17 @@ namespace Gaia.SceneGraph.GameEntities
                     }
                 }
             }
-            state = RaptorState.AquiredTarget;
-            //Roar when they're spotted
-            string attackAnim = datablock.GetAnimation(DinosaurAnimationsSimple.Roar);
-            model.GetAnimationLayer().AddAnimation(attackAnim, true);
-            animationDelay = ResourceManager.Inst.GetAnimation(attackAnim).EndTime;
+            if (enemy != null)
+            {
+                state = RaptorState.AquiredTarget;
+                //Roar when they're spotted
+                string attackAnim = datablock.GetAnimation(DinosaurAnimationsSimple.Roar);
+                new Sound3D(datablock.RoarSoundEffect, this.Transformation.GetPosition());
+                model.GetAnimationLayer().AddAnimation(attackAnim, true);
+                animationDelay = ResourceManager.Inst.GetAnimation(attackAnim).EndTime;
+            }
+            else
+                state = RaptorState.Wander;
         }
 
         void PerformBehavior()
@@ -251,6 +263,7 @@ namespace Gaia.SceneGraph.GameEntities
                     if (distanceToTarget > ATTACK_DISTANCE * 1.5f)// || distanceToTarget < MIN_ATTACK_DISTANCE)
                     {
                         state = RaptorState.Chase;
+                        new Sound3D(datablock.BarkSoundEffect, this.Transformation.GetPosition());
                     }
                     else
                     {
@@ -259,7 +272,9 @@ namespace Gaia.SceneGraph.GameEntities
                         state = RaptorState.Attack;
                         if (animationDelay <= 0.0f)
                         {
+                            new Sound3D(datablock.MaulSoundEffect, enemy.Transformation.GetPosition());
                             enemy.ApplyDamage(datablock.Damage);
+                            state = RaptorState.Chase;
                         }
                         //Attack
                     }
@@ -290,6 +305,17 @@ namespace Gaia.SceneGraph.GameEntities
             wanderPosition = Transformation.GetPosition();
             wanderStartPosition = wanderPosition;
             state = RaptorState.Wander;
+        }
+
+        protected override void UpdateSounds()
+        {
+            base.UpdateSounds();
+            idleSoundTime -= Time.GameTime.ElapsedTime;
+            if (idleSoundTime <=  0)
+            {
+                new Sound3D(datablock.IdleSoundEffect, this.Transformation.GetPosition());
+                idleSoundTime = MAX_IDLE_SOUNDTIME;
+            }
         }
 
         public override void OnUpdate()

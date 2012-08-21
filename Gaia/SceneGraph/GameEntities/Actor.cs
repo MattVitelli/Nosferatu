@@ -10,6 +10,7 @@ using JigLibX.Vehicles;
 
 using Gaia.Core;
 using Gaia.Physics;
+using Gaia.Sound;
 
 namespace Gaia.SceneGraph.GameEntities
 {
@@ -52,10 +53,13 @@ namespace Gaia.SceneGraph.GameEntities
             return health / MAX_HEALTH;
         }
 
-        public void ApplyDamage(float damage)
+        public virtual void ApplyDamage(float damage)
         {
             health -= damage;
         }
+
+        const float footstepThreshold = 10.75f;
+        Vector3 lastPos = Vector3.Zero;
 
         protected CharacterBody body;
 
@@ -115,6 +119,16 @@ namespace Gaia.SceneGraph.GameEntities
             energy += Time.GameTime.ElapsedTime * energyRechargeRate;
         }
 
+        protected virtual void UpdateSounds()
+        {
+            if (body.IsGrounded && Vector3.DistanceSquared(lastPos, body.Position) > footstepThreshold)
+            {
+                lastPos = body.Position;
+                Sound2D sound = new Sound3D("Footstep", body.Position);
+               
+            }
+        }
+
         protected virtual void OnDeath()
         {
 
@@ -129,6 +143,7 @@ namespace Gaia.SceneGraph.GameEntities
         {
             base.OnUpdate();
             UpdateState();
+            UpdateSounds();
         }
     }
 }

@@ -17,7 +17,7 @@ namespace Gaia.Rendering
 
         public int PrimitiveCount;
         
-        public Matrix Transform;
+        public Matrix[] Transform;
 
         public IndexBuffer IndexBuffer;
 
@@ -26,8 +26,6 @@ namespace Gaia.Rendering
         public VertexDeclaration VertexDec;
 
         public bool IsAnimated;
-
-        public int InstanceCount;
     }
 
     public abstract class RenderElementManager

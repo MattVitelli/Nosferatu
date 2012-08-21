@@ -81,6 +81,18 @@ namespace Gaia.Resources
 
         public Vector3 Position = Vector3.Zero;
 
+        public string RoarSoundEffect;
+
+        public string DeathSoundEffect;
+
+        public string AttackSoundEffect;
+
+        public string MaulSoundEffect;
+
+        public string IdleSoundEffect;
+
+        public string BarkSoundEffect;
+
         public string GetAnimation(DinosaurAnimations anim)
         {
             int index = (int)anim;
@@ -181,6 +193,24 @@ namespace Gaia.Resources
                         break;
                     case "position":
                         Position = ParseUtils.ParseVector3(attrib.Value);
+                        break;
+                    case "roar":
+                        RoarSoundEffect = attrib.Value;
+                        break;
+                    case "death":
+                        DeathSoundEffect = attrib.Value;
+                        break;
+                    case "idle":
+                        IdleSoundEffect = attrib.Value;
+                        break;
+                    case "bark":
+                        BarkSoundEffect = attrib.Value;
+                        break;
+                    case "attack":
+                        AttackSoundEffect = attrib.Value;
+                        break;
+                    case "maul":
+                        MaulSoundEffect = attrib.Value;
                         break;
                 }
             }

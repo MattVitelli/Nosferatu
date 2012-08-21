@@ -832,7 +832,7 @@ namespace Gaia.SceneGraph.GameEntities
                         VoxelBounds[idx].Max = Vector3.Transform(VoxelBounds[idx].Max, Transformation.GetTransform());
 
                         Voxels[idx] = new VoxelGeometry();
-                        Voxels[idx].renderElement.Transform = Transformation.GetTransform();// new Matrix[1] { Transformation.GetTransform() };
+                        Voxels[idx].renderElement.Transform = new Matrix[1] { Transformation.GetTransform() };
                         Vector3 geometryRatio = 2.0f*Vector3.One / new Vector3(DensityFieldWidth-1,DensityFieldHeight-1,DensityFieldDepth-1);
                         Voxels[idx].GenerateGeometry(ref DensityField, IsoValue, DensityFieldWidth, DensityFieldHeight, DensityFieldDepth, VoxelGridSize, VoxelGridSize, VoxelGridSize, x * VoxelGridSize, y * VoxelGridSize, z * VoxelGridSize, geometryRatio, this.Transformation.GetTransform());
                     }

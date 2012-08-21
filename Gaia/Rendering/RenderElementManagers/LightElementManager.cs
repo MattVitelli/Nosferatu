@@ -79,9 +79,7 @@ namespace Gaia.Rendering
             }
 
             directionalLightShadowsShader.SetupShader();
-            GFX.Device.SamplerStates[3].MagFilter = TextureFilter.Point;
-            GFX.Device.SamplerStates[3].MinFilter = TextureFilter.Point;
-            GFX.Device.SamplerStates[3].MipFilter = TextureFilter.None;
+            GFX.Inst.SetTextureFilter(3, TextureFilter.Linear);
 
             GFX.Device.SetPixelShaderConstant(0, renderView.GetView());
             for(int i = 0; i < DirectionalShadowLights.Count; i++)

@@ -435,15 +435,17 @@ namespace Gaia.SceneGraph
             model.Model.SetCustomMatrix(Matrix.CreateScale(0.09f)*Matrix.CreateRotationX(-MathHelper.PiOver2));
             //model.UpdateAnimation();
             Entities.Add("TestCharacter", model);
-            
+            */
             AnimatedModel model2 = new AnimatedModel("AlphaRaptor");
-
-            model2.Transformation.SetPosition(Vector3.Forward * -5 + Vector3.Up * 62);
+            (MainTerrain as TerrainVoxel).GetLandmarkTransform(MapLandmark.Docks, model2.Transformation, model2.Model.GetMeshBounds());
+            model2.Transformation.SetPosition(model2.Transformation.GetPosition() + Vector3.Up * 10);
             model2.Model.GetAnimationLayer().SetActiveAnimation("AlphaRaptorIdle", true);//.SetAnimationLayer("AlphaRaptorIdle", 1.0f);
             model2.Model.SetCustomMatrix(Matrix.CreateScale(0.12f) * Matrix.CreateRotationX(-MathHelper.PiOver2));
             //model.UpdateAnimation();
             Entities.Add("TestCharacter2", model2);
-            
+
+            AddEntity("Raptor", new Raptor(ResourceManager.Inst.GetDinosaurDatablock("AlphaRaptor")));
+            /*
             InteractObject weaponCrate = new InteractObject(new ChestNode("Weapon Box"), "WeaponBox");
             weaponCrate.Transformation.SetPosition(Vector3.Up * 30.0f);
             Entities.Add("weaponCrate", weaponCrate);
@@ -458,10 +460,19 @@ namespace Gaia.SceneGraph
             GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced);
         }
 
+        void UpdateSoundListener()
+        {
+            Vector3 pos = MainCamera.GetPosition();
+            Vector3 fwd = MainCamera.GetWorldMatrix().Forward;
+            SoundEngine.Device.SetListenerPosition(new IrrKlang.Vector3D(pos.X, pos.Y, pos.Z), new IrrKlang.Vector3D(fwd.X, fwd.Y, fwd.Z));
+            SoundEngine.Device.SetRolloffFactor(0.15f);
+        }
+
         public void Update()
         {
             DetermineSceneDimensions();
-
+            UpdateSoundListener();
+            
             for (int i = 0; i < Entities.Count; i++)
             {
                 Entities.Values[i].OnUpdate();       
