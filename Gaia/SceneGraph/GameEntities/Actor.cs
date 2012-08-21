@@ -58,6 +58,20 @@ namespace Gaia.SceneGraph.GameEntities
             health -= damage;
         }
 
+        public Vector3 GetForwardVector()
+        {
+            return forwardVector;
+        }
+
+        public Vector3 GetRightVector()
+        {
+            return strafeVector;
+        }
+
+        protected Vector3 forwardVector;
+
+        protected Vector3 strafeVector;
+
         const float footstepThreshold = 10.75f;
         Vector3 lastPos = Vector3.Zero;
 

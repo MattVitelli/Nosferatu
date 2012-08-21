@@ -19,9 +19,13 @@ namespace Gaia.SceneGraph.GameEntities
             Attack,
             LeapAttack,
             AquiredTarget,
+            BackOff,
+            Flank,
             Dead
         }
 
+        const float GOAL_POINT_THRESHOLD = 3.5f;
+        const float GOAL_DISTANCE = 20.0f;
         const float DISTANCE_EPSILON = 1.0f;
 
         const int WANDER_MAX_MOVES = 3;
@@ -31,7 +35,8 @@ namespace Gaia.SceneGraph.GameEntities
         const float SIGHT_DISTANCE = 120;
         const float ATTACK_DISTANCE = 5;
         const float MIN_ATTACK_DISTANCE = 3;
-
+        const float MAX_FLANK_OFFSET = 15.0f;
+        const float FLANK_CHASE_DIST = 9.5f;
         const float MAX_IDLE_SOUNDTIME = 6.5f;
         float idleSoundTime = 0;
 
@@ -43,12 +48,13 @@ namespace Gaia.SceneGraph.GameEntities
         float animationDelay = 0;
 
         Vector3 velocityVector = Vector3.Zero;
-        const float speed =  7.5f;
+        const float speed =  12.5f;
         NormalTransform grounding = new NormalTransform();
 
         Actor enemy = null;
 
         RaptorState state;
+        RaptorState prevState;
 
         public Raptor(DinosaurDatablock datablock)
         {
@@ -198,6 +204,21 @@ namespace Gaia.SceneGraph.GameEntities
                 state = RaptorState.Wander;
         }
 
+        void SetState(RaptorState newState)
+        {
+            prevState = state;
+            state = newState;
+        }
+
+        void EvaluateAttack(float distToTarget)
+        {
+            if (distToTarget <= ATTACK_DISTANCE)
+            {
+                SetState(RaptorState.Attack);
+                wanderDelayTime = 0;
+            }
+        }
+
         void PerformBehavior()
         {
             if (this.IsDead())
@@ -223,26 +244,43 @@ namespace Gaia.SceneGraph.GameEntities
 
             switch (state)
             {
+                case RaptorState.Flank:
+                    if (animationDelay <= 0.0f)
+                    {
+                        float interpCoeff = MathHelper.Clamp(distanceToTarget / 18.0f, 0.0f, 1.0f);  //* ((float)RandomHelper.RandomGen.NextDouble() * 2.0f - 1.0f)
+                        wanderPosition = enemy.Transformation.GetPosition() + enemy.GetRightVector() * MAX_FLANK_OFFSET * interpCoeff * ((Vector3.Dot(enemy.GetRightVector(), targetVec) < 0) ? 1.0f : -1.0f);
+                        Vector3 diff = wanderPosition - this.Transformation.GetPosition();
+
+                        const float MIN_ANGLE = 0.15f;
+                        float angleDiff = Vector3.Dot(enemy.GetForwardVector() * new Vector3(1, 0, 1), targetVec * new Vector3(1, 0, 1));
+                        float angleLerp = MathHelper.Clamp(angleDiff-MIN_ANGLE, 0.0f, 1.0f);
+                        Move(Vector3.Normalize(Vector3.Lerp(Vector3.Normalize(diff), targetVec, (float)Math.Pow(angleLerp,3.5f))));
+                        
+                        
+                        //If we've reached our goal point
+                        if ((float)Math.Sqrt(diff.X * diff.X + diff.Z * diff.Z) <= FLANK_CHASE_DIST || angleDiff >= MIN_ANGLE)
+                            SetState(RaptorState.Chase);
+                        EvaluateAttack(distanceToTarget);
+                    }
+                    break;
+
                 case RaptorState.Wander:
                     if (distanceToTarget < SIGHT_DISTANCE)
-                        // Change state
-                        state = RaptorState.Chase;
+                        SetState(RaptorState.Chase);
                     else
                         Wander();
                     break;
 
                 case RaptorState.Chase:
-                    if (distanceToTarget <= ATTACK_DISTANCE)
-                    {
-                        // Change state
-                        state = RaptorState.Attack;
-                        wanderDelayTime = 0;
-                    }
+                    EvaluateAttack(distanceToTarget);
                     if (distanceToTarget > SIGHT_DISTANCE * 1.35f)
-                        state = RaptorState.Wander;
+                        SetState(RaptorState.Wander);
                     else if (distanceToTarget > MIN_ATTACK_DISTANCE)
                     {
-                        Move(targetVec);
+                        if (distanceToTarget > MIN_ATTACK_DISTANCE * 3.0f)
+                            SetState(RaptorState.Flank);
+                        else
+                            Move(targetVec);
                     }
                     else
                     {
@@ -253,26 +291,54 @@ namespace Gaia.SceneGraph.GameEntities
                 case RaptorState.Attack:
                     if (distanceToTarget > ATTACK_DISTANCE * 1.5f)// || distanceToTarget < MIN_ATTACK_DISTANCE)
                     {
-                        state = RaptorState.Chase;
+                        SetState(RaptorState.Chase);
                         new Sound3D(datablock.BarkSoundEffect, this.Transformation.GetPosition());
                     }
                     else
                     {
                         if(distanceToTarget > ATTACK_DISTANCE)
                             Move(targetVec);
-                        state = RaptorState.Attack;
+                        SetState(RaptorState.Attack);
                         if (animationDelay <= 0.0f)
                         {
                             new Sound3D(datablock.MaulSoundEffect, enemy.Transformation.GetPosition());
                             enemy.ApplyDamage(datablock.Damage);
-                            state = RaptorState.Chase;
+                            SetState(RaptorState.BackOff);
+                            animationDelay = 0.2f;
                         }
                         //Attack
                     }
                     break;
                 case RaptorState.AquiredTarget:
                     if (animationDelay <= 0.0f)
-                        state = RaptorState.Chase;
+                        SetState(RaptorState.Chase);
+                    break;
+                case RaptorState.BackOff:
+                    if (animationDelay <= 0.0f)
+                    {
+                        if (prevState != RaptorState.BackOff)
+                        {
+                            //Choose goal point
+                            Vector3 randDir = Vector3.Normalize(new Vector3((float)RandomHelper.RandomGen.NextDouble() * 2.0f - 1.0f, 0, (float)RandomHelper.RandomGen.NextDouble() * 2.0f - 1.0f)) * GOAL_DISTANCE;
+                            wanderPosition = enemy.Transformation.GetPosition() + randDir;
+                            //Update state so new goal point isn't chosen
+                            SetState(RaptorState.BackOff);
+                        }
+                        else
+                        {
+                            Move(Vector3.Normalize(wanderPosition - this.Transformation.GetPosition()));
+                            Vector3 diff = wanderPosition - this.Transformation.GetPosition();
+                            float distToGoal = diff.X * diff.X + diff.Z * diff.Z;
+                            //If we've reached our goal point
+                            if (distToGoal*0.25f <= GOAL_POINT_THRESHOLD)
+                                EvaluateAttack(distanceToTarget);
+
+                            if (distToGoal <= GOAL_POINT_THRESHOLD)
+                            {
+                                SetState(RaptorState.Chase);
+                            }
+                        }
+                    }
                     break;
                 default:
                     break;

@@ -55,6 +55,8 @@ namespace Gaia.SceneGraph.GameEntities
                 Vector3 velocity = Vector3.Zero;
                 Vector3 rot = scene.MainPlayer.Transformation.GetRotation();
                 Matrix transform = Matrix.CreateRotationY(rot.Y);
+                forwardVector = transform.Forward;
+                strafeVector = transform.Right;
                 if (InputManager.Inst.IsKeyDown(GameKey.MoveFoward))
                 {
                     velocity += transform.Forward;
