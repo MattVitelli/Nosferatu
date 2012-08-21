@@ -161,17 +161,8 @@ namespace Gaia.SceneGraph.GameEntities
             Vector3 rot = Transformation.GetRotation();
             if (Math.Abs(radianAngle) >= 0.075f)
             {
-                radianAngle = MathHelper.Clamp(radianAngle, -1, 1);
-                if (Vector3.Dot(strafeVec, moveDir) < 0)
-                {
-                    rot.Y += radianAngle * 0.02f;
-                    //model.GetAnimationLayer().AddAnimation(datablock.GetAnimation(DinosaurAnimationsSimple.TurnLeft), true);
-                }
-                else
-                {
-                    rot.Y -= radianAngle * 0.02f;
-                    //model.GetAnimationLayer().AddAnimation(datablock.GetAnimation(DinosaurAnimationsSimple.TurnRight), true);
-                }
+                radianAngle = MathHelper.Clamp(radianAngle, -1, 1) * ((Vector3.Dot(strafeVec, moveDir) < 0) ? 1.0f : -1.0f);
+                rot.Y += radianAngle * 0.005f;
             }
             //Transformation.SetRotation(rot);
             velocityVector = moveDir * speed;

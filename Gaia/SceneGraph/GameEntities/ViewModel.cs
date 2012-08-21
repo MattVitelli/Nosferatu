@@ -118,9 +118,9 @@ namespace Gaia.SceneGraph.GameEntities
             }
             */
             mainAnimationLayer.UpdateAnimation(timeDT, this.nodes);
-
+            Matrix root = Matrix.Identity;
             for (int i = 0; i < rootNodes.Length; i++)
-                rootNodes[i].ApplyTransform(ref customMatrix);
+                rootNodes[i].ApplyTransform(ref root);
 
             for (int i = 0; i < vertices.Length; i++)
             {
@@ -141,10 +141,11 @@ namespace Gaia.SceneGraph.GameEntities
 
         public void OnRender(RenderView view, bool performCulling)
         {
+            Matrix worldMat = customMatrix * transform.GetTransform();
             if (rootNodes != null && rootNodes.Length > 0)
-                mesh.Render(transform.GetTransform(), vertexBuffer, view, performCulling);
+                mesh.Render(worldMat, vertexBuffer, view, performCulling);
             else
-                mesh.Render(transform.GetTransform(), view, performCulling);
+                mesh.Render(worldMat, view, performCulling);
         }
     }
 }

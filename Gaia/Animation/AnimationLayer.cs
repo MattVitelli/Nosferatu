@@ -123,6 +123,10 @@ namespace Gaia.Animation
                 nodes[currKey].Translation += posDelta * Weight;
                 nodes[currKey].Rotation += rotDelta * Weight;
 
+                nodes[currKey].Rotation.X = MathHelper.WrapAngle(nodes[currKey].Rotation.X);
+                nodes[currKey].Rotation.Y = MathHelper.WrapAngle(nodes[currKey].Rotation.Y);
+                nodes[currKey].Rotation.Z = MathHelper.WrapAngle(nodes[currKey].Rotation.Z);
+
                 if (frames[currKey].Count == 0 && activeAnimation.IsCyclic)
                 {
                     ModelBoneAnimationFrame[] keyFrames = activeAnimation.GetKeyFrames(currKey);
@@ -130,6 +134,8 @@ namespace Gaia.Animation
                         frames[currKey].Enqueue(keyFrames[j]);
                 }
             }
+
+
         }
     }
 }

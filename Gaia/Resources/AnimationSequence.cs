@@ -21,7 +21,7 @@ namespace Gaia.Resources
 
         float timeStart;
         float timeEnd = -1;
-        float fps;
+        float fps = 24;
         string name;
         Mesh mesh;
         float endTime;
@@ -80,7 +80,7 @@ namespace Gaia.Resources
             {
                 timeStart = 0;
                 ReadSMD(filename);
-                RescaleAnimation(animationFrames, timeStart, fps);
+                RescaleAnimation(animationFrames, timeStart);
             }
             endTime = (timeEnd - timeStart) / fps;
             if (!IsCyclic)
@@ -149,8 +149,9 @@ namespace Gaia.Resources
                     frames[boneID].Add(frame);
                 }
             }
-            timeEnd = currTime;
-            fps = 24;
+            if(timeEnd == -1)
+                timeEnd = currTime;
+            //fps = 24;
         }
 
         void ReadSMD(string filename)
@@ -200,7 +201,7 @@ namespace Gaia.Resources
             }
         }
 
-        void RescaleAnimation(SortedList<string, ModelBoneAnimationFrame[]> frames, float startTime, float fps)
+        void RescaleAnimation(SortedList<string, ModelBoneAnimationFrame[]> frames, float startTime)
         {
             for (int i = 0; i < frames.Count; i++)
             {

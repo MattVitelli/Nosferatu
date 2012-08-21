@@ -89,8 +89,8 @@ namespace Gaia.Physics
                 Vector3 N = info.DirToBody0;
                 if (this == info.SkinInfo.Skin1.Owner)
                     Vector3.Negate(ref N, out N);
-                else
-                    contactNormal = Vector3.Normalize(Vector3.Lerp(N, contactNormal, 0.975f));
+                else if(info.SkinInfo.Skin1.Owner == null)
+                        contactNormal = Vector3.Normalize(Vector3.Lerp(N, contactNormal, 0.975f));
             }
 
             Vector3 deltaVel = DesiredVelocity - Velocity;
