@@ -52,6 +52,8 @@ namespace Gaia.Resources
         bool isLoaded = false;
         string filename;
 
+        bool nodesAreAnimated = true;
+
         ModelPart[] parts;
         AnimationNode[] nodes;
         SortedList<string, List<ModelPart> > LODS = new SortedList<string, List<ModelPart> >();
@@ -540,12 +542,15 @@ namespace Gaia.Resources
                             inverseMats[i] = Matrix.Invert(nodes[i].Transform);
                             invRotMats[i] = MathUtils.Invert3x3(nodes[i].Transform);
                         }
-                        
-                        for(int i = 0; i < verts.Length; i++)
+
+                        if (nodesAreAnimated)
                         {
-                            verts[i].Position = Vector3.Transform(verts[i].Position, inverseMats[(int)verts[i].Index]);
-                            verts[i].Normal = Vector3.TransformNormal(verts[i].Normal, inverseMats[(int)verts[i].Index]);
-                            verts[i].Tangent = Vector3.TransformNormal(verts[i].Tangent, inverseMats[(int)verts[i].Index]);
+                            for (int i = 0; i < verts.Length; i++)
+                            {
+                                verts[i].Position = Vector3.Transform(verts[i].Position, inverseMats[(int)verts[i].Index]);
+                                verts[i].Normal = Vector3.TransformNormal(verts[i].Normal, inverseMats[(int)verts[i].Index]);
+                                verts[i].Tangent = Vector3.TransformNormal(verts[i].Tangent, inverseMats[(int)verts[i].Index]);
+                            }
                         }
                         vertexBuffer.SetData<VertexPNTTI>(verts);
                         
@@ -1169,6 +1174,9 @@ namespace Gaia.Resources
                         break;
                     case "useinstancing":
                         useInstancing = bool.Parse(attrib.Value);
+                        break;
+                    case "nodesanimated":
+                        nodesAreAnimated = bool.Parse(attrib.Value);
                         break;
                 }
             }

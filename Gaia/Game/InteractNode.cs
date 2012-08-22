@@ -9,5 +9,7 @@ namespace Gaia.Game
         public virtual void OnInteract() { }
 
         public virtual string GetInteractText() { return "Examine NULL"; }
+
+        public virtual bool IsEnabled() { return true; }
     }
 }

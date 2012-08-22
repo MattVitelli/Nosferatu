@@ -124,6 +124,7 @@
     </Compile>
     <Compile Include="Game\CampTrigger.cs" />
     <Compile Include="Game\AIDirector.cs" />
+    <Compile Include="Game\GasTankNode.cs" />
     <Compile Include="Game\InteractTrigger.cs" />
     <Compile Include="Game\GasStation.cs" />
     <Compile Include="Game\HuntScreen.cs" />
