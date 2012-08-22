@@ -287,6 +287,44 @@ namespace Gaia.SceneGraph
             GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced);
         }
 
+        void CreateStartZone()
+        {
+            Model tent = new Model("MilitaryTent");
+            (MainTerrain as TerrainVoxel).GetLandmarkTransform(MapLandmark.Camp, tent.Transformation, tent.GetMesh().GetBounds());
+            AddEntity("Tent", tent);
+
+            AnimationNode[] nodes = tent.GetMesh().GetNodes();
+            Matrix worldMatrix = tent.Transformation.GetTransform();
+            //Vector3 meshCenter = 0.5f * (gasStation.GetMesh().GetBounds().Max + gasStation.GetMesh().GetBounds().Min);
+            for (int i = 0; i < nodes.Length; i++)
+            {
+                InteractObject bed = new InteractObject(new BedNode(this), "Bed");
+                Vector3 bedPos = Vector3.Transform(nodes[i].Translation, worldMatrix);
+                bed.Transformation.SetPosition(bedPos);
+                bed.Transformation.SetRotation(tent.Transformation.GetRotation());
+                AddEntity("Bed", bed);
+            }
+
+            CampTrigger campTrigger = new CampTrigger();
+            campTrigger.Transformation.SetPosition(tent.Transformation.GetPosition());
+            campTrigger.Transformation.SetScale(Vector3.One * 15);
+            AddEntity("CampTrigger", campTrigger);
+
+            /*
+            Model campfire = new Model("Campfire");
+            campfire.Transformation = tent.Transformation;
+            AddEntity("CampFire", campfire);
+
+            ParticleEmitter flameEmitter = new ParticleEmitter(ResourceManager.Inst.GetParticleEffect("Fire0"), 300);
+            flameEmitter.Transformation.SetPosition(campfire.Transformation.GetPosition() + Vector3.Up * 1.5f);
+            AddEntity("FireEffect", flameEmitter);
+
+            ParticleEmitter smokeEmitter = new ParticleEmitter(ResourceManager.Inst.GetParticleEffect("Smoke4"), 300);
+            smokeEmitter.Transformation.SetPosition(campfire.Transformation.GetPosition() + Vector3.Up * 3.0f);
+            AddEntity("SmokeEffect", smokeEmitter);
+            */
+        }
+
         void CreateLandmarks()
         {
             plant = new PowerPlant(this);
@@ -305,7 +343,7 @@ namespace Gaia.SceneGraph
             AddEntity("Shack", shack);
 
             InteractObject key = new InteractObject(null, "Key");
-            key.SetInteractNode(new PickupNode(key, PickupName.Key, "Power Plant Key")); 
+            key.SetInteractNode(new PickupNode(key, PickupName.Key, "Key")); 
             key.Transformation.SetPosition(shack.Transformation.GetPosition());
             key.Transformation.SetRotation(shack.Transformation.GetRotation());
             AddEntity("Key", key);
@@ -336,27 +374,7 @@ namespace Gaia.SceneGraph
             amulet.Transformation.SetRotation(crypt.Transformation.GetRotation());
             AddEntity("Amulet", amulet);
 
-            Model tent = new Model("MilitaryTent");
-            (MainTerrain as TerrainVoxel).GetLandmarkTransform(MapLandmark.Camp, tent.Transformation, tent.GetMesh().GetBounds());
-            AddEntity("Tent", tent);
-            /*
-            Model campfire = new Model("Campfire");
-            campfire.Transformation = tent.Transformation;
-            AddEntity("CampFire", campfire);
-
-            ParticleEmitter flameEmitter = new ParticleEmitter(ResourceManager.Inst.GetParticleEffect("Fire0"), 300);
-            flameEmitter.Transformation.SetPosition(campfire.Transformation.GetPosition() + Vector3.Up * 1.5f);
-            AddEntity("FireEffect", flameEmitter);
-
-            ParticleEmitter smokeEmitter = new ParticleEmitter(ResourceManager.Inst.GetParticleEffect("Smoke4"), 300);
-            smokeEmitter.Transformation.SetPosition(campfire.Transformation.GetPosition() + Vector3.Up * 3.0f);
-            AddEntity("SmokeEffect", smokeEmitter);
-            */
-            CampTrigger campTrigger = new CampTrigger();
-            campTrigger.Transformation.SetPosition(tent.Transformation.GetPosition());
-            campTrigger.Transformation.SetScale(Vector3.One * 15);
-            AddEntity("CampTrigger", campTrigger);
-
+            CreateStartZone();
         }
 
         void InitializeRenderViews()
@@ -441,7 +459,9 @@ namespace Gaia.SceneGraph
             //model.UpdateAnimation();
             Entities.Add("TestCharacter2", model2);
             */
-            AddEntity("Raptor", new Raptor(ResourceManager.Inst.GetDinosaurDatablock("AlphaRaptor")));
+            
+            //AddEntity("Raptor", new Raptor(ResourceManager.Inst.GetDinosaurDatablock("AlphaRaptor")));
+            
             /*
             InteractObject weaponCrate = new InteractObject(new ChestNode("Weapon Box"), "WeaponBox");
             weaponCrate.Transformation.SetPosition(Vector3.Up * 30.0f);

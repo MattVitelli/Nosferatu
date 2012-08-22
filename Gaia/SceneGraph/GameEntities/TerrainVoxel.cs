@@ -347,8 +347,11 @@ namespace Gaia.SceneGraph.GameEntities
                 }
                 transform.SetPosition(bestTri.GeneratePointInTriangle(RandomHelper.RandomGen));
                 BoundingBox newRegion = transform.TransformBounds(meshBounds);
+                Vector3 offsetVector = Vector3.One * 5.0f;
+                newRegion.Min = newRegion.Min - offsetVector;
+                newRegion.Max = newRegion.Max + offsetVector;
                 triangles = null;
-                if (GetTrianglesInRegion(RandomHelper.RandomGen, out triangles, region, true))
+                if (GetTrianglesInRegion(RandomHelper.RandomGen, out triangles, newRegion, true))
                 {
                     for (int i = 0; i < triangles.Count; i++)
                     {

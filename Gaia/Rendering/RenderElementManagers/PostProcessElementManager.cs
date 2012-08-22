@@ -50,6 +50,13 @@ namespace Gaia.Rendering
 
         public Vector3 ForwardVec;
 
+        float blinkTime = 0;
+
+        public void SetBlinkTime(float value)
+        {
+            blinkTime = value;
+        }
+
         public PostProcessElementManager(MainRenderView renderView)
             : base(renderView)
         {
@@ -252,9 +259,9 @@ namespace Gaia.Rendering
             transformedVec = (transformedVec + Vector4.One) * 0.5f;
             
             Vector3 blurVector = new Vector3(transformedVec.X, transformedVec.Y, blurCoeff);
-            float blinkAnim = MathHelper.Clamp((float)Math.Cos(Time.RenderTime.TotalTime * 1.20458) * 0.5f + 0.5f, 0.0f, 1.0f);
-            blinkAnim = 1;// MathHelper.Clamp((float)Math.Pow(blinkAnim, 0.25) * 2.5f - 0.7f, 0.0f, 1.0f);
-            Vector2 ellipse = new Vector2(2.07846f, 1.06f) * new Vector2(Math.Max(blinkAnim, 0.7f), blinkAnim);
+            //float blinkAnim = MathHelper.Clamp((float)Math.Cos(Time.RenderTime.TotalTime * 1.20458) * 0.5f + 0.5f, 0.0f, 1.0f);
+            //blinkAnim = MathHelper.Clamp((float)Math.Pow(blinkAnim, 0.25) * 2.5f - 0.7f, 0.0f, 1.0f);
+            Vector2 ellipse = new Vector2(2.07846f, 1.06f) * new Vector2(Math.Max(blinkTime, 0.7f), blinkTime);
 
             GFX.Device.SetPixelShaderConstant(10, blurVector);
             GFX.Device.SetPixelShaderConstant(11, ellipse);

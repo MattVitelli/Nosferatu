@@ -23,6 +23,17 @@ namespace Gaia.SceneGraph.GameEntities
 
         }
 
+        public bool IsNight()
+        {
+            return (this.Transformation.GetPosition().Y < 0.0f);
+        }
+
+        public void ResetToDay()
+        {
+            theta = 0;
+            phi = MathHelper.Pi / 6.0f;
+        }
+
         public override void OnUpdate()
         {
             theta += Time.GameTime.ElapsedTime * ThetaCycle;

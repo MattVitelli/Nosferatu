@@ -10,6 +10,8 @@ using Gaia.Rendering.RenderViews;
 using Gaia.SceneGraph;
 using Gaia.SceneGraph.GameEntities;
 
+using JigLibX.Geometry;
+using JigLibX.Collision;
 
 namespace Gaia.Game
 {
@@ -17,6 +19,7 @@ namespace Gaia.Game
     {
         InteractNode interactNode;
         InteractTrigger interactTrigger;
+        bool useCollisionTransform = false;
 
         public void SetInteractNode(InteractNode node)
         {
@@ -34,11 +37,40 @@ namespace Gaia.Game
             this.interactNode = node;
             this.interactTrigger = new InteractTrigger(this);
         }
+        
+        public InteractObject(InteractNode node, string modelName, bool useCollisionTransform)
+            : base(modelName)
+        {
+            this.interactNode = node;
+            this.interactTrigger = new InteractTrigger(this);
+            this.useCollisionTransform = true;
+        }
 
         public override void OnAdd(Scene scene)
         {
-            base.OnAdd(scene);
+            
             this.interactTrigger.OnAdd(scene);
+            if (useCollisionTransform)
+            {
+                Transform oldTransform = Transformation;
+
+                if (mesh.GetCollisionMesh() != null)
+                {
+                    collision = new CollisionSkin(null);
+                    collision.AddPrimitive(mesh.GetCollisionMesh(), (int)MaterialTable.MaterialID.NotBouncyRough);
+                    scene.GetPhysicsEngine().CollisionSystem.AddCollisionSkin(collision);
+                }
+
+                Transformation = new CollisionTransform(this.collision, scene);
+                Transformation.SetPosition(oldTransform.GetPosition());
+                Transformation.SetRotation(oldTransform.GetRotation());
+                Transformation.SetScale(oldTransform.GetScale());
+                oldTransform = null;
+
+                
+            }
+            else
+                base.OnAdd(scene);
         }
 
         public override void OnDestroy()
@@ -58,6 +90,7 @@ namespace Gaia.Game
             //this.interactTrigger.Transformation.SetRotation(this.Transformation.GetRotation());
             this.interactTrigger.Transformation.SetScale(scale * 5.5f);
             this.interactTrigger.OnUpdate();
+            this.interactNode.OnUpdate();
         }
     }
 

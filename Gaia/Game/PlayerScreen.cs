@@ -8,6 +8,7 @@ using Gaia.Resources;
 using Gaia.Input;
 using Gaia.Rendering.RenderViews;
 using Gaia.Sound;
+using Gaia.Rendering;
 
 using Microsoft.Xna.Framework;
 
@@ -30,8 +31,13 @@ namespace Gaia.Game
         const float MAX_INTERACT_DIST = 3.5f;
         const float journalFadeInTime = 1.5f;
         const float journalFadeOutTime = 2.0f;
+        const float blinkTimeAmp = 2.85f; //1.20458f
+        const float blinkPeriod = MathHelper.TwoPi / blinkTimeAmp;//5.215f;
         float journalFadeTime = 0;
         bool journalEntryAdded = false;
+
+        float blinkTime = 0;
+        float maxBlinkTime = 0;
 
         InteractSkinPredicate pred = new InteractSkinPredicate();
 
@@ -45,7 +51,7 @@ namespace Gaia.Game
 
         public bool HasAmulet = false;
 
-        public bool HasKeycard = false;
+        public bool HasKeycard = true;
 
         public bool UsedRadio = false;
 
@@ -156,8 +162,12 @@ namespace Gaia.Game
                     float dist = intersection.Value;
                     if (dist < bestDist && dist <= MAX_INTERACT_DIST)
                     {
-                        bestDist = dist;
-                        bestNode = interactObj.GetInteractNode();
+                        InteractNode node = interactObj.GetInteractNode();
+                        if (node.IsEnabled())
+                        {
+                            bestDist = dist;
+                            bestNode = interactObj.GetInteractNode();
+                        }
                     }
                 }
             }
@@ -218,6 +228,34 @@ namespace Gaia.Game
             }
         }
 
+        float BlinkFunction(float time)
+        {
+            float blinkAnim = MathHelper.Clamp((float)Math.Cos(time * blinkTimeAmp) * 0.5f + 0.5f, 0.0f, 1.0f);
+            blinkAnim = MathHelper.Clamp((float)Math.Pow(blinkAnim, 0.25) * 2.5f - 0.7f, 0.0f, 1.0f);
+            return blinkAnim;
+        }
+
+        public float CloseEyes(int blinkCount)
+        {
+            blinkTime = 0;
+            maxBlinkTime = blinkPeriod * ((float)blinkCount - 0.5f);
+            return maxBlinkTime;
+        }
+
+        public void OpenEyes()
+        {
+            blinkTime = -blinkPeriod * 1.5f;
+            maxBlinkTime = 0;
+        }
+
+        void UpdateBlinkTime()
+        {
+            blinkTime += Time.GameTime.ElapsedTime;
+            blinkTime = Math.Min(blinkTime, maxBlinkTime);
+            PostProcessElementManager ppMgr = (PostProcessElementManager)scene.MainCamera.GetRenderElementManager(Gaia.Rendering.RenderPass.PostProcess);
+            ppMgr.SetBlinkTime(BlinkFunction(blinkTime));
+        }
+
         public override void OnUpdate(float timeDT)
         {
             scene.Update();
@@ -238,6 +276,8 @@ namespace Gaia.Game
 
             if(journalEntryAdded)
                 DisplayJournalStatus(timeDT);
+
+            UpdateBlinkTime();
             
             base.OnUpdate(timeDT);
         }

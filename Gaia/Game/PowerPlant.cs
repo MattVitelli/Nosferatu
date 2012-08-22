@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework;
 using Gaia.SceneGraph;
 using Gaia.SceneGraph.GameEntities;
 using Gaia.Core;
+using Gaia.Resources;
 
 namespace Gaia.Game
 {
@@ -46,11 +47,27 @@ namespace Gaia.Game
             switchD.Transformation.SetPosition(pos);
             switchD.Transformation.SetRotation(rot);
 
+            
+            AnimationNode[] nodes = powerPlantFence.GetMesh().GetNodes();
+            Matrix worldMatrix = powerPlantFence.Transformation.GetTransform();
+            //Vector3 meshCenter = 0.5f * (gasStation.GetMesh().GetBounds().Max + gasStation.GetMesh().GetBounds().Min);
+            for (int i = 0; i < nodes.Length; i++)
+            {
+                InteractObject door = new InteractObject(null, "PowerPlantDoor", true);
+                Vector3 doorPos = Vector3.Transform(nodes[i].Translation, worldMatrix);
+                door.Transformation.SetPosition(doorPos);
+                door.Transformation.SetRotation(powerPlantFence.Transformation.GetRotation());
+                door.SetInteractNode(new DoorNode(door));
+                scene.AddEntity("PowerPlantDoor", door);
+            }
+            
+
             //switchA.interactNode.OnInteract();
             //switchD.interactNode.OnInteract();
 
             scene.AddEntity("PowerPlant", powerPlant);
             scene.AddEntity("PowerPlantFence", powerPlantFence);
+            
             
             scene.AddEntity("SwitchA", switchA);
             scene.AddEntity("SwitchB", switchB);
