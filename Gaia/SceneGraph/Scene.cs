@@ -332,6 +332,20 @@ namespace Gaia.SceneGraph
             */
         }
 
+        public bool TestBoundsVisibility(BoundingBox bounds)
+        {
+            for (int i = 0; i < RenderViews.Length; i++)
+            {
+                for (int j = 0; j < RenderViews[i].Count; j++)
+                {
+                    if (RenderViews[i][j].GetFrustum().Contains(bounds) != ContainmentType.Disjoint)
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
         void CreateHangar()
         {
             Model hangar = new Model("Hangar");

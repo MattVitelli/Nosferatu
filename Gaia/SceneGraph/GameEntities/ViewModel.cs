@@ -130,7 +130,7 @@ namespace Gaia.SceneGraph.GameEntities
             }
             */
             mainAnimationLayer.UpdateAnimation(timeDT, this.nodes);
-            if (renderAlways || (scene != null && (scene.MainCamera.GetFrustum().Contains(worldBounds) != ContainmentType.Disjoint)))
+            if (renderAlways || (scene != null && scene.TestBoundsVisibility(worldBounds)))
             {
                 Matrix root = Matrix.Identity;
                 for (int i = 0; i < rootNodes.Length; i++)
