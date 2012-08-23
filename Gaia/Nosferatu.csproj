@@ -126,6 +126,7 @@
     <Compile Include="Game\CampTrigger.cs" />
     <Compile Include="Game\AIDirector.cs" />
     <Compile Include="Game\BedNode.cs" />
+    <Compile Include="Game\AirplaneNode.cs" />
     <Compile Include="Game\DoorNode.cs" />
     <Compile Include="Game\GasTankNode.cs" />
     <Compile Include="Game\InteractTrigger.cs" />

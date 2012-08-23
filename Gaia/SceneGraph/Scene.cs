@@ -360,6 +360,14 @@ namespace Gaia.SceneGraph
                         garage.SetInteractNode(new HangarDoorNode(garage, new Vector3(0, 0, MathHelper.PiOver2), Vector3.Zero));
                         AddEntity("HangarGarage", garage);
                         break;
+                    case "DinoSpawn":
+                        AnimatedModel trex = new AnimatedModel("TRex");
+                        trex.Transformation.SetPosition(nodePos);
+                        trex.Model.GetAnimationLayer().SetActiveAnimation("TRexRoar", true);//.SetAnimationLayer("AlphaRaptorIdle", 1.0f);
+                        trex.Model.SetCustomMatrix(Matrix.CreateScale(0.1f) * Matrix.CreateRotationX(-MathHelper.PiOver2) * Matrix.CreateRotationY(-MathHelper.PiOver2));
+                        //model.UpdateAnimation();
+                        Entities.Add("TRex", trex);
+                        break;
                 }
                 //InteractObject gasTank = new InteractObject(null, "GasTank");
                 //gasTank.SetInteractNode(new GasTankNode(gasTank));
