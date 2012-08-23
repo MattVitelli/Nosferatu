@@ -43,6 +43,9 @@ namespace Gaia.Game
             {
                 playerScreen.AddJournalEntry("Proceed to the Hangar");
                 playerScreen.HasFuel = true;
+                InteractObject door = (InteractObject)this.parent.GetScene().FindEntity("HangarDoor");
+                HangarDoorNode doorNode = (HangarDoorNode)door.GetInteractNode();
+                doorNode.SetLocked(true);
                 this.parent.GetScene().RemoveEntity(parent);
             }
         }

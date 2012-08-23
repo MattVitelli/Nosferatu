@@ -23,7 +23,9 @@ namespace Gaia.Game
         UIButton journalStatus;
         UIButton interactButton;
         UIButton interactStatus;
-        //UIButton crosshair;
+        UIButton blackFade;
+        UIButton creditsLabel;
+        UIButton crosshair;
         UIList list;
 
         Scene scene;
@@ -57,7 +59,13 @@ namespace Gaia.Game
 
         public bool ActivatedPower = true;
 
-        public bool HasFuel = false;
+        public bool HasFuel = true;
+
+        bool isGameRunning = true;
+
+        const float timeTilCredits = 5;
+
+        float fadeOutTime = 0;
 
         public List<InteractTrigger> interactables = new List<InteractTrigger>();
 
@@ -88,6 +96,16 @@ namespace Gaia.Game
             interactButton.Scale = Vector2.One * 0.035f * 1.15f;
             interactButton.SetVisible(false);
 
+            blackFade = new UIButton(null, Vector4.Zero, string.Empty);
+            blackFade.Position = Vector2.Zero;
+            blackFade.Scale = Vector2.One;
+            blackFade.SetVisible(false);
+
+            creditsLabel = new UIButton(null, Vector4.One, "Created by Matt Vitelli - Summer 2012");
+            creditsLabel.Position = Vector2.Zero;
+            creditsLabel.Scale = Vector2.One;
+            creditsLabel.SetVisible(false);
+
             list = new UIList();
             list.ItemColor = new Vector4(0.15f, 0.15f, 0.15f, 1.0f);
             list.Position = new Vector2(0.5f, 0);
@@ -108,8 +126,21 @@ namespace Gaia.Game
             this.controls.Add(compass);
             this.controls.Add(interactStatus);
             this.controls.Add(interactButton);
+            this.controls.Add(blackFade);
+            this.controls.Add(creditsLabel);
             bgSound = new Sound2D("Crickets", true, false);
             bgSound.Paused = false;
+        }
+
+        public void EndGame()
+        {
+            isGameRunning = false;
+            fadeOutTime = 0;
+            blackFade.SetVisible(true);
+            compass.SetVisible(false);
+            interactButton.SetVisible(false);
+            interactStatus.SetVisible(false);
+            //crosshair.SetVisible(false);
         }
 
         public void AddMarker(Transform transform)
@@ -265,19 +296,38 @@ namespace Gaia.Game
             {
                 playerTransform = camera.Transformation;
                 compass.SetTransformation(playerTransform);
-                PerformInteraction();
+                if(isGameRunning)
+                    PerformInteraction();
             }
+            /*
             MainRenderView view = (MainRenderView)scene.MainCamera;
             Entity enemy = scene.FindEntity("Amulet");
             if (enemy != null)
             {
                 view.SetBlurTarget(enemy.Transformation.GetPosition(), Vector3.Normalize(camera.Transformation.GetTransform().Forward));
             }
-
+            */
             if(journalEntryAdded)
                 DisplayJournalStatus(timeDT);
 
             UpdateBlinkTime();
+
+            if (!isGameRunning)
+            {
+                fadeOutTime += timeDT;
+                if (fadeOutTime < timeTilCredits)
+                {
+                    Vector4 color = Vector4.Zero;
+                    color.W = fadeOutTime / timeTilCredits;
+                    blackFade.SetButtonColor(color);
+                }
+                else
+                {
+                    creditsLabel.SetVisible(true);
+                    float alpha = MathHelper.Clamp((fadeOutTime - timeTilCredits) / 3.0f, 0.0f, 1.0f);
+                    creditsLabel.SetTextColor(Vector4.One * alpha);
+                }
+            }
             
             base.OnUpdate(timeDT);
         }

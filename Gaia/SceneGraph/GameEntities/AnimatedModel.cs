@@ -10,9 +10,16 @@ namespace Gaia.SceneGraph.GameEntities
     {
         public ViewModel Model;
 
+        bool isVisible = true;
+
         public AnimatedModel(string name)
         {
             Model = new ViewModel(name);
+        }
+
+        public void SetVisible(bool visible)
+        {
+            isVisible = visible;
         }
 
         public override void OnAdd(Scene scene)
@@ -30,7 +37,8 @@ namespace Gaia.SceneGraph.GameEntities
         public override void OnRender(Gaia.Rendering.RenderViews.RenderView view)
         {
             base.OnRender(view);
-            Model.OnRender(view, true);
+            if(isVisible)
+                Model.OnRender(view, true);
         }
     }
 }

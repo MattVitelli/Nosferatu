@@ -15,12 +15,22 @@ namespace Gaia.Game
     public class AirplaneNode : InteractNode
     {
         Scene scene;
-        bool isSleeping = false;
-        float fadeOutTimer = float.PositiveInfinity;
-
+        float timeTilEnd = float.PositiveInfinity;
+        float timeTilRoar = float.PositiveInfinity;
+        AnimatedModel trex = null;
+        Sound3D trexSound = null;
+        bool isEnding = false;
+        bool hasRoared = false;
+        bool hasEnded = false;
+       
         public AirplaneNode(Scene scene)
         {
             this.scene = scene;
+        }
+
+        public void SetEndCameraPosition(Vector3 pos, Vector3 forward)
+        {
+
         }
 
         public override void OnInteract()
@@ -29,7 +39,15 @@ namespace Gaia.Game
             PlayerScreen playerScreen = PlayerScreen.GetInst();
             if (playerScreen.HasFuel)
             {
-                
+                if (trex == null)
+                {
+                    trex = (AnimatedModel)scene.FindEntity("TRex");
+                    trex.SetVisible(true);
+                    trex.Model.GetAnimationLayer().SetActiveAnimation("TRexIdle", false);
+                    trexSound = new Sound3D("TRexIdle", trex.Transformation.GetPosition());
+                    trexSound.Looped = true;
+                    //cameraLerpTime = -0.25f;
+                }
             }
             else
             {
@@ -40,6 +58,43 @@ namespace Gaia.Game
         public override void OnUpdate()
         {
             base.OnUpdate();
+            if (trex != null && !isEnding)
+            {
+                Vector3 distToDino = scene.MainCamera.GetPosition() - trex.Transformation.GetPosition();
+                if (distToDino.Length() < 30.0f)
+                {
+                    isEnding = true;
+                    trex.Model.GetAnimationLayer().AddAnimation("TRexRoar", true);
+                    AnimationSequence seq = ResourceManager.Inst.GetAnimation("TRexRoar");
+                    timeTilEnd = seq.EndTime*1.35f;
+                    timeTilRoar = seq.EndTime * 0.25f;
+                }
+            }
+            else if (isEnding)
+            {
+                timeTilEnd -= Time.GameTime.ElapsedTime;
+                timeTilRoar -= Time.GameTime.ElapsedTime;
+                if (timeTilEnd <= 0.0f && !hasEnded)
+                {
+                    hasEnded = true;
+                    PlayerScreen playerScreen = PlayerScreen.GetInst();
+                    playerScreen.CloseEyes(1);
+                    playerScreen.AddJournalEntry("To Be Continued...");
+                    playerScreen.EndGame();
+                }
+                if (timeTilRoar <= 0.0f && !hasRoared)
+                {
+                    hasRoared = true;
+                    trexSound.Paused = true;
+                    trexSound.Looped = false;
+                    new Sound3D("TRexRoar", trex.Transformation.GetPosition());
+                }
+            }
+        }
+
+        public override bool IsEnabled()
+        {
+            return (trex == null);// base.IsEnabled();
         }
 
         public override string GetInteractText()

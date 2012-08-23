@@ -334,13 +334,14 @@ namespace Gaia.SceneGraph
             AnimationNode[] nodes = hangar.GetMesh().GetNodes();
             Matrix worldMatrix = hangar.Transformation.GetTransform();
             Vector3 rot = hangar.Transformation.GetRotation();
+            Vector3 camNodePos = Vector3.Zero;
             for (int i = 0; i < nodes.Length; i++)
             {
                 Vector3 nodePos = Vector3.Transform(nodes[i].Translation, worldMatrix);
                 switch (nodes[i].Name)
                 {
                     case "Plane":
-                        Model plane = new Model("Plane");
+                        InteractObject plane = new InteractObject(new AirplaneNode(this), "Plane");
                         plane.Transformation.SetPosition(nodePos);
                         plane.Transformation.SetRotation(rot);
                         AddEntity("Plane", plane);
@@ -357,18 +358,25 @@ namespace Gaia.SceneGraph
                         InteractObject garage = new InteractObject(null, "HangarGarage", true);
                         garage.Transformation.SetPosition(nodePos);
                         garage.Transformation.SetRotation(rot);
-                        garage.SetInteractNode(new HangarDoorNode(garage, new Vector3(0, 0, MathHelper.PiOver2), Vector3.Zero));
+                        garage.SetInteractNode(new HangarDoorNode(garage, new Vector3(0, 0, -MathHelper.PiOver2), Vector3.Zero));
                         AddEntity("HangarGarage", garage);
                         break;
                     case "DinoSpawn":
                         AnimatedModel trex = new AnimatedModel("TRex");
                         trex.Transformation.SetPosition(nodePos);
-                        trex.Model.GetAnimationLayer().SetActiveAnimation("TRexRoar", true);//.SetAnimationLayer("AlphaRaptorIdle", 1.0f);
+                        trex.Model.GetAnimationLayer().SetActiveAnimation("TRexIdle", true);//.SetAnimationLayer("AlphaRaptorIdle", 1.0f);
                         trex.Model.SetCustomMatrix(Matrix.CreateScale(0.1f) * Matrix.CreateRotationX(-MathHelper.PiOver2) * Matrix.CreateRotationY(-MathHelper.PiOver2));
                         //model.UpdateAnimation();
-                        Entities.Add("TRex", trex);
+                        AddEntity("TRex", trex);
+                        trex.SetVisible(false);
+                        break;
+                    case "CameraNode":
+                        camNodePos = nodePos;
                         break;
                 }
+                InteractObject tempPlane = (InteractObject)FindEntity("Plane");
+                AirplaneNode planeNode = (AirplaneNode)tempPlane.GetInteractNode();
+                planeNode.SetEndCameraPosition(camNodePos, Vector3.TransformNormal(Vector3.Forward, worldMatrix));
                 //InteractObject gasTank = new InteractObject(null, "GasTank");
                 //gasTank.SetInteractNode(new GasTankNode(gasTank));
             }

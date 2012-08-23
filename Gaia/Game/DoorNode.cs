@@ -38,25 +38,42 @@ namespace Gaia.Game
 
     public class HangarDoorNode : DoorNode
     {
+        bool isLocked = false;
+
         public HangarDoorNode(Entity parent, Vector3 goalRot, Vector3 goalDisp)
             : base(parent, goalRot, goalDisp)
         {
 
         }
 
+        public void SetLocked(bool value)
+        {
+            isLocked = value;
+            if (isOpen && isLocked)
+                OpenDoor(); //This will close the door
+        }
+
         public override void OnInteract()
         {
             PlayerScreen playerScreen = PlayerScreen.GetInst();
-            if (playerScreen.ActivatedPower)
+            if (isLocked)
             {
-                Sound3D sound = new Sound3D("ElectricDoorOpen", this.oldPos);
-                OPEN_DOOR_TIME = sound.PlayLength;
-                OpenDoor();
+                playerScreen.AddJournalEntry("It's jammed. Try another entrance.");
+                new Sound3D("MetalDoorLocked", this.oldPos);
             }
             else
             {
-                playerScreen.AddJournalEntry("It's locked. Turn on the power first.");
-                new Sound3D("MetalDoorLocked", this.oldPos);
+                if (playerScreen.ActivatedPower)
+                {
+                    Sound3D sound = new Sound3D("ElectricDoorOpen", this.oldPos);
+                    OPEN_DOOR_TIME = sound.PlayLength;
+                    OpenDoor();
+                }
+                else
+                {
+                    playerScreen.AddJournalEntry("It's locked. Turn on the power first.");
+                    new Sound3D("MetalDoorLocked", this.oldPos);
+                }
             }
         }
     }
