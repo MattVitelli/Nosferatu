@@ -22,6 +22,12 @@ namespace Gaia.Game
             gasStationTransform = gasStation.Transformation;
             AnimationNode[] nodes = gasStation.GetMesh().GetNodes();
             Matrix worldMatrix = gasStation.Transformation.GetTransform();
+
+            SafeTrigger campTrigger = new SafeTrigger();
+            campTrigger.Transformation.SetPosition(gasStation.Transformation.GetPosition());
+            campTrigger.Transformation.SetScale(Vector3.One * 30);
+            scene.AddEntity("SafeTrigger", campTrigger);
+
             //Vector3 meshCenter = 0.5f * (gasStation.GetMesh().GetBounds().Max + gasStation.GetMesh().GetBounds().Min);
             for (int i = 0; i < nodes.Length; i++)
             {

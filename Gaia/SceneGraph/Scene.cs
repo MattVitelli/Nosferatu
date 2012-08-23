@@ -305,7 +305,7 @@ namespace Gaia.SceneGraph
                 AddEntity("Bed", bed);
             }
 
-            CampTrigger campTrigger = new CampTrigger();
+            SafeTrigger campTrigger = new SafeTrigger();
             campTrigger.Transformation.SetPosition(tent.Transformation.GetPosition());
             campTrigger.Transformation.SetScale(Vector3.One * 15);
             AddEntity("CampTrigger", campTrigger);
@@ -330,6 +330,11 @@ namespace Gaia.SceneGraph
             Model hangar = new Model("Hangar");
             (MainTerrain as TerrainVoxel).GetLandmarkTransform(MapLandmark.Hangar, hangar.Transformation, hangar.GetMesh().GetBounds());
             AddEntity("Hangar", hangar);
+
+            SafeTrigger campTrigger = new SafeTrigger();
+            campTrigger.Transformation.SetPosition(hangar.Transformation.GetPosition());
+            campTrigger.Transformation.SetScale(Vector3.One * 30);
+            AddEntity("SafeTrigger", campTrigger);
 
             AnimationNode[] nodes = hangar.GetMesh().GetNodes();
             Matrix worldMatrix = hangar.Transformation.GetTransform();
@@ -374,6 +379,7 @@ namespace Gaia.SceneGraph
                         camNodePos = nodePos;
                         break;
                 }
+
                 InteractObject tempPlane = (InteractObject)FindEntity("Plane");
                 AirplaneNode planeNode = (AirplaneNode)tempPlane.GetInteractNode();
                 planeNode.SetEndCameraPosition(camNodePos, Vector3.TransformNormal(Vector3.Forward, worldMatrix));
@@ -402,6 +408,11 @@ namespace Gaia.SceneGraph
             key.Transformation.SetRotation(shack.Transformation.GetRotation());
             AddEntity("Key", key);
 
+            SafeTrigger campTrigger = new SafeTrigger();
+            campTrigger.Transformation.SetPosition(shack.Transformation.GetPosition());
+            campTrigger.Transformation.SetScale(Vector3.One * 30);
+            AddEntity("SafeTrigger", campTrigger);
+
             Model arena = new Model("Arena");
             (MainTerrain as TerrainVoxel).GetLandmarkTransform(MapLandmark.Meadow, arena.Transformation, arena.GetMesh().GetBounds());
             AddEntity("Arena", arena);
@@ -417,16 +428,6 @@ namespace Gaia.SceneGraph
             Model tower = new Model("RadioTower");
             (MainTerrain as TerrainVoxel).GetLandmarkTransform(MapLandmark.RadioTower, tower.Transformation, tower.GetMesh().GetBounds());
             AddEntity("RadioTower", tower);
-
-            Model crypt = new Model("TombStone");
-            (MainTerrain as TerrainVoxel).GetLandmarkTransform(MapLandmark.Tomb, crypt.Transformation, crypt.GetMesh().GetBounds());
-            AddEntity("Crypt", crypt);
-
-            InteractObject amulet = new InteractObject(null, "Amulet");
-            amulet.SetInteractNode(new PickupNode(amulet, PickupName.Amulet, "Amulet"));
-            amulet.Transformation.SetPosition(crypt.Transformation.GetPosition());
-            amulet.Transformation.SetRotation(crypt.Transformation.GetRotation());
-            AddEntity("Amulet", amulet);
 
             CreateStartZone();
         }

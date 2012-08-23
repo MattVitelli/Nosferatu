@@ -49,13 +49,9 @@ namespace Gaia.Game
 
         public static PlayerScreen GetInst() { return inst; }
 
-        public bool IsVampireAwake = false;
-
-        public bool HasAmulet = false;
+        public bool IsSafe = false;
 
         public bool HasKeycard = false;
-
-        public bool UsedRadio = false;
 
         public bool ActivatedPower = true;
 
@@ -68,6 +64,10 @@ namespace Gaia.Game
         float fadeOutTime = 0;
 
         public List<InteractTrigger> interactables = new List<InteractTrigger>();
+
+        public int FuelCount = 0;
+
+        public const int RequiredFuelCount = 3;
 
         Sound2D bgSound;
 

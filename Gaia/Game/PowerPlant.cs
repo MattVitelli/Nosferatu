@@ -94,6 +94,11 @@ namespace Gaia.Game
             (switchD.GetInteractNode() as SwitchNode).SetInteractObject(switchD);
 
             powerPlantFence.Transformation = powerPlant.Transformation;
+
+            SafeTrigger campTrigger = new SafeTrigger();
+            campTrigger.Transformation.SetPosition(powerPlantTransform.GetPosition());
+            campTrigger.Transformation.SetScale(Vector3.One * 30);
+            scene.AddEntity("SafeTrigger", campTrigger);
             
             switchA.Transformation.SetPosition(pos);
             switchA.Transformation.SetRotation(rot);

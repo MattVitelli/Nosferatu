@@ -30,7 +30,7 @@ namespace Gaia
         LevelEditor editor;
         UIScreen activeScreen;
         float timeTilGC = 0;
-        const float GCCollectInterval = 5;
+        const float GCCollectInterval = 15;
         public GameCore()
         {
             graphics = new GraphicsDeviceManager(this);

@@ -120,20 +120,10 @@ namespace Gaia.Game
             PlayerScreen playerScreen = PlayerScreen.GetInst();
             switch(mode)
             {
-                case PickupName.Amulet:
-                    playerScreen.AddJournalEntry("Return to Camp");
-                    playerScreen.AddMarker(this.parent.GetScene().FindEntity("CampFire").Transformation);
-                    playerScreen.HasAmulet = true;
-                    break;
                 case PickupName.Key:
                     playerScreen.AddJournalEntry("Unlock the Power Plant");
                     playerScreen.AddMarker(this.parent.GetScene().FindEntity("PowerPlant").Transformation);
                     playerScreen.HasKeycard = true;
-                    break;
-                case PickupName.Radio:
-                    playerScreen.AddJournalEntry("Meet the Rescue Team at the Docks");
-                    playerScreen.AddMarker(this.parent.GetScene().FindEntity("Docks").Transformation);
-                    playerScreen.UsedRadio = true;
                     break;
             }
             this.parent.GetScene().RemoveEntity(parent);
