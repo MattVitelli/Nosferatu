@@ -20,6 +20,8 @@ namespace Gaia.SceneGraph.GameEntities
 
         const string painSoundName = "HumanPain";
         const string deathSoundName = "HumanDeath";
+        const float RespawnTime = 7;
+        float timeTilRespawn = RespawnTime;
 
         public override void OnAdd(Scene scene)
         {
@@ -35,6 +37,16 @@ namespace Gaia.SceneGraph.GameEntities
         public void SetControllable(bool controllable)
         {
             isControllable = controllable;
+        }
+
+        protected override void OnDeath()
+        {
+            base.OnDeath();
+            timeTilRespawn = RespawnTime;
+            ;
+            PlayerScreen.GetInst().AddJournalEntry("You are dead", PlayerScreen.GetInst().CloseEyes(2)*1.1f);
+            SetEnabled(false);
+            SetControllable(false);
         }
 
         void UpdateControls()
@@ -105,6 +117,24 @@ namespace Gaia.SceneGraph.GameEntities
                 new Sound2D(deathSoundName, false, false);
             else
                 new Sound2D(painSoundName, false, false);
+        }
+
+        protected override void UpdateState()
+        {
+            base.UpdateState();
+            if (IsDead() && timeTilRespawn > 0.0f)
+            {
+                timeTilRespawn -= Time.GameTime.ElapsedTime;
+                if (timeTilRespawn <= 0.0f)
+                {
+                    ResetState();
+                    scene.MainDirector.PruneAllDinosaurs();
+                    this.Transformation.SetPosition(startPos);
+                    PlayerScreen.GetInst().OpenEyes();
+                    SetEnabled(true);
+                    SetControllable(true);
+                }
+            }
         }
 
         public override void OnUpdate()

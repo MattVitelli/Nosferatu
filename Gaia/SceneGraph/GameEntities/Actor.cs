@@ -33,6 +33,15 @@ namespace Gaia.SceneGraph.GameEntities
 
         protected int team = 0;
 
+        protected float deathTime = 0;
+
+        protected Vector3 startPos = Vector3.Zero;
+
+        public void SetSpawnPosition(Vector3 pos)
+        {
+            startPos = pos;
+        }
+
         public int GetTeam()
         {
             return team;
@@ -41,6 +50,11 @@ namespace Gaia.SceneGraph.GameEntities
         public bool IsDead()
         {
             return (health <= 0.0f);
+        }
+
+        public float GetDeathTime()
+        {
+            return deathTime;
         }
 
         public float GetHealth()
@@ -62,6 +76,8 @@ namespace Gaia.SceneGraph.GameEntities
         public virtual void ApplyDamage(float damage)
         {
             health -= damage;
+            if (IsDead())
+                OnDeath();
         }
 
         public Vector3 GetForwardVector()
@@ -103,7 +119,7 @@ namespace Gaia.SceneGraph.GameEntities
             scene.MainTerrain.GenerateRandomTransform(RandomHelper.RandomGen, out pos, out normal);
             //pos = pos + Vector3.Up * 5;
 
-            pos = scene.FindEntity("Hangar").Transformation.GetPosition() + Vector3.Up * 15;// *(float)RandomHelper.RandomGen.NextDouble();
+            pos = startPos;// scene.FindEntity("Hangar").Transformation.GetPosition() + Vector3.Up * 15;// *(float)RandomHelper.RandomGen.NextDouble();
 
             body = new CharacterBody();
             collision = new CollisionSkin(body);
@@ -127,6 +143,12 @@ namespace Gaia.SceneGraph.GameEntities
             ResetState();
         }
 
+        public override void OnDestroy()
+        {
+            base.OnDestroy();
+            scene.RemoveActor(this);
+        }
+
         protected void SetupPosture(bool crouching)
         {
             collision.RemoveAllPrimitives();
@@ -137,6 +159,8 @@ namespace Gaia.SceneGraph.GameEntities
         protected virtual void UpdateState()
         {
             energy += Time.GameTime.ElapsedTime * energyRechargeRate;
+            if (IsDead())
+                deathTime += Time.GameTime.ElapsedTime;
         }
 
         protected virtual void UpdateSounds()
@@ -156,7 +180,7 @@ namespace Gaia.SceneGraph.GameEntities
 
         protected virtual void ResetState()
         {
-
+            ResetHealth();
         }
 
         public override void OnUpdate()

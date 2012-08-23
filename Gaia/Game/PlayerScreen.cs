@@ -53,9 +53,9 @@ namespace Gaia.Game
 
         public bool HasKeycard = false;
 
-        public bool ActivatedPower = true;
+        public bool ActivatedPower = false;
 
-        public bool HasFuel = true;
+        public bool HasFuel = false;
 
         bool isGameRunning = true;
 
@@ -74,7 +74,7 @@ namespace Gaia.Game
         public PlayerScreen() : base()
         {
             inst = this;
-            this.scene = new Scene();
+            
             compass = new UICompass();
             compass.Scale = new Vector2(0.35f, 0.05f);
             compass.Position = new Vector2(0, -0.85f);
@@ -120,7 +120,7 @@ namespace Gaia.Game
             list.Items.AddRange(testStrings);
             list.SetColor(new Vector4(0.15f, 0.15f, 0.15f, 1.0f));
             //this.controls.Add(list);
-            compass.AddCustomMarker(scene.FindEntity("Tent").Transformation, ResourceManager.Inst.GetTexture("UI/Game/Home.dds"));
+            
             //this.controls.Add(crosshair);
             this.controls.Add(journalStatus);
             this.controls.Add(compass);
@@ -128,6 +128,10 @@ namespace Gaia.Game
             this.controls.Add(interactButton);
             this.controls.Add(blackFade);
             this.controls.Add(creditsLabel);
+
+            this.scene = new Scene();
+
+            compass.AddCustomMarker(scene.FindEntity("Tent").Transformation, ResourceManager.Inst.GetTexture("UI/Game/Home.dds"));
             bgSound = new Sound2D("Crickets", true, false);
             bgSound.Paused = false;
         }
@@ -155,7 +159,17 @@ namespace Gaia.Game
 
         public void AddJournalEntry(string description)
         {
+            AddJournalEntry(description, 0);
+            /*
             journalFadeTime = 0;
+            journalEntryAdded = true;
+            journalStatus.SetText(description);
+            */
+        }
+
+        public void AddJournalEntry(string description, float timeTilDisplay)
+        {
+            journalFadeTime = -timeTilDisplay;
             journalEntryAdded = true;
             journalStatus.SetText(description);
         }
@@ -250,7 +264,7 @@ namespace Gaia.Game
                 float alpha = (journalFadeTime <= journalFadeInTime) ? (journalFadeTime / journalFadeInTime) : (1.0f - (journalFadeTime - journalFadeInTime) / journalFadeOutTime);
 
                 journalStatus.SetVisible(true);
-                journalStatus.SetTextColor(new Vector4(1, 1, 1, alpha));
+                journalStatus.SetTextColor(new Vector4(1, 1, 1, MathHelper.Clamp(alpha,0,1)));
             }
             else
             {

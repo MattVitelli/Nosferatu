@@ -383,6 +383,12 @@ namespace Gaia.SceneGraph.GameEntities
             body.DesiredVelocity = velocityVector;
         }
 
+        public bool IsVisible()
+        {
+            BoundingBox bounds = Transformation.TransformBounds(model.GetMeshBounds());
+            return (scene.MainCamera.GetFrustum().Contains(bounds) != ContainmentType.Disjoint);
+        }
+
         public override void OnRender(Gaia.Rendering.RenderViews.RenderView view)
         {
             base.OnRender(view);

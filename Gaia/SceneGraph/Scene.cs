@@ -29,6 +29,8 @@ namespace Gaia.SceneGraph
 
         public Player MainPlayer;
 
+        public AIDirector MainDirector;
+
         public Terrain MainTerrain;
 
         public PowerPlant plant;
@@ -127,7 +129,9 @@ namespace Gaia.SceneGraph
 
         public void RemoveActor(Actor entity)
         {
-            Actors.Remove(entity);
+            int index = Actors.IndexOf(entity);
+            if (index >= 0)
+                Actors.RemoveAt(index);
         }
 
         public void AddRenderView(RenderView view)
@@ -175,7 +179,10 @@ namespace Gaia.SceneGraph
             MainPlayer = new Player();
             MainPlayer.SetEnabled(true);
             MainPlayer.SetControllable(true);
+            MainPlayer.SetSpawnPosition(FindEntity("Tent").Transformation.GetPosition());
             Entities.Add("Player", MainPlayer);
+            MainDirector = new AIDirector();
+            Entities.Add("AIDirector", MainDirector);
         }
 
         void InitializePhysics()

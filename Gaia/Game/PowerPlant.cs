@@ -16,7 +16,7 @@ namespace Gaia.Game
         public int Puzzle = 0;
         public int PuzzleInput = 0;
         Transform powerPlantTransform;
-
+        public bool IsEnabled = true;
         public Sound3D Sound;
 
         public bool AttemptPuzzle(int puzzle, int input)
@@ -151,7 +151,7 @@ namespace Gaia.Game
             int randInput = RandomHelper.RandomGen.Next(16);
             while (AttemptPuzzle(Puzzle, randInput))
                 randInput = RandomHelper.RandomGen.Next(16);
-
+            IsEnabled = false;
             if ((randInput & 0x01) > 0)
                 switchA.GetInteractNode().OnInteract();
             if ((randInput & 0x02) > 0)
@@ -160,6 +160,7 @@ namespace Gaia.Game
                 switchC.GetInteractNode().OnInteract();
             if ((randInput & 0x08) > 0)
                 switchD.GetInteractNode().OnInteract();
+            IsEnabled = true;
         }
 
         public Vector3 GetPosition()
@@ -194,15 +195,18 @@ namespace Gaia.Game
                 this.target.Transformation.SetPosition(pos + Vector3.Down);
             else
                 this.target.Transformation.SetPosition(pos + Vector3.Up);
-            new Sound3D("FlipSwitch", this.target.Transformation.GetPosition());
-
-            PlayerScreen playerScreen = PlayerScreen.GetInst();
-            if (plant.AttemptPuzzle(plant.Puzzle, plant.PuzzleInput) && !playerScreen.ActivatedPower)
+            if (plant.IsEnabled)
             {
-                playerScreen.ActivatedPower = true;
-                playerScreen.AddJournalEntry("Power has been restored!");
-                plant.Sound = new Sound3D("PowerPlantOn", plant.GetPosition());
-                plant.Sound.Looped = true;
+                new Sound3D("FlipSwitch", this.target.Transformation.GetPosition());
+
+                PlayerScreen playerScreen = PlayerScreen.GetInst();
+                if (plant.AttemptPuzzle(plant.Puzzle, plant.PuzzleInput) && !playerScreen.ActivatedPower)
+                {
+                    playerScreen.ActivatedPower = true;
+                    playerScreen.AddJournalEntry("Power has been restored!");
+                    plant.Sound = new Sound3D("PowerPlantOn", plant.GetPosition());
+                    plant.Sound.Looped = true;
+                }
             }
         }
 

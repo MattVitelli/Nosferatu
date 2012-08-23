@@ -61,7 +61,7 @@ namespace Gaia.Game
             if (trex != null && !isEnding)
             {
                 Vector3 distToDino = scene.MainCamera.GetPosition() - trex.Transformation.GetPosition();
-                if (distToDino.Length() < 30.0f)
+                if (distToDino.Length() < 35.0f)
                 {
                     isEnding = true;
                     trex.Model.GetAnimationLayer().AddAnimation("TRexRoar", true);

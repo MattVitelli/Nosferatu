@@ -27,7 +27,7 @@ namespace Gaia.Game
         {
             base.OnInteract();
             PlayerScreen playerScreen = PlayerScreen.GetInst();
-            if (scene.Actors.Count > 1)
+            if (scene.MainDirector.GetActiveDinosaurCount() > 0)
             {
                 playerScreen.AddJournalEntry("You cannot sleep while dinosaurs are near!");
             }
