@@ -84,10 +84,13 @@ namespace Gaia.Resources
                             float.TryParse(attrib.Value, out mxdist);
                             break;
                     }
-                    Volume = vol;
-                    MaxDistance = mxdist;
-                    MinDistance = mndist;
                 }
+                Volume = vol;
+                MaxDistance = mxdist;
+                MinDistance = mndist;
+                sound.DefaultVolume = Volume;
+                //sound.DefaultMinDistance = MinDistance;
+                //sound.DefaultMaxDistance = MaxDistance;
             }
             /*
             catch

@@ -72,7 +72,7 @@ namespace Gaia.SceneGraph.GameEntities
                 Vector3 normal;
                 if (useRegion)
                 {
-                    int index = i % availableTriangles.Count;
+                    int index = i % (availableTriangles.Count+1);
                     int randIndex = RandomHelper.RandomGen.Next(index);
                     normal = availableTriangles[randIndex].Normal;
                     pos = availableTriangles[randIndex].GeneratePointInTriangle(RandomHelper.RandomGen);
@@ -92,7 +92,7 @@ namespace Gaia.SceneGraph.GameEntities
                         element.Transform.SetRotation(new Vector3(0, (float)RandomHelper.RandomGen.NextDouble() * MathHelper.TwoPi, 0));
  
                 element.Transform.SetPosition(pos);
-                int randMeshIndex = RandomHelper.RandomGen.Next(i % meshes.Length);
+                int randMeshIndex = RandomHelper.RandomGen.Next(i % (meshes.Length+1));
                 element.Mesh = meshes[randMeshIndex];
                 visibleMeshes.AddElement(element, false);
             }

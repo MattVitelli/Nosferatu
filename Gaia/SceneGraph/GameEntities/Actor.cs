@@ -103,7 +103,7 @@ namespace Gaia.SceneGraph.GameEntities
             scene.MainTerrain.GenerateRandomTransform(RandomHelper.RandomGen, out pos, out normal);
             //pos = pos + Vector3.Up * 5;
 
-            pos = scene.FindEntity("PowerPlant").Transformation.GetPosition() + Vector3.Up * 15;// *(float)RandomHelper.RandomGen.NextDouble();
+            pos = scene.FindEntity("Hangar").Transformation.GetPosition() + Vector3.Up * 15;// *(float)RandomHelper.RandomGen.NextDouble();
 
             body = new CharacterBody();
             collision = new CollisionSkin(body);

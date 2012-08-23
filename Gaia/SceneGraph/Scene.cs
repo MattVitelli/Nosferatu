@@ -187,7 +187,7 @@ namespace Gaia.SceneGraph
             world.CollisionSystem = new CollisionSystemSAP();
 
             world.EnableFreezing = true;
-            world.SolverType = PhysicsSystem.Solver.Normal;
+            world.SolverType = PhysicsSystem.Solver.Combined;
             world.CollisionSystem.UseSweepTests = true;
             world.Gravity = new Vector3(0, -10, 0);//PhysicsHelper.GravityEarth, 0);
             
@@ -325,18 +325,56 @@ namespace Gaia.SceneGraph
             */
         }
 
+        void CreateHangar()
+        {
+            Model hangar = new Model("Hangar");
+            (MainTerrain as TerrainVoxel).GetLandmarkTransform(MapLandmark.Hangar, hangar.Transformation, hangar.GetMesh().GetBounds());
+            AddEntity("Hangar", hangar);
+
+            AnimationNode[] nodes = hangar.GetMesh().GetNodes();
+            Matrix worldMatrix = hangar.Transformation.GetTransform();
+            Vector3 rot = hangar.Transformation.GetRotation();
+            for (int i = 0; i < nodes.Length; i++)
+            {
+                Vector3 nodePos = Vector3.Transform(nodes[i].Translation, worldMatrix);
+                switch (nodes[i].Name)
+                {
+                    case "Plane":
+                        Model plane = new Model("Plane");
+                        plane.Transformation.SetPosition(nodePos);
+                        plane.Transformation.SetRotation(rot);
+                        AddEntity("Plane", plane);
+                        break;
+                    case "Door":
+                        InteractObject door = new InteractObject(null, "HangarDoor", true);
+                        Vector3 dispVec = Vector3.TransformNormal(Vector3.Right, worldMatrix)*-4f;
+                        door.Transformation.SetPosition(nodePos);
+                        door.Transformation.SetRotation(rot);
+                        door.SetInteractNode(new HangarDoorNode(door, Vector3.Zero, dispVec));
+                        AddEntity("HangarDoor", door);
+                        break;
+                    case "Garage":
+                        InteractObject garage = new InteractObject(null, "HangarGarage", true);
+                        garage.Transformation.SetPosition(nodePos);
+                        garage.Transformation.SetRotation(rot);
+                        garage.SetInteractNode(new HangarDoorNode(garage, new Vector3(0, 0, MathHelper.PiOver2), Vector3.Zero));
+                        AddEntity("HangarGarage", garage);
+                        break;
+                }
+                //InteractObject gasTank = new InteractObject(null, "GasTank");
+                //gasTank.SetInteractNode(new GasTankNode(gasTank));
+            }
+
+
+            
+        }
+
         void CreateLandmarks()
         {
             plant = new PowerPlant(this);
             gasStation = new GasStation(this);
 
-            Model hangar = new Model("Hangar");
-            (MainTerrain as TerrainVoxel).GetLandmarkTransform(MapLandmark.Hangar, hangar.Transformation, hangar.GetMesh().GetBounds());
-            AddEntity("Hangar", hangar);
-
-            Model plane = new Model("Plane");
-            (MainTerrain as TerrainVoxel).GetLandmarkTransform(MapLandmark.Hangar, plane.Transformation, plane.GetMesh().GetBounds());
-            AddEntity("Plane", plane);
+            CreateHangar();
 
             Model shack = new Model("Shack");
             (MainTerrain as TerrainVoxel).GetLandmarkTransform(MapLandmark.Docks, shack.Transformation, shack.GetMesh().GetBounds());
@@ -405,68 +443,14 @@ namespace Gaia.SceneGraph
             Entities.Add("Terrain", MainTerrain);
             Entities.Add("Light", MainLight);
             Entities.Add("AmbientLight", new Light(LightType.Ambient, new Vector3(0.15f, 0.35f, 0.55f), Vector3.Zero, false));
-            
 
-            //Entities.Add("Plane", new Model("Plane"));
-            /*
-            Entities.Add("TestTree", new Model("Palm02"));
-            Entities["TestTree"].Transformation.SetPosition(Vector3.Forward * 10.0f);
-            Entities.Add("TestTree2", new Model("JungleOverhang"));
-            Entities["TestTree2"].Transformation.SetPosition(Vector3.Forward * 10.0f + Vector3.Right * 7.6f);
-            */
-
-            //AddEntity("Grass", new GrassPlacement());
-            //AddEntity("Grass", new ClusterManager("Cecropia", 5));
-            AddEntity("Grass", new ClusterManager(new string[]{"Bush", "Fern", "Phila01", "ElephantEar", "BirdsNest"}, 120, true));
-            /*
-            AddEntity("Grass", new ClusterManager("Fern", 30, true));
-            AddEntity("Grass", new ClusterManager("Phila01", 30, true));
-            AddEntity("Grass", new ClusterManager("ElephantEar", 30, true));
-            AddEntity("Grass", new ClusterManager("BirdsNest", 30, true));
-            */
-            AddEntity("Forest", new ForestManager(new string[]{"Cecropia"}, 2500));
             CreateLandmarks();
+
+            AddEntity("Grass", new ClusterManager(new string[]{"Bush", "Fern", "Phila01", "ElephantEar", "BirdsNest"}, 120, true));
+            AddEntity("Forest", new ForestManager(new string[] { "Cecropia", "Palm02", "QueensPalm01", "Tree01", "Tree02", "Palm01", "BeachPalm"}, 3000));
             
-            //CreateForest();
 
-            //Entities.Add("Grass", new ShapePlacement());
-
-
-            /*
-            Model testGeom = new Model("test_level");
-            testGeom.Transformation.SetPosition(Vector3.Up*20.0f);
-            Entities.Add("scene_geom1", testGeom);
-
-            Model testGeom2 = new Model("cgWarehouse002story");
-            testGeom2.Transformation.SetPosition(Vector3.Up * 21.0f);
-            Entities.Add("scene_geom2", testGeom2);
-            */
-
-            /*
-            AnimatedModel model = new AnimatedModel("Allosaurus");
-            
-            model.Transformation.SetPosition(Vector3.Forward*10+Vector3.Up*68);
-            model.Model.GetAnimationLayer().SetActiveAnimation("AllosaurusIdle", true);//.SetAnimationLayer("AllosaurusIdle", 1.0f);
-            model.Model.SetCustomMatrix(Matrix.CreateScale(0.09f)*Matrix.CreateRotationX(-MathHelper.PiOver2));
-            //model.UpdateAnimation();
-            Entities.Add("TestCharacter", model);
-            
-            AnimatedModel model2 = new AnimatedModel("AlphaRaptor");
-            (MainTerrain as TerrainVoxel).GetLandmarkTransform(MapLandmark.Docks, model2.Transformation, model2.Model.GetMeshBounds());
-            model2.Transformation.SetPosition(model2.Transformation.GetPosition() + Vector3.Up * 10);
-            model2.Model.GetAnimationLayer().SetActiveAnimation("AlphaRaptorIdle", true);//.SetAnimationLayer("AlphaRaptorIdle", 1.0f);
-            model2.Model.SetCustomMatrix(Matrix.CreateScale(0.12f) * Matrix.CreateRotationX(-MathHelper.PiOver2));
-            //model.UpdateAnimation();
-            Entities.Add("TestCharacter2", model2);
-            */
-            
             //AddEntity("Raptor", new Raptor(ResourceManager.Inst.GetDinosaurDatablock("AlphaRaptor")));
-            
-            /*
-            InteractObject weaponCrate = new InteractObject(new ChestNode("Weapon Box"), "WeaponBox");
-            weaponCrate.Transformation.SetPosition(Vector3.Up * 30.0f);
-            Entities.Add("weaponCrate", weaponCrate);
-            */
 
             CreateTeams();          
             

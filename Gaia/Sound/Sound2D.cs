@@ -52,6 +52,11 @@ namespace Gaia.Sound
         {
         }
 
+        public float PlayLength
+        {
+            get { return (float)sound.PlayLength / 1000.0f; }
+        }
+
         public Sound2D(string soundName, bool looped, bool paused)
         {
             this.loop = looped;

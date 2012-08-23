@@ -483,8 +483,8 @@ namespace Gaia.Resources
                         {
                             br.ReadByte(); //flag
 
-                            string name = new string(br.ReadChars(32));
-                            string parentName = new string(br.ReadChars(32));
+                            string name = new string(br.ReadChars(32)).Replace("\0", "");
+                            string parentName = new string(br.ReadChars(32)).Replace("\0", "");
                             nodeParentNames.Add(parentName);
 
                             Vector3 rotation = new Vector3(br.ReadSingle(), br.ReadSingle(), br.ReadSingle());

@@ -51,11 +51,11 @@ namespace Gaia.Game
 
         public bool HasAmulet = false;
 
-        public bool HasKeycard = true;
+        public bool HasKeycard = false;
 
         public bool UsedRadio = false;
 
-        public bool ActivatedPower = false;
+        public bool ActivatedPower = true;
 
         public bool HasFuel = false;
 

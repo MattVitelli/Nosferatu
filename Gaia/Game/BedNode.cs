@@ -8,6 +8,7 @@ using Gaia.Rendering;
 using Gaia.Rendering.RenderViews;
 using Gaia.SceneGraph;
 using Gaia.SceneGraph.GameEntities;
+using Gaia.Sound;
 
 namespace Gaia.Game
 {
@@ -36,6 +37,7 @@ namespace Gaia.Game
                 scene.MainPlayer.SetControllable(false);
                 scene.MainPlayer.SetEnabled(false);
                 isSleeping = true;
+                new Sound2D("Sleep", false, false);
             }
         }
 

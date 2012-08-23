@@ -8,44 +8,104 @@ using Gaia.Rendering;
 using Gaia.Rendering.RenderViews;
 using Gaia.SceneGraph;
 using Gaia.SceneGraph.GameEntities;
-
+using Gaia.Sound;
 using JigLibX.Collision;
 
 namespace Gaia.Game
 {
+    public class PowerPlantDoorNode : DoorNode
+    {
+        public PowerPlantDoorNode(Entity parent, Vector3 goalRot, Vector3 goalDisp) : base(parent, goalRot, goalDisp)
+        {
+
+        }
+
+        public override void OnInteract()
+        {
+            PlayerScreen playerScreen = PlayerScreen.GetInst();
+            if (playerScreen.HasKeycard)
+            {
+                OpenDoor();
+                new Sound3D("MetalDoorOpen", this.oldPos);
+            }
+            else
+            {
+                playerScreen.AddJournalEntry("It's locked. Maybe there's a key?");
+                new Sound3D("MetalDoorLocked", this.oldPos);
+            }
+        }
+    }
+
+    public class HangarDoorNode : DoorNode
+    {
+        public HangarDoorNode(Entity parent, Vector3 goalRot, Vector3 goalDisp)
+            : base(parent, goalRot, goalDisp)
+        {
+
+        }
+
+        public override void OnInteract()
+        {
+            PlayerScreen playerScreen = PlayerScreen.GetInst();
+            if (playerScreen.ActivatedPower)
+            {
+                Sound3D sound = new Sound3D("ElectricDoorOpen", this.oldPos);
+                OPEN_DOOR_TIME = sound.PlayLength;
+                OpenDoor();
+            }
+            else
+            {
+                playerScreen.AddJournalEntry("It's locked. Turn on the power first.");
+                new Sound3D("MetalDoorLocked", this.oldPos);
+            }
+        }
+    }
+
     public class DoorNode : InteractNode
     {
-        bool isOpen = false;
-        bool isOpening = false;
-        const float OPEN_DOOR_TIME = 0.8f;
-        float openTimer = 0;
-        float oldTheta;
-        Entity parent;
+        protected bool isOpen = false;
+        protected bool isOpening = false;
+        protected float OPEN_DOOR_TIME = 0.8f;
+        protected float openTimer = 0;
+        protected Vector3 oldRot;
+        protected Vector3 oldPos;
 
-        public DoorNode(Entity parent)
+        protected Vector3 goalRot;
+        protected Vector3 goalDisp;
+        protected Entity parent;
+
+        public DoorNode(Entity parent, Vector3 goalRot, Vector3 goalDisp)
         {
             this.parent = parent;
-            this.oldTheta = parent.Transformation.GetRotation().Y;
+            this.oldRot = parent.Transformation.GetRotation();
+            this.oldPos = parent.Transformation.GetPosition();
+            this.goalRot = goalRot;
+            this.goalDisp = goalDisp;
         }
 
         public override void OnInteract()
         {
             base.OnInteract();
+            /*
             PlayerScreen playerScreen = PlayerScreen.GetInst();
             if (playerScreen.HasKeycard)
             {
-                isOpen = !isOpen;
-                isOpening = true;
-                openTimer = 0;
-                /*
-                CollisionSkin skin = ((CollisionTransform)parent.Transformation).GetCollisionSkin();
-                parent.GetScene().GetPhysicsEngine().CollisionSystem.RemoveCollisionSkin(skin);
-                */
+                OpenDoor()
+                new Sound3D("MetalDoorOpen", this.oldPos);
             }
             else
             {
                 playerScreen.AddJournalEntry("It's locked. Maybe there's a key?");
+                new Sound3D("MetalDoorLocked", this.oldPos);
             }
+            */
+        }
+
+        protected void OpenDoor()
+        {
+            isOpen = !isOpen;
+            isOpening = true;
+            openTimer = 0;
         }
 
         public override void OnUpdate()
@@ -53,16 +113,24 @@ namespace Gaia.Game
             if (isOpening)
             {
                 openTimer += Time.GameTime.ElapsedTime;
-                float theta = 0;
+                Vector3 pos;
+                Vector3 rot; 
+                float lerpCoeff = Math.Max(0.0f, Math.Min(1.0f, openTimer / OPEN_DOOR_TIME));
                 if (isOpen)
-                    theta = MathHelper.Lerp(0, MathHelper.PiOver2, Math.Min(1.0f, openTimer / OPEN_DOOR_TIME));
+                {
+                    pos = Vector3.Lerp(Vector3.Zero, goalDisp, lerpCoeff);
+                    rot = Vector3.Lerp(Vector3.Zero, goalRot, lerpCoeff);
+                }
                 else
-                    theta = MathHelper.Lerp(MathHelper.PiOver2, 0, Math.Min(1.0f, openTimer / OPEN_DOOR_TIME));
-                parent.Transformation.SetRotation(new Vector3(0, MathHelper.WrapAngle(theta+oldTheta), 0));
+                {
+                    pos = Vector3.Lerp(goalDisp, Vector3.Zero, lerpCoeff);
+                    rot = Vector3.Lerp(goalRot, Vector3.Zero, lerpCoeff);
+                }
+                Vector3 newRot = new Vector3(MathHelper.WrapAngle(oldRot.X+rot.X), MathHelper.WrapAngle(oldRot.Y+rot.Y), MathHelper.WrapAngle(oldRot.Z+rot.Z));
+                parent.Transformation.SetPosition(oldPos + pos);
+                parent.Transformation.SetRotation(newRot);
                 if (openTimer >= OPEN_DOOR_TIME)
                 {
-                    //CollisionSkin skin = ((CollisionTransform)parent.Transformation).GetCollisionSkin();
-                    //parent.GetScene().GetPhysicsEngine().CollisionSystem.AddCollisionSkin(skin);
                     isOpening = false;
                 }
             }
