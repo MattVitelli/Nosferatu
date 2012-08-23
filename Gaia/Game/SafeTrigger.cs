@@ -8,9 +8,26 @@ namespace Gaia.Game
 {
     public class SafeTrigger : Trigger
     {
+        bool useCustomSpawnPos = false;
+        Vector3 customSpawnPos = Vector3.Zero;
+        public SafeTrigger()
+        {
+
+        }
+
+        public SafeTrigger(Vector3 spawnPos)
+        {
+            useCustomSpawnPos = true;
+            this.customSpawnPos = spawnPos;
+        }
+
         protected override void OnTriggerEnter()
         {
             PlayerScreen.GetInst().IsSafe = true;
+            if (useCustomSpawnPos)
+                scene.MainPlayer.SetSpawnPosition(customSpawnPos);
+            else
+                scene.MainPlayer.SetSpawnPosition(this.Transformation.GetPosition());
             base.OnTriggerEnter();
         }
 

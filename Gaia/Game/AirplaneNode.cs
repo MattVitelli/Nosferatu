@@ -41,6 +41,7 @@ namespace Gaia.Game
             {
                 if (trex == null)
                 {
+                    new Sound3D("PlaneEngine", scene.FindEntity("Plane").Transformation.GetPosition());
                     trex = (AnimatedModel)scene.FindEntity("TRex");
                     trex.SetVisible(true);
                     trex.Model.GetAnimationLayer().SetActiveAnimation("TRexIdle", false);

@@ -64,7 +64,6 @@ namespace Gaia
             new ResourceManager();
             ResourceManager.Inst.LoadResources();
 
-            this.IsMouseVisible = true;
             GFX.Inst.GetGUI().DefaultFont = Content.Load<SpriteFont>("SimpleFont");
 
             //activeScreen = new HuntScreen();
