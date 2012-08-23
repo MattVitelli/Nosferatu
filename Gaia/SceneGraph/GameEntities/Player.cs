@@ -17,6 +17,7 @@ namespace Gaia.SceneGraph.GameEntities
         protected bool isControllable = false;
 
         Camera camera;
+        Weapon gun;
 
         const string painSoundName = "HumanPain";
         const string deathSoundName = "HumanDeath";
@@ -28,6 +29,7 @@ namespace Gaia.SceneGraph.GameEntities
             base.OnAdd(scene);
 
             camera = (Camera)scene.FindEntity("MainCamera");
+            gun = new Weapon("Pistol", this.body, camera.Transformation, scene);
         }
 
         public void SetEnabled(bool enabled)
@@ -107,6 +109,18 @@ namespace Gaia.SceneGraph.GameEntities
                 }
 
                 body.DesiredVelocity = velocity * (7.5f + sprintCoeff);
+
+                if(gun != null)
+                {
+                    if (gun.IsManual())
+                    {
+                        if (InputManager.Inst.IsKeyDownOnce(GameKey.Fire))
+                            gun.OnFire(camera.Transformation.GetPosition(), camera.Transformation.GetTransform().Forward);
+                    }
+                    else if (InputManager.Inst.IsKeyDown(GameKey.Fire))
+                        gun.OnFire(camera.Transformation.GetPosition(), camera.Transformation.GetTransform().Forward);
+                    
+                }
             }
         }
 
@@ -145,13 +159,14 @@ namespace Gaia.SceneGraph.GameEntities
             }
 
             UpdateControls();
-           
+            gun.OnUpdate();
             base.OnUpdate();
         }
 
         public override void OnRender(Gaia.Rendering.RenderViews.RenderView view)
         {
             base.OnRender(view);
+            gun.OnRender(view);
         }
     }
 }
