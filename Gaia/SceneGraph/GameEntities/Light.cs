@@ -212,7 +212,7 @@ namespace Gaia.SceneGraph.GameEntities
             // and backed up in the direction of the sunlight
             BoundingBox sceneBounds = scene.GetSceneDimensions();
             Vector3 sceneCenter = (sceneBounds.Min + sceneBounds.Max) * 0.5f;
-            Vector3 sceneExtents = (sceneBounds.Max - sceneBounds.Min) * 0.5f;
+            Vector3 sceneExtents = Vector3.One*scene.MainCamera.GetFarPlane()*1.5f;//, (sceneBounds.Max - sceneBounds.Min) * 0.5f);
             Vector3 lightDir = -this.Transformation.GetPosition();
             lightDir.Normalize();
             Matrix viewMatrix = Matrix.CreateLookAt(sceneCenter - (lightDir * sceneExtents.Length()), sceneCenter, new Vector3(0, 1, 0));
@@ -232,8 +232,8 @@ namespace Gaia.SceneGraph.GameEntities
 
             // Create an orthographic camera for use as a shadow caster
             //const float nearClipOffset = 380.0f;
-            
-            float nearPlane = -maxes.Z-sceneExtents.Length();
+
+            float nearPlane = -maxes.Z - sceneExtents.Length();
             float farPlane = -mins.Z;
 
             renderViews[split].SetPosition(viewMatrix.Translation);

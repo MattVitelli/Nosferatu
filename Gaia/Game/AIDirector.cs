@@ -12,7 +12,7 @@ namespace Gaia.Game
 {
     public class AIDirector : Entity
     {
-        const float TIME_TIL_NEXT_WAVE = 5; //number of seconds before next wave
+        const float TIME_TIL_NEXT_WAVE = 60; //number of seconds before next wave
         int MAX_ENEMIES = 5;
         float timeTilWave = TIME_TIL_NEXT_WAVE;
         DinosaurDatablock raptorDatablock;

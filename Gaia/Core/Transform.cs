@@ -120,8 +120,10 @@ namespace Gaia.Core
             }
             
             objectMatrix = Matrix.Invert(worldMatrix);
-            bounds.Min = Vector3.Transform(Vector3.One*-1, worldMatrix);
-            bounds.Max = Vector3.Transform(Vector3.One, worldMatrix);
+            Vector3 min = Vector3.Transform(Vector3.One*-1, worldMatrix);
+            Vector3 max = Vector3.Transform(Vector3.One, worldMatrix);
+            bounds.Min = Vector3.Min(min, max);
+            bounds.Max = Vector3.Max(min, max);
         }
     }
 }

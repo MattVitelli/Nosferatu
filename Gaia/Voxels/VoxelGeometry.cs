@@ -22,6 +22,13 @@ namespace Gaia.Voxels
             return collisionTree;
         }
 
+        BoundingBox bounds = new BoundingBox(Vector3.One * float.PositiveInfinity, Vector3.One * float.NegativeInfinity);
+
+        public BoundingBox GetBounds()
+        {
+            return bounds;
+        }
+
         public RenderElement renderElement;
 
         public bool CanRender = false;
@@ -229,7 +236,8 @@ namespace Gaia.Voxels
                                         _edgeToIndices.Add(idx, (ushort)_vertices.Count);
                                         
                                         VertexPN vert = GenerateVertex(VoxelHelper.NewTriangleTable2[cubeindex, i + j], VectorCache, NormalCache, DensityCache, IsoValue);
-                                        
+                                        bounds.Min = Vector3.Min(vert.Position, bounds.Min);
+                                        bounds.Max = Vector3.Max(vert.Position, bounds.Max);
                                         _vertices.Add(new VertexPNCompressed(vert.Position, vert.Normal));
                                     }
                                     _indices.Add(_edgeToIndices[idx]);

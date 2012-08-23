@@ -19,7 +19,7 @@ namespace Gaia.SceneGraph.GameEntities
 
     public class ForestManager : Entity
     {
-        public KDTree<ForestElement> visibleMeshes = new KDTree<ForestElement>(SceneCompareFunction);
+        public KDTree<ForestElement> visibleMeshes = new KDTree<ForestElement>(SceneCompareFunction, SceneBoundsFunction, false, false);
         Mesh[] meshes;
         const int defaultEntityCount = 1500;
 
@@ -94,6 +94,7 @@ namespace Gaia.SceneGraph.GameEntities
                 element.Transform.SetPosition(pos);
                 int randMeshIndex = RandomHelper.RandomGen.Next(i % (meshes.Length+1));
                 element.Mesh = meshes[randMeshIndex];
+                element.Bounds = element.Transform.TransformBounds(element.Mesh.GetBounds()); //This is only temporary
                 visibleMeshes.AddElement(element, false);
             }
             isEnabled = true;
@@ -107,10 +108,14 @@ namespace Gaia.SceneGraph.GameEntities
 
         static int SceneCompareFunction(ForestElement elementA, ForestElement elementB, int axis)
         {
-            Vector3 posA = elementA.Transform.GetPosition();
+            BoundingBox boundsA = elementA.Bounds;//.Transform.TransformBounds(elementA.Mesh.GetBounds());
+
+            Vector3 posA = (boundsA.Max + boundsA.Min) * 0.5f;// elementA.Transform.GetPosition();
             float valueA = (axis == 0) ? posA.X : (axis == 1) ? posA.Y : posA.Z;
 
-            Vector3 posB = elementB.Transform.GetPosition();
+            BoundingBox boundsB = elementB.Bounds;//.Transform.TransformBounds(elementB.Mesh.GetBounds());
+
+            Vector3 posB = (boundsB.Max + boundsB.Min) * 0.5f;//elementB.Transform.GetPosition();
             float valueB = (axis == 0) ? posB.X : (axis == 1) ? posB.Y : posB.Z;
 
             if (valueA < valueB)
@@ -121,6 +126,12 @@ namespace Gaia.SceneGraph.GameEntities
             return 0;
         }
 
+        static Vector2 SceneBoundsFunction(ForestElement element, int axis)
+        {
+            BoundingBox bounds = element.Bounds;//.Transform.TransformBounds(element.Mesh.GetBounds());
+            return (axis == 0) ? new Vector2(bounds.Min.X, bounds.Max.X) : ((axis == 1) ? new Vector2(bounds.Min.Y, bounds.Max.Y) : new Vector2(bounds.Min.Z, bounds.Max.Z));
+        }
+
         void RecursivelyBuildBounds(KDNode<ForestElement> node)
         {
             if (node == null)
@@ -128,9 +139,19 @@ namespace Gaia.SceneGraph.GameEntities
 
             RecursivelyBuildBounds(node.leftChild);
             RecursivelyBuildBounds(node.rightChild);
-            
-            node.bounds = node.element.Transform.TransformBounds(node.element.Mesh.GetBounds());
-            node.element.Bounds = node.bounds;
+
+            if (node.element != null)
+            {
+                node.bounds = node.element.Transform.TransformBounds(node.element.Mesh.GetBounds());
+                node.element.Bounds = node.bounds;
+            }
+            else
+            {
+                if(node.leftChild != null)
+                    node.bounds = node.leftChild.bounds;
+                if (node.rightChild != null)
+                    node.bounds = node.rightChild.bounds;
+            }
             if (node.leftChild != null)
             {
                 node.bounds.Min = Vector3.Min(node.leftChild.bounds.Min, node.bounds.Min);
@@ -156,18 +177,21 @@ namespace Gaia.SceneGraph.GameEntities
             if (node == null || view.GetFrustum().Contains(node.bounds) == ContainmentType.Disjoint)
                 return;
 
-            if(view.GetRenderType() == RenderViewType.MAIN)
+            if (node.element != null)
             {
-                float distToCamera = Vector3.DistanceSquared(node.element.Transform.GetPosition(), view.GetPosition());
-                node.element.RenderImposters = (distToCamera >= Mesh.IMPOSTER_DISTANCE_SQUARED);
-            }
+                if (view.GetRenderType() == RenderViewType.MAIN)
+                {
+                    float distToCamera = Vector3.DistanceSquared(node.element.Transform.GetPosition(), view.GetPosition());
+                    node.element.RenderImposters = (distToCamera >= Mesh.IMPOSTER_DISTANCE_SQUARED);
+                }
 
-            //if (view.GetFrustum().Contains(node.element.Bounds) != ContainmentType.Disjoint)
-            {
-                if (node.element.RenderImposters)
-                    node.element.Mesh.RenderImposters(node.element.Transform.GetTransform(), view, false);
-                else
-                    node.element.Mesh.Render(node.element.Transform.GetTransform(), view, false);
+                //if (view.GetFrustum().Contains(node.element.Bounds) != ContainmentType.Disjoint)
+                {
+                    if (node.element.RenderImposters)
+                        node.element.Mesh.RenderImposters(node.element.Transform.GetTransform(), view, false);
+                    else
+                        node.element.Mesh.Render(node.element.Transform.GetTransform(), view, false);
+                }
             }
             RecursivelyRender(node.leftChild, view);
             RecursivelyRender(node.rightChild, view);

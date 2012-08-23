@@ -26,13 +26,25 @@ namespace Gaia.SceneGraph.GameEntities
         protected SortedList<string, Vector3> defaultRotations = new SortedList<string, Vector3>();
         protected AnimationLayer mainAnimationLayer;
 
+        Scene scene;
         Transform transform;
 
         Matrix customMatrix = Matrix.Identity;
 
+        Matrix worldMat = Matrix.Identity;
+        BoundingBox worldBounds;
+
+        bool renderAlways = true;
+
         public ViewModel(string name)
         {
             InitializeMesh(name);
+        }
+
+        public void SetRenderAlways(bool renderAlways, Scene scene)
+        {
+            this.renderAlways = renderAlways;
+            this.scene = scene;
         }
 
         public BoundingBox GetMeshBounds()
@@ -118,30 +130,34 @@ namespace Gaia.SceneGraph.GameEntities
             }
             */
             mainAnimationLayer.UpdateAnimation(timeDT, this.nodes);
-            Matrix root = Matrix.Identity;
-            for (int i = 0; i < rootNodes.Length; i++)
-                rootNodes[i].ApplyTransform(ref root);
-
-            for (int i = 0; i < vertices.Length; i++)
+            if (renderAlways || (scene != null && (scene.MainCamera.GetFrustum().Contains(worldBounds) != ContainmentType.Disjoint)))
             {
-                VertexPNTTI currVertex = mesh.GetVertex(i);
-                int index = (int)currVertex.Index;
-                vertices[i].Position = Vector3.Transform(currVertex.Position, orderedNodes[index].Transform);
-                vertices[i].Normal = Vector3.TransformNormal(currVertex.Normal, orderedNodes[index].TransformIT);
-                vertices[i].Tangent = Vector3.TransformNormal(currVertex.Tangent, orderedNodes[index].TransformIT);
-                vertices[i].Index = 0;
+                Matrix root = Matrix.Identity;
+                for (int i = 0; i < rootNodes.Length; i++)
+                    rootNodes[i].ApplyTransform(ref root);
+
+                for (int i = 0; i < vertices.Length; i++)
+                {
+                    VertexPNTTI currVertex = mesh.GetVertex(i);
+                    int index = (int)currVertex.Index;
+                    vertices[i].Position = Vector3.Transform(currVertex.Position, orderedNodes[index].Transform);
+                    vertices[i].Normal = Vector3.TransformNormal(currVertex.Normal, orderedNodes[index].TransformIT);
+                    vertices[i].Tangent = Vector3.TransformNormal(currVertex.Tangent, orderedNodes[index].TransformIT);
+                    vertices[i].Index = 0;
+                }
+                vertexBuffer.SetData<VertexPNTTI>(vertices);
             }
-            vertexBuffer.SetData<VertexPNTTI>(vertices);
         }
 
         public void OnUpdate()
         {
+            worldMat = customMatrix * transform.GetTransform();
+            worldBounds = MathUtils.TransformBounds(mesh.GetBounds(), worldMat);
             UpdateAnimation(Time.GameTime.ElapsedTime);
         }
 
         public void OnRender(RenderView view, bool performCulling)
         {
-            Matrix worldMat = customMatrix * transform.GetTransform();
             if (rootNodes != null && rootNodes.Length > 0)
                 mesh.Render(worldMat, vertexBuffer, view, performCulling);
             else

@@ -78,11 +78,11 @@ namespace Gaia.Game
             compass = new UICompass();
             compass.Scale = new Vector2(0.35f, 0.05f);
             compass.Position = new Vector2(0, -0.85f);
-            /*
+            
             crosshair = new UIButton(ResourceManager.Inst.GetTexture("UI/Game/crossHair.dds"), Vector4.One, string.Empty);
             crosshair.Position = Vector2.Zero;
             crosshair.Scale = Vector2.One * 0.035f;
-            */
+            
             journalStatus = new UIButton(null, Vector4.One, "Journal Updated!");
             journalStatus.Position = new Vector2(0, 0.15f);// new Vector2(-0.7f, 0.85f);
             journalStatus.SetVisible(false);
@@ -121,7 +121,7 @@ namespace Gaia.Game
             list.SetColor(new Vector4(0.15f, 0.15f, 0.15f, 1.0f));
             //this.controls.Add(list);
             
-            //this.controls.Add(crosshair);
+            this.controls.Add(crosshair);
             this.controls.Add(journalStatus);
             this.controls.Add(compass);
             this.controls.Add(interactStatus);
@@ -229,16 +229,11 @@ namespace Gaia.Game
             lookRay.Direction = lookDir;
 
             InteractNode node = GetInteractNode(lookRay);
-            //scene.GetPhysicsEngine().CollisionSystem.SegmentIntersect(out dist, out skin, out pos, out normal, seg, pred);
-            if (node != null)//skin != null && skin.Owner != null && ((InteractBody)skin.Owner).Node != null)
+            if (node != null)
             {
-                //InteractBody body = (InteractBody)skin.Owner;
-                //InteractNode node = body.Node;
-                //Do collision detection at a later date!
-                //skin.Owner
                 interactStatus.SetText(node.GetInteractText());
 
-                //crosshair.SetVisible(false);
+                crosshair.SetVisible(false);
                 interactButton.SetVisible(true);
                 interactStatus.SetVisible(true);
 
@@ -249,7 +244,7 @@ namespace Gaia.Game
             }
             else
             {
-                //crosshair.SetVisible(true);
+                crosshair.SetVisible(true);
                 interactButton.SetVisible(false);
                 interactStatus.SetVisible(false);
             }

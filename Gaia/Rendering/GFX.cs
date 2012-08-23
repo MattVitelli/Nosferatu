@@ -22,6 +22,7 @@ namespace Gaia.Rendering
         Shadows = 0,
         Terrain,
         Scene,
+        SceneNoCull,
         TransparentGBuffer,
         TransparentColor,
         Light,

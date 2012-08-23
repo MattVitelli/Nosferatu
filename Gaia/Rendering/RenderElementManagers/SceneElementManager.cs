@@ -12,6 +12,13 @@ namespace Gaia.Rendering
         protected SortedList<Material, CustomList<RenderElement>> Elements = new SortedList<Material, CustomList<RenderElement>>();
         protected Matrix[] tempTransforms = new Matrix[GFXShaderConstants.NUM_INSTANCES];
 
+        CullMode sceneCullMode = CullMode.CullCounterClockwiseFace;
+
+        public void SetSceneCullMode(CullMode mode)
+        {
+            sceneCullMode = mode;
+        }
+
         public SceneElementManager(RenderView renderView) : base(renderView) { }
 
         public virtual void AddElement(Material material, RenderElement element)
@@ -55,7 +62,7 @@ namespace Gaia.Rendering
 
         public override void Render()
         {
-            GFX.Device.RenderState.CullMode = CullMode.CullCounterClockwiseFace;
+            GFX.Device.RenderState.CullMode = sceneCullMode;
             GFX.Device.RenderState.DepthBufferEnable = true;
             GFX.Device.RenderState.DepthBufferWriteEnable = true;
             GFX.Device.RenderState.DepthBufferFunction = CompareFunction.LessEqual;

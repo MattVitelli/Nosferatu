@@ -26,6 +26,7 @@ namespace Gaia.SceneGraph.GameEntities
         {
             base.OnAdd(scene);
             Model.SetTransform(this.Transformation);
+            Model.SetRenderAlways(false, scene);
         }
 
         public override void OnUpdate()

@@ -74,6 +74,7 @@ namespace Gaia.SceneGraph.GameEntities
         {
             base.OnAdd(scene);
             model.SetTransform(this.Transformation);
+            model.SetRenderAlways(false, scene);
         }
 
         void UpdateAnimation()

@@ -118,47 +118,7 @@ namespace Gaia.SceneGraph.GameEntities
 
             target.GenerateMipMaps(TextureFilter.Linear);
         }
-        /*
-        public override bool GetYPos(ref Vector3 pos, out Vector3 normal, float minY, float maxY)
-        {
-
-            Vector3 minPos = new Vector3(pos.X, minY, pos.Z);
-            Vector3 maxPos = new Vector3(pos.X, maxY, pos.Z);
-            minPos = Vector3.Transform(minPos, Transformation.GetObjectSpace());
-            maxPos = Vector3.Transform(maxPos, Transformation.GetObjectSpace());
-            minPos = minPos * 0.5f + Vector3.One * 0.5f;
-            maxPos = maxPos * 0.5f + Vector3.One * 0.5f;
-
-            int yBegin = (int)MathHelper.Clamp(minPos.Y * DensityFieldHeight, 0, DensityFieldHeight - 1);
-            int yEnd = (int)MathHelper.Clamp(maxPos.Y * DensityFieldHeight, 0, DensityFieldHeight - 1);
-            int xCrd = (int)MathHelper.Clamp(DensityFieldWidth * minPos.X, 0, DensityFieldWidth - 1);
-            int zCrd = (int)MathHelper.Clamp(DensityFieldDepth * minPos.Z, 0, DensityFieldDepth - 1);
-            int baseIndex = xCrd + zCrd * DensityFieldWidth * DensityFieldHeight;
-
-            int yIndex = yBegin;
-            bool freeSpaceFound = false;
-            bool solidSpaceFound = false;
-            for (int i = yBegin; i < yEnd; i++)
-            {
-                if (DensityField[baseIndex + i * DensityFieldSize] <= IsoValue)
-                {
-                    yIndex = i;
-                    freeSpaceFound = true;
-                }
-                else
-                {
-                    solidSpaceFound = true;
-                }
-                if (freeSpaceFound && solidSpaceFound)
-                    break;
-            }
-            minPos.Y = ((float)yIndex / (float)DensityFieldSize);
-            minPos = minPos * 2.0f - Vector3.One;
-            pos = Vector3.Transform(minPos, Transformation.GetTransform());
-            normal = ComputeNormal(xCrd, yIndex, zCrd);
-            return (freeSpaceFound && solidSpaceFound);
-        }
-        */
+        
         public override void GenerateRandomTransform(Random rand, out Vector3 position, out Vector3 normal)
         {
             int randomIndex = rand.Next(0, availableTriangles.Count);
@@ -170,30 +130,6 @@ namespace Gaia.SceneGraph.GameEntities
             }
             position = triangle.GeneratePointInTriangle(RandomHelper.RandomGen);
             normal = triangle.Normal;
-            return;
-
-            int bestY = -1;
-            int randX = 0;
-            int randZ = 0;
-            while(bestY == -1)
-            {
-                randX = rand.Next(DensityFieldWidth-1);
-                randZ = rand.Next(DensityFieldDepth-1);
-                int index = randX + randZ * DensityFieldWidth * DensityFieldHeight;
-                
-                for (int i = 0; i < DensityFieldHeight; i++)
-                {
-                    if(DensityField[index+i*DensityFieldWidth] <= IsoValue)
-                    {
-                        bestY = i;
-                        break;
-                    }
-                }
-            }
-
-            Vector3 vec = new Vector3((float)randX, (float)bestY, (float)randZ) / new Vector3(DensityFieldWidth - 1, DensityFieldHeight - 1, DensityFieldDepth - 1);
-            position = Vector3.Transform(2.0f * vec - Vector3.One, Transformation.GetTransform());
-            normal = ComputeNormal(randX, bestY, randZ);
         }
 
         public override bool GetTrianglesInRegion(Random rand, out List<TriangleGraph> availableTriangles, BoundingBox region)
@@ -246,6 +182,32 @@ namespace Gaia.SceneGraph.GameEntities
             }
 
             return (availableTriangles.Count > 0);
+        }
+
+        static int SceneCompareFunction(VoxelGeometry elementA, VoxelGeometry elementB, int axis)
+        {
+            BoundingBox boundsA = elementA.GetBounds();//.Transform.TransformBounds(elementA.Mesh.GetBounds());
+
+            Vector3 posA = (boundsA.Max + boundsA.Min) * 0.5f;// elementA.Transform.GetPosition();
+            float valueA = (axis == 0) ? posA.X : (axis == 1) ? posA.Y : posA.Z;
+
+            BoundingBox boundsB = elementB.GetBounds();//.Transform.TransformBounds(elementB.Mesh.GetBounds());
+
+            Vector3 posB = (boundsB.Max + boundsB.Min) * 0.5f;//elementB.Transform.GetPosition();
+            float valueB = (axis == 0) ? posB.X : (axis == 1) ? posB.Y : posB.Z;
+
+            if (valueA < valueB)
+                return -1;
+            if (valueA > valueB)
+                return 1;
+
+            return 0;
+        }
+
+        static Vector2 SceneBoundsFunction(VoxelGeometry element, int axis)
+        {
+            BoundingBox bounds = element.GetBounds();//.Transform.TransformBounds(element.Mesh.GetBounds());
+            return (axis == 0) ? new Vector2(bounds.Min.X, bounds.Max.X) : ((axis == 1) ? new Vector2(bounds.Min.Y, bounds.Max.Y) : new Vector2(bounds.Min.Z, bounds.Max.Z));
         }
 
         public void GenerateRandomTransformConnected(Random rand, out Vector3 position, out Vector3 normal)
@@ -848,15 +810,19 @@ namespace Gaia.SceneGraph.GameEntities
                     for (int x = 0; x < voxelCountX; x++)
                     {
                         int idx = x + yOff + zOff;
-
+                        /*
                         VoxelBounds[idx] = new BoundingBox(new Vector3(x, y, z) * ratio - Vector3.One, new Vector3(x + 1, y + 1, z + 1) * ratio - Vector3.One);
                         VoxelBounds[idx].Min = Vector3.Transform(VoxelBounds[idx].Min, Transformation.GetTransform());
                         VoxelBounds[idx].Max = Vector3.Transform(VoxelBounds[idx].Max, Transformation.GetTransform());
-
+                        */
                         Voxels[idx] = new VoxelGeometry((ushort)idx);
                         Voxels[idx].renderElement.Transform = new Matrix[1] { Transformation.GetTransform() };
                         Vector3 geometryRatio = 2.0f*Vector3.One / new Vector3(DensityFieldWidth-1,DensityFieldHeight-1,DensityFieldDepth-1);
                         Voxels[idx].GenerateGeometry(ref DensityField, IsoValue, DensityFieldWidth, DensityFieldHeight, DensityFieldDepth, VoxelGridSize, VoxelGridSize, VoxelGridSize, x * VoxelGridSize, y * VoxelGridSize, z * VoxelGridSize, geometryRatio, this.Transformation.GetTransform());
+
+                        VoxelBounds[idx] = Voxels[idx].GetBounds();
+                        VoxelBounds[idx].Min = Vector3.Transform(VoxelBounds[idx].Min, Transformation.GetTransform());
+                        VoxelBounds[idx].Max = Vector3.Transform(VoxelBounds[idx].Max, Transformation.GetTransform());
                     }
                 }
             }

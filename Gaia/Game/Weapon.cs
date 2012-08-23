@@ -28,6 +28,7 @@ namespace Gaia.Game
             this.ignorePred = new IgnoreSkinPredicate(body);
             this.scene = scene;
             this.fpsModel = new ViewModel(modelName);
+            this.fpsModel.SetRenderAlways(true, scene);
             fpsModel.SetTransform(transform);
             Matrix weaponTransform = Matrix.CreateScale(0.1f) * Matrix.CreateRotationX(-MathHelper.PiOver2) * Matrix.CreateRotationY(MathHelper.PiOver2);
             fpsModel.SetCustomMatrix(weaponTransform);

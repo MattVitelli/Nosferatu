@@ -55,6 +55,7 @@ namespace Gaia.Rendering.RenderViews
         {
             this.ElementManagers.Add(RenderPass.Sky, new SkyElementManager(this));
             this.ElementManagers.Add(RenderPass.Scene, new SceneElementManager(this));
+            this.ElementManagers.Add(RenderPass.SceneNoCull, new SceneElementManager(this));
             this.ElementManagers.Add(RenderPass.Emissive, new SceneElementManager(this));
             this.ElementManagers.Add(RenderPass.PostProcess, new PostProcessElementManager(this));
             this.ElementManagers.Add(RenderPass.Light, new LightElementManager(this));
