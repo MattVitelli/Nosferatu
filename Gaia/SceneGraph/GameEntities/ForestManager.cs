@@ -85,7 +85,7 @@ namespace Gaia.SceneGraph.GameEntities
                 if (useRegion)
                 {
                     int index = i % (availableTriangles.Count+1);
-                    int randIndex = RandomHelper.RandomGen.Next(index);
+                    int randIndex = RandomHelper.RandomGen.Next(availableTriangles.Count);//index);
                     normal = availableTriangles[randIndex].Normal;
                     pos = availableTriangles[randIndex].GeneratePointInTriangle(RandomHelper.RandomGen);
                 }

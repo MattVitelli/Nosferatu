@@ -16,7 +16,8 @@ namespace Gaia.Rendering.RenderViews
 
     public abstract class RenderView : IComparable
     {
-        BoundingFrustum frustum;
+        BoundingFrustum frustum = new BoundingFrustum(Matrix.Identity);
+        CustomFrustum customFrustum = new CustomFrustum(Matrix.Identity, Vector3.Zero);
         Vector3 position;
 
         float farPlane;
@@ -108,7 +109,8 @@ namespace Gaia.Rendering.RenderViews
             dirtyMatrix = false;
             viewProjection = view * projection;
             viewProjectionLocal = viewLocal * projectionLocal;
-            frustum = new BoundingFrustum(viewProjection);
+            frustum.Matrix = viewProjection;
+            customFrustum.SetMatrix(viewProjection, position);
             inverseViewProjection = Matrix.Invert(viewProjection);
             if (updateViewProjLocal)
             {
@@ -219,6 +221,13 @@ namespace Gaia.Rendering.RenderViews
             if (dirtyMatrix)
                 ComputeMatrix();
             return frustum;
+        }
+
+        public CustomFrustum GetCustomFrustum()
+        {
+            if (dirtyMatrix)
+                ComputeMatrix();
+            return customFrustum;
         }
 
         public void SetPosition(Vector3 position)

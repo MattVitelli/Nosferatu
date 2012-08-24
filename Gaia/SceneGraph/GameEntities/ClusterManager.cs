@@ -10,7 +10,7 @@ namespace Gaia.SceneGraph.GameEntities
     {
         public static float CloudBlockScale = 32; //ClustersPerBlock * CloudRadius * 2;
         public const int CloudBlocksH = 3; //Horizontal cloud blocks
-        public const int CloudBlocksV = 1; //Vertical cloud blocks
+        public const int CloudBlocksV = 2; //Vertical cloud blocks
 
         const long width = long.MaxValue >> 48;
         const long height = long.MaxValue >> 48;
@@ -43,14 +43,23 @@ namespace Gaia.SceneGraph.GameEntities
 
         void UpdateClusterPlacement()
         {
-            for (int z = camZ - CloudBlocksH; z <= camZ + CloudBlocksH; z++)
+            int zStart = camZ - CloudBlocksH - 1;
+            int zEnd = camZ + CloudBlocksH + 1;
+
+            int yStart = camY - CloudBlocksV - 1;
+            int yEnd = camY + CloudBlocksV + 1;
+
+            int xStart = camX - CloudBlocksH - 1;
+            int xEnd = camX + CloudBlocksH + 1;
+
+            for (int z = zStart - 1; z <= zEnd; z++)
             {
                 long zOff = sliceArea * (long)z;
-                for (int y = camY - CloudBlocksV; y <= camY + CloudBlocksV; y++)
+                for (int y = yStart; y <= yEnd; y++)
                 {
                     long yOff = width * (long)y;
 
-                    for (int x = camX - CloudBlocksH; x <= camX + CloudBlocksH; x++)
+                    for (int x = xStart; x <= xEnd; x++)
                     {
                         long idx = (long)x + yOff + zOff;
                         if (!clusterCollection.ContainsKey(idx))

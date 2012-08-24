@@ -96,6 +96,7 @@
     <Compile Include="Animation\AnimationLayer.cs" />
     <Compile Include="Core\ByteConverter.cs" />
     <Compile Include="Core\CollisionTransform.cs" />
+    <Compile Include="Core\CustomFrustum.cs" />
     <Compile Include="Core\CustomList.cs" />
     <Compile Include="Core\NormalTransform.cs" />
     <Compile Include="Core\JitterConverter.cs" />
