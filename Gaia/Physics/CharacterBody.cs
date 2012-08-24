@@ -104,8 +104,11 @@ namespace Gaia.Physics
                     Vector3.Negate(ref N, out N);
                 else if (info.SkinInfo.Skin1.Owner == null)
                 {
-                    contactNormal = Vector3.Normalize(Vector3.Lerp(N, contactNormal, 0.975f));
-                    foundContactNormal = true;
+                    if (Math.Acos(N.Y) < MathHelper.PiOver2*0.33f)
+                    {
+                        contactNormal = Vector3.Normalize(Vector3.Lerp(N, contactNormal, 0.975f));
+                        foundContactNormal = true;
+                    }
                 }
             }
 

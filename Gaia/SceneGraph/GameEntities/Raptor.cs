@@ -391,7 +391,7 @@ namespace Gaia.SceneGraph.GameEntities
         public override void OnUpdate()
         {
             base.OnUpdate();
-            //PerformBehavior();
+            PerformBehavior();
             UpdateAnimation();
             body.DesiredVelocity = velocityVector;
         }
@@ -400,6 +400,35 @@ namespace Gaia.SceneGraph.GameEntities
         {
             BoundingBox bounds = Transformation.TransformBounds(model.GetMeshBounds());
             return (scene.MainCamera.GetFrustum().Contains(bounds) != ContainmentType.Disjoint);
+        }
+
+        public override HitType GetHit(Microsoft.Xna.Framework.Ray ray, float maxDistance, out float hitDistance)
+        {
+            BoundingBox hitBounds = model.GetHitBounds();
+            float? dist;
+            ray.Intersects(ref hitBounds, out dist);
+            if (dist.HasValue && dist.Value <= maxDistance)
+            {
+                float bestDist = float.PositiveInfinity;
+                HitType bestHit = HitType.None;
+                SortedList<HitType, BoundingBox> hitBoxes = model.GetHitBoxes();
+                for (int i = 0; i < hitBoxes.Count; i++)
+                {
+                    HitType currHitType = hitBoxes.Keys[i];
+                    float? hitDist;
+                    BoundingBox bounds = hitBoxes[currHitType];
+                    ray.Intersects(ref bounds, out hitDist);
+                    if (hitDist.HasValue && hitDist.Value <= maxDistance && hitDist.Value < bestDist)
+                    {
+                        bestDist = hitDist.Value;
+                        bestHit = currHitType;
+                    }
+                }
+                hitDistance = bestDist;
+                return bestHit;
+            }
+            hitDistance = 0;
+            return HitType.None;
         }
 
         public override void OnRender(Gaia.Rendering.RenderViews.RenderView view)

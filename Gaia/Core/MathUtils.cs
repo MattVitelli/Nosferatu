@@ -22,8 +22,10 @@ namespace Gaia.Core
 
         public static BoundingBox TransformBounds(BoundingBox srcBounds, Matrix transform)
         {
-            srcBounds.Min = Vector3.Transform(srcBounds.Min, transform);
-            srcBounds.Max = Vector3.Transform(srcBounds.Max, transform);
+            Vector3 min = Vector3.Transform(srcBounds.Min, transform);
+            Vector3 max = Vector3.Transform(srcBounds.Max, transform);
+            srcBounds.Min = Vector3.Min(min, max);
+            srcBounds.Max = Vector3.Max(min, max);
             return srcBounds;
         }
 

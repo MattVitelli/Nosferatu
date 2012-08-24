@@ -60,7 +60,7 @@ namespace Gaia.Resources
         SortedList<string, AnimationNode> namesToNodes = new SortedList<string, AnimationNode>();
         SortedList<string, Matrix> inverseMatrices = new SortedList<string, Matrix>();
         SortedList<int, BoundingBox> hitboxes;
-
+        SortedList<HitType, int[]> hitboxGroupings;
         /*
         Texture2D[] instanceTexture = new Texture2D[3];
         Texture2D[] imposterInstanceTexture = new Texture2D[3];
@@ -93,6 +93,8 @@ namespace Gaia.Resources
         bool addedToView = false;
 
         bool generateHitBoxes = false;
+
+        string hitboxData = string.Empty;
 
         const float IMPOSTER_DISTANCE = 120;
 
@@ -134,6 +136,11 @@ namespace Gaia.Resources
                 ComputeHitBoxes();
         }
 
+        public bool HasHitBoxes()
+        {
+            return generateHitBoxes;
+        }
+
         public SortedList<int, BoundingBox> GetHitBoxes()
         {
             if (hitboxes == null)
@@ -144,6 +151,11 @@ namespace Gaia.Resources
                 hitBoxesCopy.Add(hitboxes.Keys[i], hitboxes[hitboxes.Keys[i]]);
             }
             return hitBoxesCopy;
+        }
+
+        public SortedList<HitType, int[]> GetHitBoxGroups()
+        {
+            return hitboxGroupings;
         }
 
         void ComputeHitBoxes()
@@ -159,6 +171,48 @@ namespace Gaia.Resources
                 bounds.Min = Vector3.Min(vertices[i].Position, bounds.Min);
                 bounds.Max = Vector3.Max(vertices[i].Position, bounds.Max);
                 hitboxes[boneIndex] = bounds;
+            }
+            if (hitboxData != string.Empty)
+            {
+                hitboxGroupings = new SortedList<HitType, int[]>();
+                SortedList<string, int> nodesToIndices = new SortedList<string, int>();
+                for (int i = 0; i < nodes.Length; i++)
+                    nodesToIndices.Add(nodes[i].Name, i);
+                string[] hitboxSectors = hitboxData.Split('^');
+                for (int l = 0; l < hitboxSectors.Length; l++)
+                {
+                    string[] data = hitboxSectors[l].Split(' ');
+                    HitType currHitType = HitType.None;
+                    switch (data[0].ToLower())
+                    {
+                        case "torso":
+                            currHitType = HitType.Torso;
+                            break;
+                        case "head":
+                            currHitType = HitType.Head;
+                            break;
+                        case "arms":
+                            currHitType = HitType.Arms;
+                            break;
+                        case "legs":
+                            currHitType = HitType.Legs;
+                            break;
+                        case "tail":
+                            currHitType = HitType.Tail;
+                            break;
+                        case "none":
+                            currHitType = HitType.None;
+                            break;
+                    }
+                    List<int> indices = new List<int>();
+                    for (int j = 1; j < data.Length; j++)
+                    {
+                        int index = nodesToIndices[data[j]];
+                        if(hitboxes.ContainsKey(index))
+                            indices.Add(index);
+                    }
+                    hitboxGroupings.Add(currHitType, indices.ToArray());
+                }
             }
         }
 
@@ -1214,6 +1268,9 @@ namespace Gaia.Resources
                         break;
                     case "generatehitboxes":
                         generateHitBoxes = bool.Parse(attrib.Value);
+                        break;
+                    case "hitgroups":
+                        hitboxData = attrib.Value;
                         break;
                 }
             }

@@ -28,6 +28,9 @@ namespace Gaia.SceneGraph.GameEntities
         protected AnimationLayer mainAnimationLayer;
         protected SortedList<int, BoundingBox> hitBoxes;
         protected SortedList<int, BoundingBox> hitBoxesTransformed;
+        protected SortedList<HitType, BoundingBox> hitBoxesGrouped;
+        protected SortedList<HitType, int[]> hitBoxGroups;
+        BoundingBox hitBounds;
 
         protected Ragdoll ragdoll = null;
         protected bool ragdollEnabled = false;
@@ -68,6 +71,11 @@ namespace Gaia.SceneGraph.GameEntities
             return mesh.GetBounds();
         }
 
+        public BoundingBox GetHitBounds()
+        {
+            return hitBounds;
+        }
+
         public AnimationLayer GetAnimationLayer()
         {
             return mainAnimationLayer;
@@ -82,8 +90,7 @@ namespace Gaia.SceneGraph.GameEntities
         {
             mesh = ResourceManager.Inst.GetMesh(name);
             rootNodes = mesh.GetRootNodes(out nodes);
-            hitBoxes = mesh.GetHitBoxes();
-            hitBoxesTransformed = mesh.GetHitBoxes();
+            CreateHitBoxes();
             int vertexCount = 0;
             VertexBuffer origBuffer = mesh.GetVertexBuffer(out vertexCount);
             vertices = new VertexPNTTI[vertexCount];
@@ -168,6 +175,14 @@ namespace Gaia.SceneGraph.GameEntities
             }
         }
 
+        void CreateHitBoxes()
+        {
+            hitBoxes = mesh.GetHitBoxes();
+            hitBoxesTransformed = mesh.GetHitBoxes();
+            hitBoxesGrouped = new SortedList<HitType, BoundingBox>();
+            hitBoxGroups = mesh.GetHitBoxGroups();
+        }
+
         void UpdateHitBoxes()
         {
             if (hitBoxes != null)
@@ -178,8 +193,39 @@ namespace Gaia.SceneGraph.GameEntities
 
                     BoundingBox bounds = hitBoxes[currKey];
                     hitBoxesTransformed[currKey] = MathUtils.TransformBounds(MathUtils.TransformBounds(bounds, orderedNodes[currKey].Transform), worldMat);
+                    if (i == 0)
+                        hitBounds = hitBoxesTransformed[currKey];
+                    else
+                    {
+                        hitBounds.Min = Vector3.Min(hitBounds.Min, hitBoxesTransformed[currKey].Min);
+                        hitBounds.Max = Vector3.Max(hitBounds.Max, hitBoxesTransformed[currKey].Max);
+                    }
+                }
+
+                for (int i = 0; i < hitBoxGroups.Count; i++)
+                {
+                    HitType currKey = hitBoxGroups.Keys[i];
+                    if (!hitBoxesGrouped.ContainsKey(currKey))
+                            hitBoxesGrouped.Add(currKey, new BoundingBox());
+                    int currIndex = hitBoxGroups[currKey][0];
+                    BoundingBox bounds = hitBoxesTransformed[currIndex];
+                    for (int j = 1; j < hitBoxGroups[currKey].Length; j++)
+                    {
+                        currIndex = hitBoxGroups[currKey][j];
+                        bounds.Min = Vector3.Min(bounds.Min, hitBoxesTransformed[currIndex].Min);
+                        bounds.Max = Vector3.Max(bounds.Max, hitBoxesTransformed[currIndex].Max);
+                        
+
+                    }
+
+                    hitBoxesGrouped[currKey] = bounds;
                 }
             }
+        }
+
+        public SortedList<HitType, BoundingBox> GetHitBoxes()
+        {
+            return hitBoxesGrouped;
         }
 
         public void OnUpdate()
@@ -199,40 +245,19 @@ namespace Gaia.SceneGraph.GameEntities
 
         public void RenderDebug(RenderView view)
         {
+            /*
             for (int i = 0; i < hitBoxesTransformed.Count; i++)
             {
-                Vector3[] corners = hitBoxesTransformed[hitBoxesTransformed.Keys[i]].GetCorners();
-                VertexPositionColor[] debugVerts = new VertexPositionColor[24];
-                Color hitboxColor = Color.Red;
-                debugVerts[0] = new VertexPositionColor(corners[0], hitboxColor);
-                debugVerts[1] = new VertexPositionColor(corners[1], hitboxColor);
-                debugVerts[2] = new VertexPositionColor(corners[1], hitboxColor);
-                debugVerts[3] = new VertexPositionColor(corners[5], hitboxColor);
-                debugVerts[4] = new VertexPositionColor(corners[5], hitboxColor);
-                debugVerts[5] = new VertexPositionColor(corners[4], hitboxColor);
-                debugVerts[6] = new VertexPositionColor(corners[4], hitboxColor);
-                debugVerts[7] = new VertexPositionColor(corners[0], hitboxColor);
-
-                debugVerts[8] = new VertexPositionColor(corners[3], hitboxColor);
-                debugVerts[9] = new VertexPositionColor(corners[2], hitboxColor);
-                debugVerts[10] = new VertexPositionColor(corners[2], hitboxColor);
-                debugVerts[11] = new VertexPositionColor(corners[6], hitboxColor);
-                debugVerts[12] = new VertexPositionColor(corners[6], hitboxColor);
-                debugVerts[13] = new VertexPositionColor(corners[7], hitboxColor);
-                debugVerts[14] = new VertexPositionColor(corners[7], hitboxColor);
-                debugVerts[15] = new VertexPositionColor(corners[3], hitboxColor);
-
-                debugVerts[16] = new VertexPositionColor(corners[3], hitboxColor);
-                debugVerts[17] = new VertexPositionColor(corners[0], hitboxColor);
-                debugVerts[18] = new VertexPositionColor(corners[2], hitboxColor);
-                debugVerts[19] = new VertexPositionColor(corners[1], hitboxColor);
-                debugVerts[20] = new VertexPositionColor(corners[6], hitboxColor);
-                debugVerts[21] = new VertexPositionColor(corners[5], hitboxColor);
-                debugVerts[22] = new VertexPositionColor(corners[7], hitboxColor);
-                debugVerts[23] = new VertexPositionColor(corners[4], hitboxColor);
                 DebugElementManager debugMgr = (DebugElementManager)view.GetRenderElementManager(RenderPass.Debug);
-                debugMgr.AddElements(debugVerts);
+                debugMgr.AddElements(DebugHelper.GetVerticesFromBounds(hitBoxesTransformed.Values[i], Color.Red));
             }
+            */
+            DebugElementManager debugMgr = (DebugElementManager)view.GetRenderElementManager(RenderPass.Debug);
+            for (int i = 0; i < hitBoxesGrouped.Count; i++)
+            {
+                debugMgr.AddElements(DebugHelper.GetVerticesFromBounds(hitBoxesGrouped.Values[i], Color.Red));
+            }
+            debugMgr.AddElements(DebugHelper.GetVerticesFromBounds(hitBounds, Color.Blue));
         }
     }
 }

@@ -75,6 +75,12 @@ namespace Gaia.SceneGraph.GameEntities
             energy = MAX_ENERGY;
         }
 
+        public virtual HitType GetHit(Microsoft.Xna.Framework.Ray ray, float maxDistance, out float hitDistance)
+        {
+            hitDistance = 0;
+            return HitType.None;
+        }
+
         public virtual void ApplyDamage(float damage)
         {
             //health -= damage;

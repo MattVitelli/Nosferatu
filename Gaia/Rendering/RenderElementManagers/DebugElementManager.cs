@@ -31,6 +31,9 @@ namespace Gaia.Rendering
         {
             GFX.Device.RenderState.CullMode = CullMode.None;
             GFX.Device.RenderState.DepthBufferEnable = false;
+            GFX.Device.RenderState.AlphaBlendEnable = true;
+            GFX.Device.RenderState.SourceBlend = Blend.SourceAlpha;
+            GFX.Device.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
             GFX.Device.RenderState.DepthBufferWriteEnable = false;
             GFX.Device.RenderState.DepthBufferFunction = CompareFunction.LessEqual;
 
@@ -43,6 +46,8 @@ namespace Gaia.Rendering
             GFX.Device.RenderState.DepthBufferEnable = true;
             GFX.Device.RenderState.DepthBufferWriteEnable = true;
             GFX.Device.RenderState.CullMode = CullMode.CullCounterClockwiseFace;
+            GFX.Device.RenderState.AlphaBlendEnable = false;
+            GFX.Inst.ResetState();
             vertexList.Clear();
         }
     }
