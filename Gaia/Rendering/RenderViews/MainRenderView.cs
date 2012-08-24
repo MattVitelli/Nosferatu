@@ -55,7 +55,9 @@ namespace Gaia.Rendering.RenderViews
         {
             this.ElementManagers.Add(RenderPass.Sky, new SkyElementManager(this));
             this.ElementManagers.Add(RenderPass.Scene, new SceneElementManager(this));
-            this.ElementManagers.Add(RenderPass.SceneNoCull, new SceneElementManager(this));
+            SceneElementManager sceneNoCull = new SceneElementManager(this);
+            sceneNoCull.SetSceneCullMode(CullMode.None);
+            this.ElementManagers.Add(RenderPass.SceneNoCull, sceneNoCull);
             this.ElementManagers.Add(RenderPass.Emissive, new SceneElementManager(this));
             this.ElementManagers.Add(RenderPass.PostProcess, new PostProcessElementManager(this));
             this.ElementManagers.Add(RenderPass.Light, new LightElementManager(this));
@@ -202,6 +204,11 @@ namespace Gaia.Rendering.RenderViews
             }
             else
             {
+                if (material.IsDoubleSided)
+                {
+                    SceneElementManager doubleMgr = (SceneElementManager)ElementManagers[RenderPass.SceneNoCull];
+                    doubleMgr.AddElement(material, element);
+                }
                 /*
                 if (material.IsFoliage)
                 {
@@ -249,7 +256,7 @@ namespace Gaia.Rendering.RenderViews
             GFX.Device.Clear(Color.TransparentBlack);            
             
             ElementManagers[RenderPass.Scene].Render();
-
+            ElementManagers[RenderPass.SceneNoCull].Render();
             ElementManagers[RenderPass.FirstPersonPrepass].Render();
             ElementManagers[RenderPass.Decal].Render();
             

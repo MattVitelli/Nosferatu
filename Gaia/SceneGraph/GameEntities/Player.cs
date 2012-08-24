@@ -29,7 +29,7 @@ namespace Gaia.SceneGraph.GameEntities
             base.OnAdd(scene);
 
             camera = (Camera)scene.FindEntity("MainCamera");
-            gun = new Weapon("Machete", this.body, camera.Transformation, scene);
+            gun = new Weapon("Pistol", this.body, camera.Transformation, scene);
         }
 
         public void SetEnabled(bool enabled)

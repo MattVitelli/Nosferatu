@@ -30,6 +30,8 @@ namespace Gaia.SceneGraph.GameEntities
 
         public bool randomizeScale = false;
         bool useRegion = false;
+        bool useImposters = true;
+        float imposterDistanceSquared = Mesh.IMPOSTER_DISTANCE_SQUARED;
         public bool randomizeOrientation = true;
         public bool alignToSurface = false;
 
@@ -39,6 +41,16 @@ namespace Gaia.SceneGraph.GameEntities
         {
             meshNames = names;
             entityCount = clusterCount;
+        }
+
+        public void SetImposterState(bool enabled)
+        {
+            useImposters = enabled;
+        }
+
+        public void SetImposterDistance(float distance)
+        {
+            imposterDistanceSquared = distance * distance;
         }
 
         public ForestManager(string[] names, int clusterCount, BoundingBox region)
@@ -179,19 +191,22 @@ namespace Gaia.SceneGraph.GameEntities
 
             if (node.element != null)
             {
-                if (view.GetRenderType() == RenderViewType.MAIN)
+                if (view.GetRenderType() == RenderViewType.MAIN && useImposters)
                 {
                     float distToCamera = Vector3.DistanceSquared(node.element.Transform.GetPosition(), view.GetPosition());
-                    node.element.RenderImposters = (distToCamera >= Mesh.IMPOSTER_DISTANCE_SQUARED);
+                    node.element.RenderImposters = (distToCamera >= imposterDistanceSquared);
                 }
 
                 //if (view.GetFrustum().Contains(node.element.Bounds) != ContainmentType.Disjoint)
+                if(useImposters)
                 {
                     if (node.element.RenderImposters)
                         node.element.Mesh.RenderImposters(node.element.Transform.GetTransform(), view, false);
                     else
                         node.element.Mesh.Render(node.element.Transform.GetTransform(), view, false);
                 }
+                else
+                    node.element.Mesh.Render(node.element.Transform.GetTransform(), view, false);
             }
             RecursivelyRender(node.leftChild, view);
             RecursivelyRender(node.rightChild, view);

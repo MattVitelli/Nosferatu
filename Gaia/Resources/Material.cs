@@ -34,7 +34,7 @@ namespace Gaia.Resources
         public string EmissiveMaterial;
         public bool IsFirstPerson { get { return isFirstPerson; } }
         public bool IsFoliage = false;
-
+        public bool IsDoubleSided = false;
         float kReflect;
         float kRefract;
         float kIOR;
@@ -90,6 +90,9 @@ namespace Gaia.Resources
 
                     case "foliage":
                         IsFoliage = bool.Parse(attrib.Value);
+                        break;
+                    case "doublesided":
+                        IsDoubleSided = bool.Parse(attrib.Value);
                         break;
 
                     case "kreflect":
