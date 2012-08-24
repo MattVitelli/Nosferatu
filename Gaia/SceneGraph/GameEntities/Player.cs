@@ -29,7 +29,7 @@ namespace Gaia.SceneGraph.GameEntities
             base.OnAdd(scene);
 
             camera = (Camera)scene.FindEntity("MainCamera");
-            gun = new Weapon("Pistol", this.body, camera.Transformation, scene);
+            gun = new Weapon("SMG", this.body, camera.Transformation, scene);
         }
 
         public void SetEnabled(bool enabled)
@@ -45,7 +45,6 @@ namespace Gaia.SceneGraph.GameEntities
         {
             base.OnDeath();
             timeTilRespawn = RespawnTime;
-            ;
             PlayerScreen.GetInst().AddJournalEntry("You are dead", PlayerScreen.GetInst().CloseEyes(2)*1.1f);
             SetEnabled(false);
             SetControllable(false);

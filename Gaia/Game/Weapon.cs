@@ -25,22 +25,26 @@ namespace Gaia.Game
         float timeTilFire = 0;
         int ammo = 5;
         int AmmoPerClip = 15;
-        int ReserveAmmo = 0;
+        int ReserveAmmo = 2;
         IgnoreSkinPredicate ignorePred;
         Vector3 muzzleDir;
         Vector3 muzzlePos;
         bool hasFired = true;
 
-        public Weapon(string modelName, Body body, Transform transform, Scene scene)
+        WeaponDatablock datablock;
+
+        public Weapon(string datablockName, Body body, Transform transform, Scene scene)
         {
             this.ignorePred = new IgnoreSkinPredicate(body);
             this.scene = scene;
-            this.fpsModel = new ViewModel(modelName);
+            this.datablock = ResourceManager.Inst.GetWeaponDatablock(datablockName);
+            this.fpsModel = new ViewModel(datablock.MeshName);
             this.fpsModel.SetRenderAlways(true, scene);
+            this.ammo = datablock.AmmoPerClip;
+            this.ReserveAmmo = datablock.DefaultAmmo;
             fpsModel.SetTransform(transform);
-            Matrix weaponTransform = Matrix.CreateScale(0.1f) * Matrix.CreateRotationX(-MathHelper.PiOver2) * Matrix.CreateRotationY(MathHelper.PiOver2);
-            fpsModel.SetCustomMatrix(weaponTransform);
-            fpsModel.GetAnimationLayer().SetActiveAnimation("Pistol_Idle", true);
+            fpsModel.SetCustomMatrix(datablock.CustomMatrix);
+            fpsModel.GetAnimationLayer().SetActiveAnimation(datablock.GetAnimation(WeaponAnimations.Idle), true);
         }
 
         public void OnUpdate()
@@ -55,40 +59,43 @@ namespace Gaia.Game
                 timeTilFire -= Time.GameTime.ElapsedTime;
             if (timeTilFire <= 0 && !hasFired)
             {
-                new Sound3D("PistolFire", muzzlePos);
-                ammo--;
                 hasFired = true;
-                float dist;
-                CollisionSkin skin;
-                Vector3 pos, normal;
-
-                Segment seg = new Segment(muzzlePos, muzzleDir * 50);
-
-                scene.GetPhysicsEngine().CollisionSystem.SegmentIntersect(out dist, out skin, out pos, out normal, seg, ignorePred);
-                if (skin != null)
+                new Sound3D(datablock.GetSoundEffect((ammo > 0 || datablock.IsMelee)?WeaponAnimations.Fire:WeaponAnimations.Empty), muzzlePos);
+                if (ammo > 0 || datablock.IsMelee)
                 {
-                    ParticleEffect bulletEffect = ResourceManager.Inst.GetParticleEffect("BulletEffect");
-                    ParticleEmitter collideEmitter = new ParticleEmitter(bulletEffect, 16);
-                    collideEmitter.EmitOnce = true;
-                    NormalTransform newTransform = new NormalTransform();
-                    newTransform.ConformToNormal(normal);
-                    newTransform.SetPosition(pos);
-                    collideEmitter.Transformation = newTransform;
-                    scene.AddEntity("bulletEmitter", collideEmitter);
+                    ammo--;
+                    float dist;
+                    CollisionSkin skin;
+                    Vector3 pos, normal;
+
+                    Segment seg = new Segment(muzzlePos, muzzleDir * 50);
+
+                    scene.GetPhysicsEngine().CollisionSystem.SegmentIntersect(out dist, out skin, out pos, out normal, seg, ignorePred);
+                    if (skin != null)
+                    {
+                        ParticleEffect bulletEffect = ResourceManager.Inst.GetParticleEffect("BulletEffect");
+                        ParticleEmitter collideEmitter = new ParticleEmitter(bulletEffect, 16);
+                        collideEmitter.EmitOnce = true;
+                        NormalTransform newTransform = new NormalTransform();
+                        newTransform.ConformToNormal(normal);
+                        newTransform.SetPosition(pos);
+                        collideEmitter.Transformation = newTransform;
+                        scene.AddEntity("bulletEmitter", collideEmitter);
+                    }
                 }
             }
         }
 
         public bool IsManual()
         {
-            return false;
+            return datablock.IsMelee || datablock.IsManual;
         }
 
         public void Reload()
         {
             if (ReserveAmmo == 0)
                 return;
-            int ammoNeeded = AmmoPerClip - ammo;
+            int ammoNeeded = datablock.AmmoPerClip - ammo;
             if (ReserveAmmo >= ammoNeeded)
             {
                 ReserveAmmo -= ammoNeeded;
@@ -99,9 +106,10 @@ namespace Gaia.Game
                 ammo += ReserveAmmo;
                 ReserveAmmo = 0;
             }
-            new Sound3D("PistolReload", muzzlePos);
-            fpsModel.GetAnimationLayer().AddAnimation("PistolReload", true);
-            coolDownTimeRemaining = ResourceManager.Inst.GetAnimation("PistolReload").EndTime;
+            new Sound3D(datablock.GetSoundEffect(WeaponAnimations.Reload), muzzlePos);
+            string animName = datablock.GetAnimation(WeaponAnimations.Reload);
+            fpsModel.GetAnimationLayer().AddAnimation(animName, true);
+            coolDownTimeRemaining = ResourceManager.Inst.GetAnimation(animName).EndTime;
         }
 
         public void OnFire(Vector3 muzzlePosition, Vector3 muzzleDir)
@@ -110,14 +118,13 @@ namespace Gaia.Game
             {
                 this.muzzleDir = muzzleDir;
                 this.muzzlePos = muzzlePosition;
-                if (ammo > 0)
+                if (ammo > 0 || datablock.IsMelee)
                 {
                     hasFired = false;
-                    //fpsModel.SetAnimationLayer("Pistol_Idle", 0.0f);
-                    fpsModel.GetAnimationLayer().AddAnimation("Pistol_Fire", true);
-                    //fpsModel.SetAnimationLayer("Pistol_Fire", 1.0f);
-                    coolDownTimeRemaining = ResourceManager.Inst.GetAnimation("Pistol_Fire").EndTime;
-                    timeTilFire = coolDownTimeRemaining * 0.35f;
+                    string animName = datablock.GetAnimation(WeaponAnimations.Fire);
+                    fpsModel.GetAnimationLayer().AddAnimation(animName, true);
+                    coolDownTimeRemaining = ResourceManager.Inst.GetAnimation(animName).EndTime;
+                    timeTilFire = coolDownTimeRemaining * datablock.GetDelayTime(animName);
                 }
                 else
                 {
@@ -125,9 +132,11 @@ namespace Gaia.Game
                         Reload();
                     else
                     {
-                        Sound3D emptySound = new Sound3D("PistolEmpty", muzzlePos);
-                        fpsModel.GetAnimationLayer().AddAnimation("PistolFireEmpty", true);
-                        coolDownTimeRemaining = ResourceManager.Inst.GetAnimation("PistolFireEmpty").EndTime;
+                        string animName = datablock.GetAnimation(WeaponAnimations.Empty);
+                        fpsModel.GetAnimationLayer().AddAnimation(animName, true);
+                        coolDownTimeRemaining = ResourceManager.Inst.GetAnimation(animName).EndTime;
+                        timeTilFire = coolDownTimeRemaining*datablock.GetDelayTime(animName);
+                        hasFired = false;
                     }
                 }
             }
@@ -136,7 +145,7 @@ namespace Gaia.Game
         public void OnRender(RenderView view)
         {
             fpsModel.OnRender(view, false);
-            if (view.GetRenderType() == RenderViewType.MAIN)
+            if (view.GetRenderType() == RenderViewType.MAIN && !datablock.IsMelee)
             {
                 GUIElementManager elemManager = GFX.Inst.GetGUI();
                 int ammoRatio = (int)Math.Ceiling((float)ReserveAmmo / (float)AmmoPerClip);

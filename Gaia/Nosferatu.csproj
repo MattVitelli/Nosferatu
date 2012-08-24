@@ -175,6 +175,7 @@
     <Compile Include="Rendering\Simulators\ParticleSimulator.cs" />
     <Compile Include="Rendering\Simulators\PerlinNoiseSimulator.cs" />
     <Compile Include="Resources\AnimationSequence.cs" />
+    <Compile Include="Resources\WeaponDatablock.cs" />
     <Compile Include="Resources\TerrainCreationDatablock.cs" />
     <Compile Include="Resources\DinosaurDatablock.cs" />
     <Compile Include="Resources\TerrainClimateVoxels.cs" />
@@ -192,7 +193,6 @@
     <Compile Include="Resources\SoundEngine.cs" />
     <Compile Include="Resources\TerrainClimate.cs" />
     <Compile Include="Resources\TextureResource.cs" />
-    <Compile Include="Resources\WeaponDatablock.cs" />
     <Compile Include="SceneGraph\GameEntities\Actor.cs" />
     <Compile Include="SceneGraph\GameEntities\AnimatedModel.cs" />
     <Compile Include="SceneGraph\GameEntities\Camera.cs" />
