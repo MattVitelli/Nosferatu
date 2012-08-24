@@ -57,7 +57,7 @@ namespace Gaia.SceneGraph.GameEntities
             this.castsShadows = castsShadows;
             if (castsShadows)
             {
-                CreateCascadeShadows(256);
+                CreateCascadeShadows(512);
             }
         }
 

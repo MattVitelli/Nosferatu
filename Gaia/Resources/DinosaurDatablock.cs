@@ -31,8 +31,8 @@ namespace Gaia.Resources
         Attack,
         Melee,
         Jump,
-        TurnLeft,
-        TurnRight,
+        Death,
+        DeathIdle,
         Count,
     };
 

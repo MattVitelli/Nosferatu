@@ -36,6 +36,7 @@ namespace Gaia.Rendering
         Foliage,
         Decal,
         UI,
+        Debug,
         Count
     };
 

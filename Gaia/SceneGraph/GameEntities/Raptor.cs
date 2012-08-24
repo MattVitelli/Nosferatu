@@ -4,6 +4,9 @@ using Microsoft.Xna.Framework;
 using Gaia.Core;
 using Gaia.Resources;
 using Gaia.Sound;
+using JigLibX.Geometry;
+using JigLibX.Collision;
+using JigLibX.Physics;
 namespace Gaia.SceneGraph.GameEntities
 {
     public class Raptor : Actor
@@ -79,40 +82,41 @@ namespace Gaia.SceneGraph.GameEntities
 
         void UpdateAnimation()
         {
-            if (IsDead())
-                return;
+            if (!IsDead())
+            {
 
-            float vel = velocityVector.Length();
-            if (vel < 0.015f)
-            {
-                model.GetAnimationLayer().SetActiveAnimation(datablock.GetAnimation(DinosaurAnimationsSimple.Idle), false);
-            }
-            else
-            {
-                //model.SetAnimationLayer(IDLE_NAME, 0.0f);
-                /*
-                float walkWeight = MathHelper.Clamp(1 - vel / 3.5f, 0.0f, 1.0f);
-                float runWeight = 1.0f - walkWeight;
-                if (walkWeight > 0.5f)
-                    model.GetAnimationLayer().SetActiveAnimation(datablock.GetAnimation(DinosaurAnimationsSimple.Walk), false);
-                else*/
-                    model.GetAnimationLayer().SetActiveAnimation(datablock.GetAnimation(DinosaurAnimationsSimple.Run), false);
-            }
-            if (state == RaptorState.Attack)
-            {
-                if (animationDelay <= 0.0f)
+                float vel = velocityVector.Length();
+                if (vel < 0.015f)
                 {
-                    string attackAnim = datablock.GetAnimation(DinosaurAnimationsSimple.Attack);
-                    model.GetAnimationLayer().AddAnimation(attackAnim, true);
-                    animationDelay = ResourceManager.Inst.GetAnimation(attackAnim).EndTime;
-                    new Sound3D(datablock.AttackSoundEffect, this.Transformation.GetPosition());
+                    model.GetAnimationLayer().SetActiveAnimation(datablock.GetAnimation(DinosaurAnimationsSimple.Idle), false);
                 }
+                else
+                {
+                    //model.SetAnimationLayer(IDLE_NAME, 0.0f);
+                    /*
+                    float walkWeight = MathHelper.Clamp(1 - vel / 3.5f, 0.0f, 1.0f);
+                    float runWeight = 1.0f - walkWeight;
+                    if (walkWeight > 0.5f)
+                        model.GetAnimationLayer().SetActiveAnimation(datablock.GetAnimation(DinosaurAnimationsSimple.Walk), false);
+                    else*/
+                    model.GetAnimationLayer().SetActiveAnimation(datablock.GetAnimation(DinosaurAnimationsSimple.Run), false);
+                }
+                if (state == RaptorState.Attack)
+                {
+                    if (animationDelay <= 0.0f)
+                    {
+                        string attackAnim = datablock.GetAnimation(DinosaurAnimationsSimple.Attack);
+                        model.GetAnimationLayer().AddAnimation(attackAnim, true);
+                        animationDelay = ResourceManager.Inst.GetAnimation(attackAnim).EndTime;
+                        new Sound3D(datablock.AttackSoundEffect, this.Transformation.GetPosition());
+                    }
+                }
+                //grounding.SetForwardVector(Vector3.Normalize(velocityVector));
+                if (velocityVector.Length() > 0.01f)
+                    grounding.SetForwardVector(Vector3.Normalize(velocityVector));
+            
+                grounding.ConformToNormal(body.GetContactNormal());
             }
-            //grounding.SetForwardVector(Vector3.Normalize(velocityVector));
-            if (velocityVector.Length() > 0.01f)
-                grounding.SetForwardVector(Vector3.Normalize(velocityVector));
-            grounding.ConformToNormal(body.GetContactNormal());
-
             model.SetCustomMatrix(grounding.GetTransform());
             model.OnUpdate();
         }
@@ -219,6 +223,8 @@ namespace Gaia.SceneGraph.GameEntities
                 wanderDelayTime = 0;
             }
         }
+
+        
 
         void PerformBehavior()
         {
@@ -331,7 +337,7 @@ namespace Gaia.SceneGraph.GameEntities
                             Vector3 diff = wanderPosition - this.Transformation.GetPosition();
                             float distToGoal = diff.X * diff.X + diff.Z * diff.Z;
                             //If we've reached our goal point
-                            if (distToGoal*0.25f <= GOAL_POINT_THRESHOLD)
+                            if (distToGoal*0.15f <= GOAL_POINT_THRESHOLD)
                                 EvaluateAttack(distanceToTarget);
 
                             if (distToGoal <= GOAL_POINT_THRESHOLD)
@@ -351,6 +357,12 @@ namespace Gaia.SceneGraph.GameEntities
             base.OnDeath();
             state = RaptorState.Dead;
             velocityVector = Vector3.Zero;
+            model.GetAnimationLayer().SetActiveAnimation(datablock.GetAnimation(DinosaurAnimationsSimple.DeathIdle), false);
+            model.GetAnimationLayer().AddAnimation(datablock.GetAnimation(DinosaurAnimationsSimple.Death), true);
+            Vector3 normal = body.GetContactNormal();
+            Vector3 swizzledNormal = new Vector3(normal.Z, normal.X, normal.Y);
+            grounding.ConformToNormal(swizzledNormal);
+            grounding.SetForwardVectorEnabled(false);
         }
 
         protected override void ResetState()
@@ -379,7 +391,7 @@ namespace Gaia.SceneGraph.GameEntities
         public override void OnUpdate()
         {
             base.OnUpdate();
-            PerformBehavior();
+            //PerformBehavior();
             UpdateAnimation();
             body.DesiredVelocity = velocityVector;
         }
@@ -394,6 +406,11 @@ namespace Gaia.SceneGraph.GameEntities
         {
             base.OnRender(view);
             model.OnRender(view, true);
+            if (view.GetRenderType() == Gaia.Rendering.RenderViews.RenderViewType.MAIN)
+            {
+                body.RenderCollisionSkin(view);
+                model.RenderDebug(view);
+            }
         }
     }
 }

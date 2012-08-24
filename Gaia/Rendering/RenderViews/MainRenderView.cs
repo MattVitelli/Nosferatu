@@ -68,6 +68,7 @@ namespace Gaia.Rendering.RenderViews
             this.ElementManagers.Add(RenderPass.FirstPerson, new SceneElementManager(this));
             this.ElementManagers.Add(RenderPass.Decal, new DecalElementManager(this));
             this.ElementManagers.Add(RenderPass.Foliage, new FoliageElementManager(this));
+            this.ElementManagers.Add(RenderPass.Debug, new DebugElementManager(this));
         }
 
         void InitializeTextures()
@@ -292,7 +293,8 @@ namespace Gaia.Rendering.RenderViews
             GFX.Device.SetPixelShaderConstant(3, scene.GetMainLightDirection()); //Light Direction for sky
             ElementManagers[RenderPass.Sky].Render(); //This'll change the modelview
 
-            ElementManagers[RenderPass.PostProcess].Render();            
+            ElementManagers[RenderPass.PostProcess].Render();
+            ElementManagers[RenderPass.Debug].Render();
         }
     }
 }

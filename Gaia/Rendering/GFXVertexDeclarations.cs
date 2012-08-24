@@ -328,10 +328,12 @@ namespace Gaia.Rendering
         public static VertexDeclaration PNDec;
         public static VertexDeclaration PNCompressedDec;
         public static VertexDeclaration ParticlesDec;
+        public static VertexDeclaration PCDec;
 
         public static void Initialize()
         {
             PDec = new VertexDeclaration(GFX.Device, VertexPosition.VertexElements);
+            PCDec = new VertexDeclaration(GFX.Device, VertexPositionColor.VertexElements);
             PNDec = new VertexDeclaration(GFX.Device, VertexPN.VertexElements);
             PNTTDec = new VertexDeclaration(GFX.Device, VertexPNTT.VertexElements);
             PNTTIDec = new VertexDeclaration(GFX.Device, VertexPNTTI.VertexElements);

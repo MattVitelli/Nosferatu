@@ -6,6 +6,10 @@ using JigLibX.Collision;
 using JigLibX.Geometry;
 using JigLibX.Math;
 
+using Gaia.SceneGraph.GameEntities;
+using Microsoft.Xna.Framework.Graphics;
+using Gaia.Rendering;
+
 namespace Gaia.Physics
 {
     class ASkinPredicate : CollisionSkinPredicate1
@@ -21,10 +25,14 @@ namespace Gaia.Physics
 
     public class CharacterBody : Body
     {
-        public CharacterBody()
+        
+        public CharacterBody(Actor actor)
             : base()
         {
+            this.actor = actor;
         }
+
+        Actor actor;
 
         float jumpForce = 16;
         public Vector3 DesiredVelocity { get; set; }
@@ -43,6 +51,11 @@ namespace Gaia.Physics
         public Vector3 GetContactNormal()
         {
             return contactNormal;
+        }
+
+        public Actor GetActor()
+        {
+            return actor;
         }
 
         public void Jump(float _jumpForce)
@@ -82,16 +95,22 @@ namespace Gaia.Physics
                     jumpsRemaining--;
                 }
             }
-            
 
+            bool foundContactNormal = false;
             foreach (CollisionInfo info in CollisionSkin.Collisions)
             {
                 Vector3 N = info.DirToBody0;
                 if (this == info.SkinInfo.Skin1.Owner)
                     Vector3.Negate(ref N, out N);
-                else if(info.SkinInfo.Skin1.Owner == null)
-                        contactNormal = Vector3.Normalize(Vector3.Lerp(N, contactNormal, 0.975f));
+                else if (info.SkinInfo.Skin1.Owner == null)
+                {
+                    contactNormal = Vector3.Normalize(Vector3.Lerp(N, contactNormal, 0.975f));
+                    foundContactNormal = true;
+                }
             }
+
+            if(!foundContactNormal)
+                contactNormal = Vector3.Normalize(Vector3.Lerp(Vector3.Up, contactNormal, 0.975f));
 
             Vector3 deltaVel = DesiredVelocity - Velocity;
 
@@ -113,5 +132,12 @@ namespace Gaia.Physics
             AddGravityToExternalForce();
         }
 
+        public void RenderCollisionSkin(Gaia.Rendering.RenderViews.RenderView view)
+        {
+            VertexPositionColor[] wf = CollisionSkin.GetLocalSkinWireframe();
+            this.TransformWireframe(wf);
+            DebugElementManager debugMgr = (DebugElementManager)view.GetRenderElementManager(Gaia.Rendering.RenderPass.Debug);
+            debugMgr.AddElements(wf);
+        }
     }
 }

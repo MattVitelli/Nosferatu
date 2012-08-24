@@ -24,6 +24,11 @@ namespace Gaia.Core
             forwardVec = forward;
         }
 
+        public void SetForwardVectorEnabled(bool enabled)
+        {
+            useForwardVector = enabled;
+        }
+
         public void ConformToNormal(Vector3 normal)
         {
             this.normal = Vector3.Normalize(normal);

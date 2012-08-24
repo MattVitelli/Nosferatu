@@ -39,7 +39,9 @@ namespace Gaia.SceneGraph.GameEntities
 
         public void SetSpawnPosition(Vector3 pos)
         {
-            startPos = pos;
+            startPos = pos + Vector3.Up*3f;
+            if (standCapsule != null)
+                startPos = pos + Vector3.Up * standCapsule.Length * 1.5f;
         }
 
         public int GetTeam()
@@ -75,7 +77,7 @@ namespace Gaia.SceneGraph.GameEntities
 
         public virtual void ApplyDamage(float damage)
         {
-            health -= damage;
+            //health -= damage;
             if (IsDead())
                 OnDeath();
         }
@@ -104,6 +106,8 @@ namespace Gaia.SceneGraph.GameEntities
         protected Capsule standCapsule;
         protected Capsule crouchCapsule;
 
+        protected virtual void AddCustomPrimitives() { }
+
         public override void OnAdd(Scene scene)
         {
             base.OnAdd(scene);
@@ -121,16 +125,17 @@ namespace Gaia.SceneGraph.GameEntities
 
             pos = startPos;// scene.FindEntity("Hangar").Transformation.GetPosition() + Vector3.Up * 15;// *(float)RandomHelper.RandomGen.NextDouble();
 
-            body = new CharacterBody();
+            body = new CharacterBody(this);
             collision = new CollisionSkin(body);
 
             standCapsule = new Capsule(Vector3.Zero, Matrix.CreateRotationX(MathHelper.PiOver2), 1.0f, 1.778f);
             crouchCapsule = new Capsule(Vector3.Zero, Matrix.CreateRotationX(MathHelper.PiOver2), 1.0f, 1.0f);
             SetupPosture(false);
             collision.AddPrimitive(standCapsule, (int)MaterialTable.MaterialID.NormalRough);
-            body.CollisionSkin = collision;
+            
             Vector3 com = PhysicsHelper.SetMass(75.0f, body, collision);
-
+            body.CollisionSkin = collision;
+            
             body.MoveTo(pos + com, Matrix.Identity);
             collision.ApplyLocalTransform(new JigLibX.Math.Transform(-com, Matrix.Identity));
 

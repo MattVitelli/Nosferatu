@@ -59,6 +59,7 @@ namespace Gaia.Resources
         SortedList<string, List<ModelPart> > LODS = new SortedList<string, List<ModelPart> >();
         SortedList<string, AnimationNode> namesToNodes = new SortedList<string, AnimationNode>();
         SortedList<string, Matrix> inverseMatrices = new SortedList<string, Matrix>();
+        SortedList<int, BoundingBox> hitboxes;
 
         /*
         Texture2D[] instanceTexture = new Texture2D[3];
@@ -90,6 +91,8 @@ namespace Gaia.Resources
         bool useInstancing = false;
 
         bool addedToView = false;
+
+        bool generateHitBoxes = false;
 
         const float IMPOSTER_DISTANCE = 120;
 
@@ -126,6 +129,37 @@ namespace Gaia.Resources
 
             vertices = new VertexPNTTI[vertexCount];
             vertexBuffer.GetData<VertexPNTTI>(vertices);
+
+            if(generateHitBoxes)
+                ComputeHitBoxes();
+        }
+
+        public SortedList<int, BoundingBox> GetHitBoxes()
+        {
+            if (hitboxes == null)
+                return null;
+            SortedList<int, BoundingBox> hitBoxesCopy = new SortedList<int, BoundingBox>();
+            for (int i = 0; i < hitboxes.Count; i++)
+            {
+                hitBoxesCopy.Add(hitboxes.Keys[i], hitboxes[hitboxes.Keys[i]]);
+            }
+            return hitBoxesCopy;
+        }
+
+        void ComputeHitBoxes()
+        {
+            hitboxes = new SortedList<int, BoundingBox>();
+            for (int i = 0; i < vertices.Length; i++)
+            {
+
+                int boneIndex = (int)vertices[i].Index;
+                if(!hitboxes.ContainsKey(boneIndex))
+                    hitboxes.Add(boneIndex, new BoundingBox(vertices[i].Position, vertices[i].Position));
+                BoundingBox bounds = hitboxes[boneIndex];
+                bounds.Min = Vector3.Min(vertices[i].Position, bounds.Min);
+                bounds.Max = Vector3.Max(vertices[i].Position, bounds.Max);
+                hitboxes[boneIndex] = bounds;
+            }
         }
 
         public VertexBuffer GetVertexBuffer(out int vertCount)
@@ -1177,6 +1211,9 @@ namespace Gaia.Resources
                         break;
                     case "nodesanimated":
                         nodesAreAnimated = bool.Parse(attrib.Value);
+                        break;
+                    case "generatehitboxes":
+                        generateHitBoxes = bool.Parse(attrib.Value);
                         break;
                 }
             }
