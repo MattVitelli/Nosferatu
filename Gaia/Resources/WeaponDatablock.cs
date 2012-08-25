@@ -39,6 +39,8 @@ namespace Gaia.Resources
 
         public Vector3 Position = Vector3.Zero;
 
+        public float FireDistance = 60;
+
         public int AmmoPerClip = 15;
 
         public bool IsMelee = false;
@@ -98,6 +100,9 @@ namespace Gaia.Resources
                         break;
                     case "damage":
                         Damage = float.Parse(attrib.Value);
+                        break;
+                    case "firedist":
+                        FireDistance = float.Parse(attrib.Value);
                         break;
                     case "mesh":
                         MeshName = attrib.Value;

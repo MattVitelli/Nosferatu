@@ -29,13 +29,24 @@ namespace Gaia.SceneGraph.GameEntities
             base.OnAdd(scene);
 
             camera = (Camera)scene.FindEntity("MainCamera");
-            gun = new Weapon("Pistol", this.body, camera.Transformation, scene);
+            gun = new Weapon("SMG", this.body, camera.Transformation, scene);
+        }
+
+        public bool IsEnabled()
+        {
+            return isEnabled;
         }
 
         public void SetEnabled(bool enabled)
         {
             isEnabled = enabled;
         }
+
+        public bool IsControllable()
+        {
+            return isControllable;
+        }
+
         public void SetControllable(bool controllable)
         {
             isControllable = controllable;

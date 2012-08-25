@@ -81,6 +81,10 @@ namespace Gaia.Resources
 
         public Vector3 Position = Vector3.Zero;
 
+        public Vector3 DeathRotation = Vector3.Zero;
+
+        public Vector3 DeathPosition = Vector3.Zero;
+
         public string RoarSoundEffect;
 
         public string DeathSoundEffect;
@@ -193,6 +197,12 @@ namespace Gaia.Resources
                         break;
                     case "position":
                         Position = ParseUtils.ParseVector3(attrib.Value);
+                        break;
+                    case "deathrot":
+                        DeathRotation = ParseUtils.ParseVector3(attrib.Value);
+                        break;
+                    case "deathpos":
+                        DeathPosition = ParseUtils.ParseVector3(attrib.Value);
                         break;
                     case "roar":
                         RoarSoundEffect = attrib.Value;

@@ -29,6 +29,8 @@ namespace Gaia.Rendering
 
         public override void Render()
         {
+            if (vertexList.Count == 0)
+                return;
             GFX.Device.RenderState.CullMode = CullMode.None;
             GFX.Device.RenderState.DepthBufferEnable = false;
             GFX.Device.RenderState.AlphaBlendEnable = true;

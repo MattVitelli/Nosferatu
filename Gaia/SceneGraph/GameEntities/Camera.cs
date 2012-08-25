@@ -92,20 +92,22 @@ namespace Gaia.SceneGraph.GameEntities
             }
             else
                 transform = Matrix.CreateLookAt(this.Transformation.GetPosition(), this.target, Vector3.Up);
-            
-            Vector3 moveDir = Vector3.Zero;
-            if (InputManager.Inst.IsKeyDown(GameKey.MoveFoward))
-                moveDir += transform.Forward * forwardSpeed * (Math.Min(1.0f, 0.2f + InputManager.Inst.GetPressTime(GameKey.MoveFoward) / 3.0f));
-            if (InputManager.Inst.IsKeyDown(GameKey.MoveBackward))
-                moveDir -= transform.Forward * backwardSpeed * Math.Min(1.0f, 0.2f + InputManager.Inst.GetPressTime(GameKey.MoveBackward) / 1.75f);
 
-            if (InputManager.Inst.IsKeyDown(GameKey.MoveRight))
-                moveDir += transform.Right * strafeSpeed * Math.Min(1.0f, 0.2f + InputManager.Inst.GetPressTime(GameKey.MoveRight) / 1.25f);
-            if (InputManager.Inst.IsKeyDown(GameKey.MoveLeft))
-                moveDir -= transform.Right * strafeSpeed * Math.Min(1.0f, 0.2f + InputManager.Inst.GetPressTime(GameKey.MoveLeft) / 1.25f);
+            if (!scene.MainPlayer.IsControllable())
+            {
+                Vector3 moveDir = Vector3.Zero;
+                if (InputManager.Inst.IsKeyDown(GameKey.MoveFoward))
+                    moveDir += transform.Forward * forwardSpeed * (Math.Min(1.0f, 0.2f + InputManager.Inst.GetPressTime(GameKey.MoveFoward) / 3.0f));
+                if (InputManager.Inst.IsKeyDown(GameKey.MoveBackward))
+                    moveDir -= transform.Forward * backwardSpeed * Math.Min(1.0f, 0.2f + InputManager.Inst.GetPressTime(GameKey.MoveBackward) / 1.75f);
 
-            this.Transformation.SetPosition(this.Transformation.GetPosition() + moveDir * Time.GameTime.ElapsedTime * 5);
+                if (InputManager.Inst.IsKeyDown(GameKey.MoveRight))
+                    moveDir += transform.Right * strafeSpeed * Math.Min(1.0f, 0.2f + InputManager.Inst.GetPressTime(GameKey.MoveRight) / 1.25f);
+                if (InputManager.Inst.IsKeyDown(GameKey.MoveLeft))
+                    moveDir -= transform.Right * strafeSpeed * Math.Min(1.0f, 0.2f + InputManager.Inst.GetPressTime(GameKey.MoveLeft) / 1.25f);
 
+                this.Transformation.SetPosition(this.Transformation.GetPosition() + moveDir * Time.GameTime.ElapsedTime * 5);
+            }
             if ((cameraBitFlag & (int)CameraFlags.USETARGET) == 0)
                 target = transform.Forward + this.Transformation.GetPosition();
             

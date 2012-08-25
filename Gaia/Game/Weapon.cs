@@ -68,9 +68,34 @@ namespace Gaia.Game
                     CollisionSkin skin;
                     Vector3 pos, normal;
 
-                    Segment seg = new Segment(muzzlePos, muzzleDir * 50);
+                    Segment seg = new Segment(muzzlePos, muzzleDir * datablock.FireDistance);
+                    Microsoft.Xna.Framework.Ray shootRay = new Microsoft.Xna.Framework.Ray(muzzlePos, muzzleDir);
 
                     scene.GetPhysicsEngine().CollisionSystem.SegmentIntersect(out dist, out skin, out pos, out normal, seg, ignorePred);
+                    for (int i = 0; i < scene.Actors.Count; i++)
+                    {
+                        Actor currActor = scene.Actors[i];
+                        if (currActor != scene.MainPlayer)
+                        {
+                            float shootDist;
+                            HitType hit = currActor.GetHit(shootRay, datablock.FireDistance, out shootDist);
+                            if (hit != HitType.None)
+                            {
+                                if (skin == null || (shootDist <= dist))
+                                {
+                                    currActor.ApplyDamage(datablock.Damage);
+                                    ParticleEffect bloodEffect = ResourceManager.Inst.GetParticleEffect("BloodEffect");
+                                    ParticleEmitter collideEmitter = new ParticleEmitter(bloodEffect, 16);
+                                    collideEmitter.EmitOnce = true;
+                                    NormalTransform newTransform = new NormalTransform();
+                                    newTransform.ConformToNormal(-muzzleDir);
+                                    newTransform.SetPosition(muzzlePos + muzzleDir*shootDist);
+                                    collideEmitter.Transformation = newTransform;
+                                    scene.AddEntity("bloodEmitter", collideEmitter);
+                                }
+                            }
+                        }
+                    }
                     if (skin != null)
                     {
                         ParticleEffect bulletEffect = ResourceManager.Inst.GetParticleEffect("BulletEffect");

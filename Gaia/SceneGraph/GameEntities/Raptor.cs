@@ -84,7 +84,6 @@ namespace Gaia.SceneGraph.GameEntities
         {
             if (!IsDead())
             {
-
                 float vel = velocityVector.Length();
                 if (vel < 0.015f)
                 {
@@ -114,9 +113,10 @@ namespace Gaia.SceneGraph.GameEntities
                 //grounding.SetForwardVector(Vector3.Normalize(velocityVector));
                 if (velocityVector.Length() > 0.01f)
                     grounding.SetForwardVector(Vector3.Normalize(velocityVector));
-            
-                grounding.ConformToNormal(body.GetContactNormal());
+
+                
             }
+            grounding.ConformToNormal(body.GetContactNormal());
             model.SetCustomMatrix(grounding.GetTransform());
             model.OnUpdate();
         }
@@ -357,12 +357,19 @@ namespace Gaia.SceneGraph.GameEntities
             base.OnDeath();
             state = RaptorState.Dead;
             velocityVector = Vector3.Zero;
+            new Sound3D(datablock.DeathSoundEffect, this.Transformation.GetPosition());
             model.GetAnimationLayer().SetActiveAnimation(datablock.GetAnimation(DinosaurAnimationsSimple.DeathIdle), false);
             model.GetAnimationLayer().AddAnimation(datablock.GetAnimation(DinosaurAnimationsSimple.Death), true);
-            Vector3 normal = body.GetContactNormal();
-            Vector3 swizzledNormal = new Vector3(normal.Z, normal.X, normal.Y);
-            grounding.ConformToNormal(swizzledNormal);
-            grounding.SetForwardVectorEnabled(false);
+            grounding.SetPosition(datablock.DeathPosition);
+            grounding.SetRotation(datablock.DeathRotation);
+        }
+
+        public override void ApplyDamage(float damage)
+        {
+            base.ApplyDamage(damage);
+            if(Vector3.Distance(enemy.Transformation.GetPosition(), Transformation.GetPosition()) > ATTACK_DISTANCE*2.0f)
+                SetState(RaptorState.BackOff);
+            new Sound3D(datablock.BarkSoundEffect, this.Transformation.GetPosition());
         }
 
         protected override void ResetState()
@@ -381,7 +388,7 @@ namespace Gaia.SceneGraph.GameEntities
         {
             base.UpdateSounds();
             idleSoundTime -= Time.GameTime.ElapsedTime;
-            if (idleSoundTime <=  0)
+            if (idleSoundTime <=  0 && !IsDead())
             {
                 new Sound3D(datablock.IdleSoundEffect, this.Transformation.GetPosition());
                 idleSoundTime = MAX_IDLE_SOUNDTIME;
@@ -435,11 +442,13 @@ namespace Gaia.SceneGraph.GameEntities
         {
             base.OnRender(view);
             model.OnRender(view, true);
+            /*
             if (view.GetRenderType() == Gaia.Rendering.RenderViews.RenderViewType.MAIN)
             {
                 body.RenderCollisionSkin(view);
                 model.RenderDebug(view);
             }
+            */
         }
     }
 }
