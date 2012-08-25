@@ -22,6 +22,9 @@ namespace Gaia.Input
         Jump,
         Crouch,
         Pause,
+        Reload,
+        NextWeapon,
+        PrevWeapon,
         Fire,
         AltFire,
         Interact,
@@ -166,6 +169,9 @@ namespace Gaia.Input
             keyList.Add(GameKey.DecreaseCameraHeight, new KeyStroke(Keys.Q));
             keyList.Add(GameKey.ShowWeapons, new KeyStroke(Keys.Tab));
             keyList.Add(GameKey.LaunchEditor, new KeyStroke(Keys.F11));
+            keyList.Add(GameKey.Reload, new KeyStroke(Keys.R));
+            keyList.Add(GameKey.NextWeapon, new KeyStroke(ExtendedKeys.MouseWheelUp));
+            keyList.Add(GameKey.PrevWeapon, new KeyStroke(ExtendedKeys.MouseWheelDown));
         }
 
         public void Update()

@@ -18,18 +18,24 @@ namespace Gaia.SceneGraph.GameEntities
 
         Camera camera;
         Weapon gun;
+        int weaponIndex = 0;
+        List<Weapon> weapons = new List<Weapon>();
 
         const string painSoundName = "HumanPain";
         const string deathSoundName = "HumanDeath";
         const float RespawnTime = 7;
         float timeTilRespawn = RespawnTime;
+        float gunCycleTimeRemaining = 0.0f;
 
         public override void OnAdd(Scene scene)
         {
             base.OnAdd(scene);
 
             camera = (Camera)scene.FindEntity("MainCamera");
-            gun = new Weapon("SMG", this.body, camera.Transformation, scene);
+            weapons.Add(new Weapon("Machete", this.body, camera.Transformation, scene));
+            weapons.Add(new Weapon("Pistol", this.body, camera.Transformation, scene));
+            weapons.Add(new Weapon("SMG", this.body, camera.Transformation, scene));
+            gun = weapons[weaponIndex];
         }
 
         public bool IsEnabled()
@@ -122,6 +128,18 @@ namespace Gaia.SceneGraph.GameEntities
 
                 if(gun != null)
                 {
+                    if (gunCycleTimeRemaining > 0.0f)
+                    {
+                        gunCycleTimeRemaining -= Time.GameTime.ElapsedTime;
+                        if (gunCycleTimeRemaining <= 0.0f)
+                        {
+                            gun = weapons[weaponIndex];
+                            gun.DrawFromHolster();
+                        }
+                    }
+
+                    if (InputManager.Inst.IsKeyDownOnce(GameKey.Reload))
+                        gun.Reload();
                     if (gun.IsManual())
                     {
                         if (InputManager.Inst.IsKeyDownOnce(GameKey.Fire))
@@ -129,9 +147,29 @@ namespace Gaia.SceneGraph.GameEntities
                     }
                     else if (InputManager.Inst.IsKeyDown(GameKey.Fire))
                         gun.OnFire(camera.Transformation.GetPosition(), camera.Transformation.GetTransform().Forward);
+                    if (!gun.HasDelayTime())
+                    {
+                        if (InputManager.Inst.IsKeyDown(GameKey.NextWeapon))
+                        {
+                            CycleWeapons(true);
+                        }
+                        if (InputManager.Inst.IsKeyDown(GameKey.PrevWeapon))
+                        {
+                            CycleWeapons(false);
+                        }
+                    }
                     
                 }
             }
+        }
+
+        void CycleWeapons(bool forward)
+        {
+            weaponIndex += (forward) ? 1 : -1;
+            if (weaponIndex < 0)
+                weaponIndex += weapons.Count;
+            weaponIndex = weaponIndex % weapons.Count;
+            gunCycleTimeRemaining = gun.StowInHolster();
         }
 
         public override void ApplyDamage(float damage)

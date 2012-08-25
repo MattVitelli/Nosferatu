@@ -60,7 +60,8 @@ namespace Gaia.Game
             if (timeTilFire <= 0 && !hasFired)
             {
                 hasFired = true;
-                new Sound3D(datablock.GetSoundEffect((ammo > 0 || datablock.IsMelee)?WeaponAnimations.Fire:WeaponAnimations.Empty), muzzlePos);
+                if(!datablock.IsMelee)
+                    new Sound3D(datablock.GetSoundEffect((ammo > 0)?WeaponAnimations.Fire:WeaponAnimations.Empty), muzzlePos);
                 if (ammo > 0 || datablock.IsMelee)
                 {
                     ammo--;
@@ -70,7 +71,7 @@ namespace Gaia.Game
 
                     Segment seg = new Segment(muzzlePos, muzzleDir * datablock.FireDistance);
                     Microsoft.Xna.Framework.Ray shootRay = new Microsoft.Xna.Framework.Ray(muzzlePos, muzzleDir);
-
+                    bool anyActorHit = false;
                     scene.GetPhysicsEngine().CollisionSystem.SegmentIntersect(out dist, out skin, out pos, out normal, seg, ignorePred);
                     for (int i = 0; i < scene.Actors.Count; i++)
                     {
@@ -92,6 +93,7 @@ namespace Gaia.Game
                                     newTransform.SetPosition(muzzlePos + muzzleDir*shootDist);
                                     collideEmitter.Transformation = newTransform;
                                     scene.AddEntity("bloodEmitter", collideEmitter);
+                                    anyActorHit = true;
                                 }
                             }
                         }
@@ -107,8 +109,24 @@ namespace Gaia.Game
                         collideEmitter.Transformation = newTransform;
                         scene.AddEntity("bulletEmitter", collideEmitter);
                     }
+                    if(datablock.IsMelee)
+                        new Sound3D(datablock.GetSoundEffect((anyActorHit) ? WeaponAnimations.SuccessHit : WeaponAnimations.Fire), muzzlePos);
                 }
             }
+        }
+
+        public float StowInHolster()
+        {
+            string stowName = datablock.GetAnimation(WeaponAnimations.Stow);
+            fpsModel.GetAnimationLayer().AddAnimation(stowName, true);
+            return ResourceManager.Inst.GetAnimation(stowName).EndTime;
+        }
+
+        public float DrawFromHolster()
+        {
+            string stowName = datablock.GetAnimation(WeaponAnimations.Draw);
+            fpsModel.GetAnimationLayer().AddAnimation(stowName, true);
+            return ResourceManager.Inst.GetAnimation(stowName).EndTime;
         }
 
         public bool IsManual()
@@ -116,9 +134,14 @@ namespace Gaia.Game
             return datablock.IsMelee || datablock.IsManual;
         }
 
+        public bool HasDelayTime()
+        {
+            return (coolDownTimeRemaining > 0.0f);
+        }
+
         public void Reload()
         {
-            if (ReserveAmmo == 0)
+            if (ReserveAmmo == 0 || datablock.IsMelee || HasDelayTime())
                 return;
             int ammoNeeded = datablock.AmmoPerClip - ammo;
             if (ReserveAmmo >= ammoNeeded)

@@ -15,6 +15,7 @@ namespace Gaia.Resources
         Reload,
         MissHit,
         Empty,
+        SuccessHit,
         Count
     };
     public class WeaponDatablock : IResource

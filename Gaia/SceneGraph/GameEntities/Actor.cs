@@ -83,6 +83,8 @@ namespace Gaia.SceneGraph.GameEntities
 
         public virtual void ApplyDamage(float damage)
         {
+            if (IsDead())
+                return;
             health -= damage;
             if (IsDead())
                 OnDeath();

@@ -53,6 +53,7 @@ namespace Gaia.SceneGraph.GameEntities
         Vector3 velocityVector = Vector3.Zero;
         const float speed =  12.5f;
         NormalTransform grounding = new NormalTransform();
+        float deathAnimationTime = 1.0f;
 
         Actor enemy = null;
 
@@ -115,6 +116,16 @@ namespace Gaia.SceneGraph.GameEntities
                     grounding.SetForwardVector(Vector3.Normalize(velocityVector));
 
                 
+            }
+            if (IsDead())
+            {
+                float lerper = MathHelper.Clamp(deathTime / deathAnimationTime, 0, 1);
+                Vector3 rot = Vector3.Lerp(datablock.Rotation, datablock.DeathRotation, lerper);
+                rot.X = MathHelper.WrapAngle(rot.X);
+                rot.Y = MathHelper.WrapAngle(rot.Y);
+                rot.Z = MathHelper.WrapAngle(rot.Z);
+                grounding.SetRotation(rot);
+                grounding.SetPosition(Vector3.Lerp(datablock.Position, datablock.DeathPosition, lerper));
             }
             grounding.ConformToNormal(body.GetContactNormal());
             model.SetCustomMatrix(grounding.GetTransform());
@@ -359,7 +370,9 @@ namespace Gaia.SceneGraph.GameEntities
             velocityVector = Vector3.Zero;
             new Sound3D(datablock.DeathSoundEffect, this.Transformation.GetPosition());
             model.GetAnimationLayer().SetActiveAnimation(datablock.GetAnimation(DinosaurAnimationsSimple.DeathIdle), false);
-            model.GetAnimationLayer().AddAnimation(datablock.GetAnimation(DinosaurAnimationsSimple.Death), true);
+            string deathAnim = datablock.GetAnimation(DinosaurAnimationsSimple.Death);
+            model.GetAnimationLayer().AddAnimation(deathAnim, true);
+            deathAnimationTime = ResourceManager.Inst.GetAnimation(deathAnim).EndTime;
             grounding.SetPosition(datablock.DeathPosition);
             grounding.SetRotation(datablock.DeathRotation);
         }
@@ -367,9 +380,12 @@ namespace Gaia.SceneGraph.GameEntities
         public override void ApplyDamage(float damage)
         {
             base.ApplyDamage(damage);
-            if(Vector3.Distance(enemy.Transformation.GetPosition(), Transformation.GetPosition()) > ATTACK_DISTANCE*2.0f)
-                SetState(RaptorState.BackOff);
-            new Sound3D(datablock.BarkSoundEffect, this.Transformation.GetPosition());
+            if (!IsDead())
+            {
+                if (Vector3.Distance(enemy.Transformation.GetPosition(), Transformation.GetPosition()) > ATTACK_DISTANCE * 2.0f)
+                    SetState(RaptorState.BackOff);
+                new Sound3D(datablock.BarkSoundEffect, this.Transformation.GetPosition());
+            }
         }
 
         protected override void ResetState()
