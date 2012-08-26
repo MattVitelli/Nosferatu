@@ -206,6 +206,7 @@
     <Compile Include="SceneGraph\GameEntities\ForestManager.cs" />
     <Compile Include="SceneGraph\GameEntities\Landmarks.cs" />
     <Compile Include="SceneGraph\GameEntities\Raptor.cs" />
+    <Compile Include="SceneGraph\GameEntities\SeaMonster.cs" />
     <Compile Include="SceneGraph\GameEntities\ShapePlacement.cs" />
     <Compile Include="SceneGraph\GameEntities\Decal.cs" />
     <Compile Include="SceneGraph\GameEntities\FoliageCluster.cs" />

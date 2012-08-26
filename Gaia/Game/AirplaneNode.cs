@@ -42,6 +42,7 @@ namespace Gaia.Game
                 if (trex == null)
                 {
                     new Sound3D("PlaneEngine", scene.FindEntity("Plane").Transformation.GetPosition());
+                    playerScreen.AddJournalEntry("It won't start. Search outside for a tool.");
                     trex = (AnimatedModel)scene.FindEntity("TRex");
                     trex.SetVisible(true);
                     trex.Model.GetAnimationLayer().SetActiveAnimation("TRexIdle", false);
@@ -81,6 +82,8 @@ namespace Gaia.Game
                     PlayerScreen playerScreen = PlayerScreen.GetInst();
                     playerScreen.CloseEyes(1);
                     playerScreen.AddJournalEntry("To Be Continued...");
+                    scene.MainPlayer.SetControllable(false);
+                    scene.MainPlayer.SetEnabled(false);
                     playerScreen.EndGame();
                 }
                 if (timeTilRoar <= 0.0f && !hasRoared)

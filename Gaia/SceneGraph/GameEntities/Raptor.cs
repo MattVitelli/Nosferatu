@@ -467,13 +467,13 @@ namespace Gaia.SceneGraph.GameEntities
         {
             base.OnRender(view);
             model.OnRender(view, true);
-            
+            /*
             if (view.GetRenderType() == Gaia.Rendering.RenderViews.RenderViewType.MAIN)
             {
                 body.RenderCollisionSkin(view);
                 model.RenderDebug(view);
             }
-            
+            */
         }
     }
 }

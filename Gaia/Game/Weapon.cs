@@ -73,6 +73,7 @@ namespace Gaia.Game
                     Microsoft.Xna.Framework.Ray shootRay = new Microsoft.Xna.Framework.Ray(muzzlePos, muzzleDir);
                     bool anyActorHit = false;
                     scene.GetPhysicsEngine().CollisionSystem.SegmentIntersect(out dist, out skin, out pos, out normal, seg, ignorePred);
+                    float segDist = (skin != null) ? Vector3.Distance(seg.Delta * dist, Vector3.Zero): float.PositiveInfinity;
                     for (int i = 0; i < scene.Actors.Count; i++)
                     {
                         Actor currActor = scene.Actors[i];
@@ -82,7 +83,7 @@ namespace Gaia.Game
                             HitType hit = currActor.GetHit(shootRay, datablock.FireDistance, out shootDist);
                             if (hit != HitType.None)
                             {
-                                if (skin == null || (shootDist <= dist))
+                                if (skin == null || (shootDist <= segDist))
                                 {
                                     currActor.ApplyDamage(datablock.Damage);
                                     ParticleEffect bloodEffect = ResourceManager.Inst.GetParticleEffect("BloodEffect");
@@ -137,6 +138,12 @@ namespace Gaia.Game
         public bool HasDelayTime()
         {
             return (coolDownTimeRemaining > 0.0f);
+        }
+
+        public void ResetAmmo()
+        {
+            this.ammo = datablock.AmmoPerClip;
+            this.ReserveAmmo = datablock.DefaultAmmo;
         }
 
         public void Reload()

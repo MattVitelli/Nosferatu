@@ -36,6 +36,9 @@ namespace Gaia.SceneGraph.GameEntities
             weapons.Add(new Weapon("Pistol", this.body, camera.Transformation, scene));
             weapons.Add(new Weapon("SMG", this.body, camera.Transformation, scene));
             gun = weapons[weaponIndex];
+
+            PlayerScreen.GetInst().AddJournalEntry("Get the key from the shack");
+            PlayerScreen.GetInst().AddMarker(scene.FindEntity("Shack").Transformation);
         }
 
         public bool IsEnabled()
@@ -65,6 +68,15 @@ namespace Gaia.SceneGraph.GameEntities
             PlayerScreen.GetInst().AddJournalEntry("You are dead", PlayerScreen.GetInst().CloseEyes(2)*1.1f);
             SetEnabled(false);
             SetControllable(false);
+        }
+
+        protected override void ResetState()
+        {
+            base.ResetState();
+            for (int i = 0; i < weapons.Count; i++)
+            {
+                weapons[i].ResetAmmo();
+            }
         }
 
         void UpdateControls()
@@ -105,7 +117,7 @@ namespace Gaia.SceneGraph.GameEntities
                 }
                 if (InputManager.Inst.IsKeyDownOnce(GameKey.Jump))
                 {
-                    body.Jump(12.5f);
+                    body.Jump(6.5f);
                 }
                 if (InputManager.Inst.IsKeyDownOnce(GameKey.Crouch))
                 {
@@ -161,6 +173,12 @@ namespace Gaia.SceneGraph.GameEntities
                     
                 }
             }
+        }
+
+        public void AddWeapon(string weaponName)
+        {
+            weapons.Add(new Weapon(weaponName, this.body, camera.Transformation, scene));
+            CycleWeapons(false);
         }
 
         void CycleWeapons(bool forward)

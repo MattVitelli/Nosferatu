@@ -70,8 +70,8 @@ namespace Gaia.Game
         void SpawnWave()
         {
             double difficulty = 0.15*Math.Pow(scene.MainPlayer.GetHealthPercent(), 0.25);
-            double nightTerm = 0.25*Math.Min(0.0,Math.Max(1.0,-scene.MainLight.Transformation.GetPosition().Y));
-            double spawnProbability = difficulty + nightTerm + 0.6*RandomHelper.RandomGen.NextDouble();
+            double nightTerm = 0.1*Math.Min(0.0,Math.Max(1.0,-scene.MainLight.Transformation.GetPosition().Y));
+            double spawnProbability = difficulty + nightTerm + 0.75*RandomHelper.RandomGen.NextDouble();
             if (spawnProbability > 0.5f && !PlayerScreen.GetInst().IsSafe)
             {
                 SpawnDinosaurs();

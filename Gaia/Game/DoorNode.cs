@@ -27,6 +27,7 @@ namespace Gaia.Game
             {
                 OpenDoor();
                 new Sound3D("MetalDoorOpen", this.oldPos);
+                playerScreen.RemoveMarker(parent.GetScene().FindEntity("PowerPlant").Transformation);
             }
             else
             {

@@ -48,7 +48,7 @@ namespace Gaia.Game
 
         public override void OnAdd(Scene scene)
         {
-            
+            this.scene = scene;
             this.interactTrigger.OnAdd(scene);
             if (useCollisionTransform)
             {
@@ -123,6 +123,7 @@ namespace Gaia.Game
                 case PickupName.Key:
                     playerScreen.AddJournalEntry("Unlock the Power Plant");
                     playerScreen.AddMarker(this.parent.GetScene().FindEntity("PowerPlant").Transformation);
+                    playerScreen.RemoveMarker(this.parent.GetScene().FindEntity("Shack").Transformation);
                     playerScreen.HasKeycard = true;
                     break;
             }

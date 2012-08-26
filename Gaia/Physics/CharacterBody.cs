@@ -36,7 +36,7 @@ namespace Gaia.Physics
 
         float jumpForce = 16;
         public Vector3 DesiredVelocity { get; set; }
-        const int MAX_JUMPS = 2;
+        const int MAX_JUMPS = 0;
         int jumpsRemaining = MAX_JUMPS;
 
         private bool doJump = false;
@@ -132,10 +132,10 @@ namespace Gaia.Physics
             AddBodyForce(deltaVel * Mass * dt * forceFactor);
 
             doJump = false;
-            if (this.Position.Y > 0)
+            //if (this.Position.Y > 0)
                 AddGravityToExternalForce();
-            else
-                AddBodyForce(Vector3.Up * Mass * Math.Min(-this.Position.Y*0.5f,15));
+            if (this.Position.Y < 0)
+                AddBodyForce(Vector3.Up * Mass * Math.Min(-this.Position.Y,13.5f));
         }
 
         public void RenderCollisionSkin(Gaia.Rendering.RenderViews.RenderView view)
