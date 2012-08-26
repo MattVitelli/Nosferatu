@@ -454,7 +454,7 @@ namespace Gaia.SceneGraph
             CreateStartZone();
 
             BoundingBox sandBounds = MainTerrain.Transformation.GetBounds();
-            sandBounds.Max.Y = 32;
+            sandBounds.Max.Y = 16;
             (MainTerrain as TerrainVoxel).SetUnavailableRegion(sandBounds);
         }
 

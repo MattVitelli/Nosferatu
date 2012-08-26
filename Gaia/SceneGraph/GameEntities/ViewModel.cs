@@ -253,7 +253,9 @@ namespace Gaia.SceneGraph.GameEntities
         public void OnRender(RenderView view, bool performCulling)
         {
             if (rootNodes != null && rootNodes.Length > 0)
+            {
                 mesh.Render(worldMat, vertexBuffer, view, performCulling);
+            }
             else
                 mesh.Render(worldMat, view, performCulling);
         }

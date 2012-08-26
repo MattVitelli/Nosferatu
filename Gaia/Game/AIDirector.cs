@@ -42,9 +42,9 @@ namespace Gaia.Game
 
         void SpawnDinosaurs()
         {
-            double difficulty = 0.35 * Math.Pow(scene.MainPlayer.GetHealthPercent(), 0.25);
+            double difficulty = 0.15 * Math.Pow(scene.MainPlayer.GetHealthPercent(), 0.25);
             double nightTerm = 0.35 * Math.Min(0.0, Math.Max(1.0, -scene.MainLight.Transformation.GetPosition().Y));
-            double spawnProbability = difficulty + nightTerm + 0.3 * RandomHelper.RandomGen.NextDouble();
+            double spawnProbability = difficulty + nightTerm + 0.6 * RandomHelper.RandomGen.NextDouble();
             int spawnCount = Math.Max(1, (int)spawnProbability * MAX_ENEMIES);
             Vector3 playerPosition = scene.MainPlayer.Transformation.GetPosition();
             Vector3 fwd = scene.MainPlayer.GetForwardVector();
@@ -71,7 +71,7 @@ namespace Gaia.Game
         {
             double difficulty = 0.15*Math.Pow(scene.MainPlayer.GetHealthPercent(), 0.25);
             double nightTerm = 0.1*Math.Min(0.0,Math.Max(1.0,-scene.MainLight.Transformation.GetPosition().Y));
-            double spawnProbability = difficulty + nightTerm + 0.75*RandomHelper.RandomGen.NextDouble();
+            double spawnProbability = difficulty + nightTerm + 0.85*RandomHelper.RandomGen.NextDouble();
             if (spawnProbability > 0.5f && !PlayerScreen.GetInst().IsSafe)
             {
                 SpawnDinosaurs();

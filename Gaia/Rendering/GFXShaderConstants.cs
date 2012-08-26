@@ -27,6 +27,7 @@ namespace Gaia.Rendering
         public static int PC_LIGHTPARAMS = 12;
         public static int PC_LIGHTPARAMS2 = 13;
 
+        public static float VOXEL_FALLOFF = 90;
 
         public static int GRASSFALLOFF = 200;
 
@@ -98,6 +99,7 @@ namespace Gaia.Rendering
                     wr.WriteLine("#ifndef _SHADER_CONST_");
                     wr.WriteLine("#define _SHADER_CONST_");
 
+                    WriteDefine(wr, "VOXEL_FALLOFF", VOXEL_FALLOFF);
                     WriteDefine(wr, "MAX_PARTICLES", MAX_PARTICLES);
                     WriteDefine(wr, "MAX_PARTICLECOLORS", MAX_PARTICLECOLORS);
                     WriteDefine(wr, "MAX_PARTICLEFORCES", MAX_PARTICLEFORCES);

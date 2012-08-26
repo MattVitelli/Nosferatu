@@ -83,7 +83,7 @@ namespace Gaia.Game
             InteractObject switchC = new InteractObject(new SwitchNode(this, 0x4), "PowerPlantSwitchC");
             InteractObject switchD = new InteractObject(new SwitchNode(this, 0x8), "PowerPlantSwitchD");
 
-            (scene.MainTerrain as TerrainVoxel).GetLandmarkTransform(MapLandmark.PowerPlant, powerPlant.Transformation, powerPlant.GetMesh().GetBounds());
+            (scene.MainTerrain as TerrainVoxel).GetLandmarkTransform(MapLandmark.PowerPlant, powerPlant.Transformation, powerPlantFence.GetMesh().GetBounds());
             //powerPlant.Transformation.SetPosition(powerPlant.Transformation.GetPosition()-Vector3.Up*94);
             Vector3 pos = powerPlant.Transformation.GetPosition();
             Vector3 rot = powerPlant.Transformation.GetRotation();
@@ -118,12 +118,15 @@ namespace Gaia.Game
             //Vector3 meshCenter = 0.5f * (gasStation.GetMesh().GetBounds().Max + gasStation.GetMesh().GetBounds().Min);
             for (int i = 0; i < nodes.Length; i++)
             {
-                InteractObject door = new InteractObject(null, "PowerPlantDoor", true);
-                Vector3 doorPos = Vector3.Transform(nodes[i].Translation, worldMatrix);
-                door.Transformation.SetPosition(doorPos);
-                door.Transformation.SetRotation(powerPlantFence.Transformation.GetRotation());
-                door.SetInteractNode(new PowerPlantDoorNode(door, new Vector3(0, MathHelper.PiOver2, 0), Vector3.Zero));
-                scene.AddEntity("PowerPlantDoor", door);
+                if (nodes[i].Name == "DoorHinge")
+                {
+                    InteractObject door = new InteractObject(null, "PowerPlantDoor", true);
+                    Vector3 doorPos = Vector3.Transform(nodes[i].Translation, worldMatrix);
+                    door.Transformation.SetPosition(doorPos);
+                    door.Transformation.SetRotation(powerPlantFence.Transformation.GetRotation());
+                    door.SetInteractNode(new PowerPlantDoorNode(door, new Vector3(0, MathHelper.PiOver2, 0), Vector3.Zero));
+                    scene.AddEntity("PowerPlantDoor", door);
+                }
             }
             
 

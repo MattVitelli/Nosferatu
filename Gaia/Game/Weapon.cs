@@ -148,9 +148,11 @@ namespace Gaia.Game
 
         public void Reload()
         {
-            if (ReserveAmmo == 0 || datablock.IsMelee || HasDelayTime())
-                return;
             int ammoNeeded = datablock.AmmoPerClip - ammo;
+
+            if ((ReserveAmmo == 0) || datablock.IsMelee || HasDelayTime() || (ammoNeeded == 0))
+                return;
+            
             if (ReserveAmmo >= ammoNeeded)
             {
                 ReserveAmmo -= ammoNeeded;
@@ -203,7 +205,7 @@ namespace Gaia.Game
             if (view.GetRenderType() == RenderViewType.MAIN && !datablock.IsMelee)
             {
                 GUIElementManager elemManager = GFX.Inst.GetGUI();
-                int ammoRatio = (int)Math.Ceiling((float)ReserveAmmo / (float)AmmoPerClip);
+                int ammoRatio = (int)((float)ReserveAmmo / (float)AmmoPerClip);
                 GUITextElement elem = new GUITextElement(new Vector2(0.85f, -0.85f), ammo.ToString() + "/"+ammoRatio);
                 elemManager.AddElement(elem);
             }

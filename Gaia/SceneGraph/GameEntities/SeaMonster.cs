@@ -16,7 +16,7 @@ namespace Gaia.SceneGraph.GameEntities
         public SeaMonster()
             : base("SeaMonster")
         {
-
+            Transformation.SetPosition(Vector3.Forward * 4000);
         }
 
         void AcquireTarget()
@@ -30,7 +30,7 @@ namespace Gaia.SceneGraph.GameEntities
                     {
                         Vector3 actorPos = currActor.Transformation.GetPosition();
                         Vector3 terrainPos = scene.MainTerrain.Transformation.GetPosition();
-                        Vector3 terrainSize = scene.MainTerrain.Transformation.GetScale()*1.35f;
+                        Vector3 terrainSize = scene.MainTerrain.Transformation.GetScale()*2f;
                         float dist = Vector3.Distance(terrainPos * new Vector3(1, 0, 1), actorPos * new Vector3(1, 0, 1));
                         if (actorPos.Y < 6 && dist > terrainSize.X)
                         {

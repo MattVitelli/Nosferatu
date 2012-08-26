@@ -390,7 +390,7 @@ namespace Gaia.SceneGraph.GameEntities
             {
                 if (enemy != null)
                 {
-                    if (Vector3.Distance(enemy.Transformation.GetPosition(), Transformation.GetPosition()) > ATTACK_DISTANCE * 2.0f)
+                    if (Vector3.Distance(enemy.Transformation.GetPosition(), Transformation.GetPosition()) > ATTACK_DISTANCE * 2.0f && GetHealthPercent() > 0.8f)
                         SetState(RaptorState.BackOff);
                     new Sound3D(datablock.BarkSoundEffect, this.Transformation.GetPosition());
                 }
