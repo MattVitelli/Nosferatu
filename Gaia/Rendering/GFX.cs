@@ -27,6 +27,7 @@ namespace Gaia.Rendering
         TransparentColor,
         Light,
         Particles,
+        Water,
         Sky,
         Translucent,
         Emissive,

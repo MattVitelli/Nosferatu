@@ -12,9 +12,8 @@ namespace Gaia.Rendering.RenderViews
         public RenderTarget2D ColorMap;
         public RenderTarget2D DepthMap;
         public RenderTarget2D NormalMap;
+        public RenderTarget2D DataMap;
         public RenderTarget2D LightMap;
-
-        public RenderTarget2D ParticleBuffer;
 
         public RenderTarget2D ReflectionMap;
 
@@ -54,9 +53,10 @@ namespace Gaia.Rendering.RenderViews
             this.height = height;
             this.scene = scene;
             this.ElementManagers.Add(RenderPass.Sky, new SkyElementManager(this));
-            this.ElementManagers.Add(RenderPass.Scene, new SceneElementManager(this));
+            SceneElementManager sceneMgr = new SceneElementManager(this);
+            sceneMgr.SetSceneCullMode(CullMode.CullClockwiseFace);
+            this.ElementManagers.Add(RenderPass.Scene, sceneMgr);
             this.ElementManagers.Add(RenderPass.Light, new LightElementManager(this));
-            this.ElementManagers.Add(RenderPass.Particles, new ParticleElementManager(this));
             this.ElementManagers.Add(RenderPass.PostProcess, new PostProcessReflectionsElementManager(this));
             this.Name = "SceneRenderView" + this.GetHashCode();
             InitializeTextures();
@@ -71,9 +71,8 @@ namespace Gaia.Rendering.RenderViews
             {
                 DepthMap = new RenderTarget2D(GFX.Device, width, height, 1, SurfaceFormat.Single);
                 NormalMap = new RenderTarget2D(GFX.Device, width, height, 1, SurfaceFormat.HalfVector2);
+                DataMap = new RenderTarget2D(GFX.Device, width, height, 1, SurfaceFormat.Color);
                 LightMap = new RenderTarget2D(GFX.Device, width, height, 1, SurfaceFormat.Color);
-
-                ParticleBuffer = new RenderTarget2D(GFX.Device, width / 4, height / 4, 1, SurfaceFormat.Color);
             }
 
             ReflectionMap = new RenderTarget2D(GFX.Device, width, height, 1, SurfaceFormat.Color);
@@ -100,6 +99,11 @@ namespace Gaia.Rendering.RenderViews
             }
         }
 
+        public Texture2D GetSkyTexture()
+        {
+            return ((SkyElementManager)ElementManagers[RenderPass.Sky]).GetTexture();
+        }
+
         Plane CreatePlane(float height, Vector3 planeNormalDirection, bool clipSide)
         {
             planeNormalDirection.Normalize();
@@ -115,9 +119,11 @@ namespace Gaia.Rendering.RenderViews
         public override void Render()
         {
             base.Render();
+            GFX.Inst.ResetState();
+            //GFX.Device.RenderState.CullMode = CullMode.CullClockwiseFace;
             if (enableClipPlanes)
             {
-                Plane reflectionPlane = CreatePlane(0, -1.0f*Vector3.Up, true);
+                Plane reflectionPlane = CreatePlane(0, Vector3.Down, true);
                 GFX.Device.ClipPlanes[0].Plane = reflectionPlane;
                 GFX.Device.ClipPlanes[0].IsEnabled = true;
             }
@@ -130,6 +136,7 @@ namespace Gaia.Rendering.RenderViews
             {
                 GFX.Device.SetRenderTarget(1, NormalMap);
                 GFX.Device.SetRenderTarget(2, DepthMap);
+                GFX.Device.SetRenderTarget(3, DataMap);
             }
             GFX.Device.Clear(Color.TransparentBlack);
 
@@ -140,22 +147,16 @@ namespace Gaia.Rendering.RenderViews
             {
                 GFX.Device.SetRenderTarget(1, null);
                 GFX.Device.SetRenderTarget(2, null);
+                GFX.Device.SetRenderTarget(3, null);
 
                 GFX.Device.Textures[0] = NormalMap.GetTexture();
                 GFX.Device.Textures[1] = DepthMap.GetTexture();
+                GFX.Device.Textures[2] = DataMap.GetTexture();
 
                 GFX.Device.SetRenderTarget(0, LightMap);
                 GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_TEXGEN, TexGen);
                 GFX.Device.Clear(Color.TransparentBlack);
                 ElementManagers[RenderPass.Light].Render();
-                GFX.Device.SetRenderTarget(0, null);
-
-                GFX.Device.SetRenderTarget(0, ParticleBuffer);
-                GFX.Device.SetPixelShaderConstant(0, Vector2.One / new Vector2(ParticleBuffer.Width, ParticleBuffer.Height));
-                GFX.Inst.SetTextureFilter(2, TextureFilter.Point);
-                GFX.Device.Textures[2] = DepthMap.GetTexture();
-                GFX.Device.Clear(Color.TransparentBlack);
-                ElementManagers[RenderPass.Particles].Render();
                 GFX.Device.SetRenderTarget(0, null);
             }
             GFX.Device.ClipPlanes[0].IsEnabled = false;

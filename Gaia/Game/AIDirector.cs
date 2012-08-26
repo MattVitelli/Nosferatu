@@ -54,13 +54,16 @@ namespace Gaia.Game
             BoundingBox spawnRegion = new BoundingBox(Vector3.Min(minVector, maxVector), Vector3.Max(minVector, maxVector));
             List<TriangleGraph> availableTriangles = null;
             scene.MainTerrain.GetTrianglesInRegion(RandomHelper.RandomGen, out availableTriangles, spawnRegion);
-            for (int i = 0; i < spawnCount; i++)
+            if (availableTriangles.Count > 0)
             {
-                Raptor raptor = new Raptor(raptorDatablock);
-                Vector3 spawnPos = availableTriangles[RandomHelper.RandomGen.Next(availableTriangles.Count)].Centroid + Vector3.Up*3.0f;
-                raptor.SetSpawnPosition(spawnPos);
-                scene.AddEntity("Raptor", raptor);
-                activeDinosaurs.Add(raptor);
+                for (int i = 0; i < spawnCount; i++)
+                {
+                    Raptor raptor = new Raptor(raptorDatablock);
+                    Vector3 spawnPos = availableTriangles[RandomHelper.RandomGen.Next(availableTriangles.Count)].Centroid + Vector3.Up * 3.0f;
+                    raptor.SetSpawnPosition(spawnPos);
+                    scene.AddEntity("Raptor", raptor);
+                    activeDinosaurs.Add(raptor);
+                }
             }
         }
 

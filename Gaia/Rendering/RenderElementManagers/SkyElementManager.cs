@@ -123,7 +123,7 @@ namespace Gaia.Rendering
                 GFX.Device.SetPixelShaderConstant(2, new Vector4(Elements[i].rayleighHeight, Elements[i].mieHeight, Elements[i].rayleighGain, Elements[i].mieGain)); //Height Term
                 GFXPrimitives.Cube.Render();
             }
-            
+            GFX.Device.SetRenderTarget(0, null);
             GFX.Device.SetRenderTarget(0, targetToRenderTo);
 
             if (targetToRenderToCube != null)
@@ -131,7 +131,7 @@ namespace Gaia.Rendering
                 GFX.Device.SetRenderTarget(0, targetToRenderToCube, faceToRenderOn);
             }
 
-            GFX.Device.Clear(Color.Black);
+            GFX.Device.Clear(Color.White);
             
             skyShader.SetupShader();
  

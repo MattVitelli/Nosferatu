@@ -25,6 +25,8 @@ namespace Gaia.Rendering.RenderViews
 
         public SceneRenderView[] reflectionViews;
 
+        DepthStencilBuffer depthStencilScene;
+
         int CubeMapSize = 32;
 
         public RenderTargetCube CubeMap; 
@@ -62,6 +64,7 @@ namespace Gaia.Rendering.RenderViews
             this.ElementManagers.Add(RenderPass.PostProcess, new PostProcessElementManager(this));
             this.ElementManagers.Add(RenderPass.Light, new LightElementManager(this));
             this.ElementManagers.Add(RenderPass.Particles, new ParticleElementManager(this));
+            this.ElementManagers.Add(RenderPass.Water, new WaterElementManager(this));
             this.ElementManagers.Add(RenderPass.TransparentGBuffer, new SceneElementManager(this));
             this.ElementManagers.Add(RenderPass.TransparentColor, new SceneElementManager(this));
             this.ElementManagers.Add(RenderPass.FirstPersonPrepass, new SceneElementManager(this));
@@ -84,6 +87,8 @@ namespace Gaia.Rendering.RenderViews
             DataMap = new RenderTarget2D(GFX.Device, width, height, 1, SurfaceFormat.Color);
             LightMap = new RenderTarget2D(GFX.Device, width, height, 1, SurfaceFormat.Color);
 
+            depthStencilScene = new DepthStencilBuffer(GFX.Device, width, height, GFX.Device.DepthStencilBuffer.Format);
+
             EmissiveMap = new RenderTarget2D(GFX.Device, width / 4, height / 4, 1, SurfaceFormat.Color);
 
             ParticleBuffer = new RenderTarget2D(GFX.Device, width / 8, height / 8, 1, SurfaceFormat.Color);
@@ -105,12 +110,12 @@ namespace Gaia.Rendering.RenderViews
                 //scene.AddRenderView(reflectionViews[i]);
             }
             
-            //scene.AddRenderView(planarReflection);
+            scene.AddRenderView(planarReflection);
         }
 
         void DestroyRenderViews()
         {
-            //scene.RemoveRenderView(planarReflection);
+            scene.RemoveRenderView(planarReflection);
             for (int i = 0; i < reflectionViews.Length; i++)
             {
                 //scene.RemoveRenderView(reflectionViews[i]);
@@ -152,15 +157,15 @@ namespace Gaia.Rendering.RenderViews
 
         public void UpdateRenderViews()
         {
-            return;
             Plane waterPlane = new Plane(Vector3.Up, 0);
             Matrix reflectMat = Matrix.CreateReflection(waterPlane);
             planarReflection.SetNearPlane(this.GetNearPlane());
-            planarReflection.SetFarPlane(this.GetFarPlane());
-            planarReflection.SetPosition(this.GetPosition());
+            planarReflection.SetFarPlane(this.GetFarPlane()*1.5f);
+            planarReflection.SetPosition(Vector3.Transform(this.GetPosition(), reflectMat));
             planarReflection.SetView(reflectMat*this.GetView());
             planarReflection.SetProjection(this.GetProjection());
-            planarReflection.enableClipPlanes = true;
+            planarReflection.SetProjectionLocal(this.GetProjectionLocal());
+            planarReflection.enableClipPlanes = false;
 
             Vector3 cubemapPos = this.GetPosition();
 
@@ -248,7 +253,8 @@ namespace Gaia.Rendering.RenderViews
             GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_EYEPOS, GetEyePosShader());
             GFX.Device.SetPixelShaderConstant(GFXShaderConstants.PC_EYEPOS, GetEyePosShader());
 
-            
+            DepthStencilBuffer dsOld = GFX.Device.DepthStencilBuffer;
+            GFX.Device.DepthStencilBuffer = depthStencilScene;
             GFX.Device.SetRenderTarget(0, ColorMap);
             GFX.Device.SetRenderTarget(1, NormalMap);
             GFX.Device.SetRenderTarget(2, DepthMap);
@@ -265,12 +271,37 @@ namespace Gaia.Rendering.RenderViews
             GFX.Device.SetRenderTarget(2, null);
             GFX.Device.SetRenderTarget(3, null);
 
+
+
+            GFX.Device.DepthStencilBuffer = dsOld;
             //ElementManagers[RenderPass.Foliage].Render();
             GFX.Device.SetRenderTarget(0, null);
+
+
             
+            GFX.Device.Textures[0] = ColorMap.GetTexture();
+            GFX.Device.Textures[1] = DepthMap.GetTexture();
+            GFX.Device.Textures[2] = planarReflection.ReflectionMap.GetTexture();
+            
+            GFX.Device.SetRenderTarget(0, ColorMap);
+            /*
+            GFX.Device.SetRenderTarget(1, NormalMap);
+            GFX.Device.SetRenderTarget(2, DepthMap);
+            GFX.Device.SetRenderTarget(3, DataMap);
+            */
+            GFX.Device.DepthStencilBuffer = depthStencilScene;
+            ElementManagers[RenderPass.Water].Render();
+            GFX.Device.SetRenderTarget(0, null);
+            GFX.Device.DepthStencilBuffer = dsOld;
+            /*
+            GFX.Device.SetRenderTarget(1, null);
+            GFX.Device.SetRenderTarget(2, null);
+            GFX.Device.SetRenderTarget(3, null);
+            */
             GFX.Device.Textures[0] = NormalMap.GetTexture();
             GFX.Device.Textures[1] = DepthMap.GetTexture();
             GFX.Device.Textures[2] = DataMap.GetTexture();
+
             
             GFX.Device.SetRenderTarget(0, LightMap);
             GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_TEXGEN, TexGen);

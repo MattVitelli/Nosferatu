@@ -16,14 +16,16 @@ namespace Gaia.SceneGraph.GameEntities
 {
     public class Actor : Entity
     {
-        const float MAX_HEALTH = 100;
-        const float MAX_ENERGY = 100;
+        protected float MAX_HEALTH = 100;
+        protected float MAX_ENERGY = 100;
 
-        protected float health = MAX_HEALTH;
+        protected float health = 100;
 
-        protected float energy = MAX_ENERGY;
+        protected float energy = 100;
 
         protected float energyRechargeRate = 15;
+
+        protected float healthRechargeRate = 7;
 
         protected float sprintEnergyCost = 20;
 
@@ -171,8 +173,12 @@ namespace Gaia.SceneGraph.GameEntities
 
         protected virtual void UpdateState()
         {
-            energy += Time.GameTime.ElapsedTime * energyRechargeRate;
-            if (IsDead())
+            if (!IsDead())
+            {
+                health = MathHelper.Clamp(health + Time.GameTime.ElapsedTime * healthRechargeRate, 0, MAX_HEALTH);
+                energy = MathHelper.Clamp(energy + Time.GameTime.ElapsedTime * energyRechargeRate, 0, MAX_ENERGY);
+            }
+            else
                 deathTime += Time.GameTime.ElapsedTime;
         }
 

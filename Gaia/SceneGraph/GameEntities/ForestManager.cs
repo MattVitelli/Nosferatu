@@ -104,7 +104,7 @@ namespace Gaia.SceneGraph.GameEntities
                         element.Transform.SetRotation(new Vector3(0, (float)RandomHelper.RandomGen.NextDouble() * MathHelper.TwoPi, 0));
  
                 element.Transform.SetPosition(pos);
-                int randMeshIndex = RandomHelper.RandomGen.Next(i % (meshes.Length+1));
+                int randMeshIndex = RandomHelper.RandomGen.Next(meshes.Length);//i % (meshes.Length+1));
                 element.Mesh = meshes[randMeshIndex];
                 element.Bounds = element.Transform.TransformBounds(element.Mesh.GetBounds()); //This is only temporary
                 visibleMeshes.AddElement(element, false);
@@ -179,9 +179,40 @@ namespace Gaia.SceneGraph.GameEntities
 
         public override void OnRender(RenderView view)
         {
-            if (isEnabled)
+            if (isEnabled && view.GetRenderType() != RenderViewType.REFLECTIONS)
                 RecursivelyRender(visibleMeshes.GetRoot(), view);
+            /*
+            if (view.GetRenderType() == RenderViewType.MAIN && visibleMeshes.GetRoot().bounds.Contains(view.GetPosition()) != ContainmentType.Disjoint)
+            {
+                RecursivelyRenderDebug(visibleMeshes.GetRoot(), view, 0, false);
+            }
+            */
             base.OnRender(view);
+        }
+
+        Color[] nodeColors = new Color[] { Color.Red, Color.Green, Color.Blue};
+        Color[] nodeColorsLeft = new Color[] { Color.Purple, Color.Orange, Color.CornflowerBlue };
+        int maxDepth = 2;
+        void RecursivelyRenderDebug(KDNode<ForestElement> node, RenderView view, int depth, bool isLeft)
+        {
+            if (node == null || view.GetFrustum().Contains(node.bounds) == ContainmentType.Disjoint)
+                return;
+
+            Gaia.Rendering.DebugElementManager debugMgr = (Gaia.Rendering.DebugElementManager)view.GetRenderElementManager(Gaia.Rendering.RenderPass.Debug);
+            Color currColor = (isLeft) ? nodeColorsLeft[depth % nodeColorsLeft.Length] : nodeColors[depth % nodeColors.Length];
+            debugMgr.AddElements(DebugHelper.GetVerticesFromBounds(node.bounds, currColor));
+            /*
+            if (node.element != null)
+            {
+                debugMgr.AddElements(DebugHelper.GetVerticesFromBounds(node.element.Bounds, Color.White));
+            }*/
+
+            depth++;
+            if (depth < maxDepth)
+            {
+                RecursivelyRenderDebug(node.leftChild, view, depth, true);
+                RecursivelyRenderDebug(node.rightChild, view, depth, false);
+            }
         }
 
         void RecursivelyRender(KDNode<ForestElement> node, RenderView view)
@@ -189,7 +220,7 @@ namespace Gaia.SceneGraph.GameEntities
             if (node == null || view.GetFrustum().Contains(node.bounds) == ContainmentType.Disjoint)
                 return;
 
-            if (node.element != null)
+            if (node.element != null && (view.GetFrustum().Contains(node.element.Bounds) != ContainmentType.Disjoint))
             {
                 if (view.GetRenderType() == RenderViewType.MAIN && useImposters)
                 {

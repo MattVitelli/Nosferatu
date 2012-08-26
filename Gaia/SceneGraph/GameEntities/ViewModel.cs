@@ -31,6 +31,8 @@ namespace Gaia.SceneGraph.GameEntities
         protected SortedList<HitType, BoundingBox> hitBoxesGrouped;
         protected SortedList<HitType, int[]> hitBoxGroups;
         BoundingBox hitBounds;
+        Vector3 hitBoxExtRight = Vector3.Zero;
+        Vector3 hitBoxExtFwd = Vector3.Zero;
 
         protected Ragdoll ragdoll = null;
         protected bool ragdollEnabled = false;
@@ -202,6 +204,10 @@ namespace Gaia.SceneGraph.GameEntities
                     }
                 }
 
+                Vector3 netExt = (hitBoxExtRight + hitBoxExtFwd)*0.5f;
+                hitBounds.Min -= netExt;
+                hitBounds.Max += netExt;
+
                 for (int i = 0; i < hitBoxGroups.Count; i++)
                 {
                     HitType currKey = hitBoxGroups.Keys[i];
@@ -214,9 +220,10 @@ namespace Gaia.SceneGraph.GameEntities
                         currIndex = hitBoxGroups[currKey][j];
                         bounds.Min = Vector3.Min(bounds.Min, hitBoxesTransformed[currIndex].Min);
                         bounds.Max = Vector3.Max(bounds.Max, hitBoxesTransformed[currIndex].Max);
-                        
-
                     }
+
+                    bounds.Min -= netExt;
+                    bounds.Max += netExt;
 
                     hitBoxesGrouped[currKey] = bounds;
                 }
@@ -233,6 +240,14 @@ namespace Gaia.SceneGraph.GameEntities
             worldMat = customMatrix * transform.GetTransform();
             worldBounds = MathUtils.TransformBounds(mesh.GetBounds(), worldMat);
             UpdateAnimation(Time.GameTime.ElapsedTime);
+        }
+
+        public void SetHitboxExtensionVectors(Vector3 strafeVector, Vector3 forwardVector)
+        {
+            Vector3 absRight = new Vector3(Math.Abs(strafeVector.X), Math.Abs(strafeVector.Y), Math.Abs(strafeVector.Z));
+            Vector3 absFwd = new Vector3(Math.Abs(forwardVector.X), Math.Abs(forwardVector.Y), Math.Abs(forwardVector.Z));
+            hitBoxExtRight = absRight;
+            hitBoxExtFwd = absFwd;
         }
 
         public void OnRender(RenderView view, bool performCulling)

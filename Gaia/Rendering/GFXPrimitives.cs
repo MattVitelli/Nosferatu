@@ -177,6 +177,13 @@ namespace Gaia.Rendering
 
         IndexBuffer indexBufferInstancedDoubleSided;
 
+        RenderElement renderElement;
+
+        public RenderElement GetRenderElement()
+        {
+            return renderElement;
+        }
+
         public ScreenAlignedQuad(bool faceUp)
         {
             
@@ -225,6 +232,16 @@ namespace Gaia.Rendering
 
             indexBuffer = new IndexBuffer(GFX.Device, sizeof(short) * ib.Length, BufferUsage.WriteOnly, IndexElementSize.SixteenBits);
             indexBuffer.SetData<short>(ib);
+
+            renderElement = new RenderElement();
+            renderElement.IndexBuffer = indexBuffer;
+            renderElement.VertexBuffer = vertexBuffer;
+            renderElement.StartVertex = 0;
+            renderElement.PrimitiveCount = 2;
+            renderElement.IsAnimated = false;
+            renderElement.VertexCount = 4;
+            renderElement.VertexDec = GFXVertexDeclarations.PTDec;
+            renderElement.VertexStride = VertexPositionTexture.SizeInBytes;
 
             CreateInstancedBuffers(verts, ib);
         }

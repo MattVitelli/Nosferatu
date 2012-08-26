@@ -35,7 +35,7 @@ namespace Gaia.SceneGraph.GameEntities
 
         public override void OnRender(RenderView view)
         {
-            if (view.GetRenderType() != RenderViewType.MAIN)
+            if (view.GetRenderType() == RenderViewType.SHADOWS)
                 return;
             SkyElementManager s = (SkyElementManager)view.GetRenderElementManager(RenderPass.Sky);
             if (s != null)

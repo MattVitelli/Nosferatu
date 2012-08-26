@@ -188,6 +188,11 @@ namespace Gaia.Rendering.RenderViews
             return projection;
         }
 
+        public Matrix GetProjectionLocal()
+        {
+            return projectionLocal;
+        }
+
         public Matrix GetViewProjection()
         {
             if (dirtyMatrix)

@@ -451,6 +451,10 @@ namespace Gaia.SceneGraph
             AddEntity("RadioTower", tower);
 
             CreateStartZone();
+
+            BoundingBox sandBounds = MainTerrain.Transformation.GetBounds();
+            sandBounds.Max.Y = 32;
+            (MainTerrain as TerrainVoxel).SetUnavailableRegion(sandBounds);
         }
 
         void InitializeRenderViews()

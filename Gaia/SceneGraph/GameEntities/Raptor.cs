@@ -27,7 +27,7 @@ namespace Gaia.SceneGraph.GameEntities
             Dead
         }
 
-        const float GOAL_POINT_THRESHOLD = 3.5f;
+        const float GOAL_POINT_THRESHOLD = 5.5f;
         const float GOAL_DISTANCE = 20.0f;
         const float DISTANCE_EPSILON = 1.0f;
 
@@ -59,6 +59,7 @@ namespace Gaia.SceneGraph.GameEntities
 
         RaptorState state;
         RaptorState prevState;
+        Vector3 oldStrafeVec = Vector3.Zero;
 
         public Raptor(DinosaurDatablock datablock)
         {
@@ -72,6 +73,8 @@ namespace Gaia.SceneGraph.GameEntities
 
             model.SetCustomMatrix(grounding.GetTransform());
             team = datablock.Team;
+            MAX_HEALTH = datablock.Health;
+            healthRechargeRate = 3;
         }
 
         public override void OnAdd(Scene scene)
@@ -130,6 +133,7 @@ namespace Gaia.SceneGraph.GameEntities
             grounding.ConformToNormal(body.GetContactNormal());
             model.SetCustomMatrix(grounding.GetTransform());
             model.OnUpdate();
+            model.SetHitboxExtensionVectors(this.GetRightVector(), this.GetForwardVector());
         }
 
         private void Wander()
@@ -184,9 +188,9 @@ namespace Gaia.SceneGraph.GameEntities
             if (Math.Abs(radianAngle) >= 0.075f)
             {
                 radianAngle = MathHelper.Clamp(radianAngle, -1, 1) * ((Vector3.Dot(strafeVec, moveDir) < 0) ? 1.0f : -1.0f);
-                rot.Y += radianAngle * 0.005f;
+                rot.Y += radianAngle * 0.0015f;
             }
-            //Transformation.SetRotation(rot);
+            Transformation.SetRotation(rot);
             velocityVector = moveDir * speed;
         }
 
@@ -266,7 +270,9 @@ namespace Gaia.SceneGraph.GameEntities
                     if (animationDelay <= 0.0f)
                     {
                         float interpCoeff = MathHelper.Clamp(distanceToTarget / 18.0f, 0.0f, 1.0f);  //* ((float)RandomHelper.RandomGen.NextDouble() * 2.0f - 1.0f)
-                        wanderPosition = enemy.Transformation.GetPosition() + enemy.GetRightVector() * MAX_FLANK_OFFSET * interpCoeff * ((Vector3.Dot(enemy.GetRightVector(), targetVec) < 0) ? 1.0f : -1.0f);
+                        Vector3 strafeVec = enemy.GetRightVector() * MAX_FLANK_OFFSET * interpCoeff * ((Vector3.Dot(enemy.GetRightVector(), targetVec) < 0) ? 1.0f : -1.0f);
+                        oldStrafeVec = Vector3.Lerp(strafeVec, oldStrafeVec, 0.95f);
+                        wanderPosition = enemy.Transformation.GetPosition() + oldStrafeVec;
                         Vector3 diff = wanderPosition - this.Transformation.GetPosition();
 
                         const float MIN_ANGLE = 0.15f;
@@ -348,7 +354,7 @@ namespace Gaia.SceneGraph.GameEntities
                             Vector3 diff = wanderPosition - this.Transformation.GetPosition();
                             float distToGoal = diff.X * diff.X + diff.Z * diff.Z;
                             //If we've reached our goal point
-                            if (distToGoal*0.15f <= GOAL_POINT_THRESHOLD)
+                            if (distToGoal*0.05f <= GOAL_POINT_THRESHOLD)
                                 EvaluateAttack(distanceToTarget);
 
                             if (distToGoal <= GOAL_POINT_THRESHOLD)
@@ -382,9 +388,12 @@ namespace Gaia.SceneGraph.GameEntities
             base.ApplyDamage(damage);
             if (!IsDead())
             {
-                if (Vector3.Distance(enemy.Transformation.GetPosition(), Transformation.GetPosition()) > ATTACK_DISTANCE * 2.0f)
-                    SetState(RaptorState.BackOff);
-                new Sound3D(datablock.BarkSoundEffect, this.Transformation.GetPosition());
+                if (enemy != null)
+                {
+                    if (Vector3.Distance(enemy.Transformation.GetPosition(), Transformation.GetPosition()) > ATTACK_DISTANCE * 2.0f)
+                        SetState(RaptorState.BackOff);
+                    new Sound3D(datablock.BarkSoundEffect, this.Transformation.GetPosition());
+                }
             }
         }
 
@@ -458,13 +467,13 @@ namespace Gaia.SceneGraph.GameEntities
         {
             base.OnRender(view);
             model.OnRender(view, true);
-            /*
+            
             if (view.GetRenderType() == Gaia.Rendering.RenderViews.RenderViewType.MAIN)
             {
                 body.RenderCollisionSkin(view);
                 model.RenderDebug(view);
             }
-            */
+            
         }
     }
 }

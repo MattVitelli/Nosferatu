@@ -24,6 +24,7 @@ namespace Gaia.Rendering
         Shader boxBlurHShader;
         Shader boxBlurVShader;
         Shader bloomShader;
+        Shader debugNormalsShader;
 
         TextureResource colorCorrectTexture;
 
@@ -42,9 +43,12 @@ namespace Gaia.Rendering
         float bloomBias = 0.1492f;
         float bloomMultiplier = 3.75f;
 
-        float waterScale = 120;
-        float waveScale = 10;
+        float waterScale = 8;
+        float waveScale = 3;
         BoundingBox waveMeshBounds;
+        Matrix waterMatrix = Matrix.CreateScale(Vector3.One * 4096)*Matrix.CreateRotationX(MathHelper.Pi);
+        Shader waterShader;
+
 
         public Vector3 BlurTarget;
 
@@ -61,7 +65,9 @@ namespace Gaia.Rendering
             : base(renderView)
         {
             mainRenderView = renderView;
+            waterShader = ResourceManager.Inst.GetShader("WaterShader");
             basicImageShader = ResourceManager.Inst.GetShader("Generic2D");
+            debugNormalsShader = ResourceManager.Inst.GetShader("DebugNormals");
             motionBlurShader = ResourceManager.Inst.GetShader("MotionBlur");
             compositeShader = ResourceManager.Inst.GetShader("Composite");
             fogShader = ResourceManager.Inst.GetShader("Fog");
@@ -239,7 +245,7 @@ namespace Gaia.Rendering
             motionBlurShader.SetupShader();
 
             GFX.Inst.SetTextureAddressMode(0, TextureAddressMode.Clamp);
-
+            //mainRenderView.planarReflection.ReflectionMap.GetTexture();//
             GFX.Device.Textures[0] = mainRenderView.BackBufferTexture;
             GFX.Device.Textures[1] = mainRenderView.DepthMap.GetTexture();
             GFX.Device.SetPixelShaderConstant(0, mainRenderView.GetViewProjection());
@@ -277,6 +283,14 @@ namespace Gaia.Rendering
             colorCorrectShader.SetupShader();
             GFX.Device.Textures[0] = mainRenderView.BackBufferTexture;
             GFX.Device.Textures[1] = colorCorrectTexture.GetTexture();
+
+            GFXPrimitives.Quad.Render();
+        }
+
+        void RenderNormals()
+        {
+            debugNormalsShader.SetupShader();
+            GFX.Device.Textures[0] = mainRenderView.NormalMap.GetTexture();
 
             GFXPrimitives.Quad.Render();
         }
@@ -319,7 +333,7 @@ namespace Gaia.Rendering
 
             GFX.Device.RenderState.SourceBlend = Blend.One;
             GFX.Device.RenderState.DestinationBlend = Blend.One;
-
+            
             basicImageShader.SetupShader();
             GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_INVTEXRES, Vector2.One / GFX.Inst.DisplayRes);
             GFX.Device.SetPixelShaderConstant(4, Vector4.One * waterScale);
@@ -328,9 +342,34 @@ namespace Gaia.Rendering
             GFX.Device.RenderState.SourceBlend = Blend.SourceAlpha;
             GFX.Device.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
 
+            GFX.Device.RenderState.DepthBufferEnable = true;
+            GFX.Device.Textures[0] = mainRenderView.ColorMap.GetTexture();
+            GFX.Device.Textures[1] = mainRenderView.DepthMap.GetTexture();
+            GFX.Device.Textures[2] = mainRenderView.planarReflection.ReflectionMap.GetTexture();
+
+            GFX.Device.SetPixelShaderConstant(GFXShaderConstants.PC_LIGHTPOS, mainRenderView.scene.GetMainLightDirection());
+            GFX.Device.SetPixelShaderConstant(0, bumpCoords);
+            GFX.Device.Textures[3] = oceanTexture.GetTexture();
+
+            GFX.Inst.SetTextureFilter(3, TextureFilter.Anisotropic);
+            GFX.Inst.SetTextureAddressMode(3, TextureAddressMode.Wrap);
+            GFX.Inst.SetTextureFilter(2, TextureFilter.Linear);
+            GFX.Inst.SetTextureAddressMode(2, TextureAddressMode.Clamp);
+            GFX.Inst.SetTextureFilter(1, TextureFilter.Point);
+            GFX.Inst.SetTextureAddressMode(1, TextureAddressMode.Clamp);
+            GFX.Inst.SetTextureFilter(0, TextureFilter.Linear);
+            GFX.Inst.SetTextureAddressMode(0, TextureAddressMode.Clamp);
+
+            //GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_TEXGEN, GFX.Inst.ComputeTextureMatrix(GFX.Inst.DisplayRes));
+            GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_WORLD, waterMatrix);
+            waterShader.SetupShader();
+            GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_MODELVIEW, mainRenderView.GetViewProjection());
+            GFXPrimitives.Decal.Render();
+            GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_MODELVIEW, mainRenderView.GetInverseViewProjectionLocal());
+            GFX.Device.RenderState.DepthBufferEnable = false;
+            /*
             oceanScreenSpaceShader.SetupShader();
             GFXPrimitives.Quad.Render();
-
 
             float dist = mainRenderView.GetPosition().Y;
             if (mainRenderView.GetFrustum().Contains(waveMeshBounds) != ContainmentType.Disjoint && dist <= waterScale)
@@ -358,14 +397,12 @@ namespace Gaia.Rendering
                 GFX.Device.RenderState.CullMode = CullMode.None;
 
                 GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_MODELVIEW, mainRenderView.GetInverseViewProjectionLocal());
-            }
+            }*/
             GFX.Inst.SetTextureFilter(3, TextureFilter.Point);
             GFX.Inst.SetTextureAddressMode(3, TextureAddressMode.Clamp);
             GFX.Inst.SetTextureFilter(2, TextureFilter.Point);
             GFX.Inst.SetTextureAddressMode(2, TextureAddressMode.Clamp);
             GFX.Inst.SetTextureAddressMode(1, TextureAddressMode.Clamp);
-
-
         }
 
         SortedList<Material, Queue<RenderElement>> Elements = new SortedList<Material, Queue<RenderElement>>();
@@ -476,8 +513,7 @@ namespace Gaia.Rendering
             GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_MODELVIEW, mainRenderView.GetInverseViewProjectionLocal());
             
             RenderComposite();
-
-            //RenderOcean();
+            
             RenderRefractive();
 
             RenderBloom();
@@ -486,13 +522,17 @@ namespace Gaia.Rendering
 
             RenderCompositeParticles();
 
+            //RenderOcean();
+
             //RenderGodRays();
 
             GFX.Device.RenderState.AlphaBlendEnable = false;
 
             RenderMotionBlur();
 
-            RenderCompositeFirstPerson();
+            //RenderNormals();
+
+            //RenderCompositeFirstPerson();
 
             //RenderColorCorrection();
 

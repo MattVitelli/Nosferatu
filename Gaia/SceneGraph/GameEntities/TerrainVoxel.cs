@@ -31,6 +31,8 @@ namespace Gaia.SceneGraph.GameEntities
         BoundingBox[] VoxelBounds;
         //VoxelCollision[] VoxelCollisions;
 
+        RenderElement giantQuadElement;
+
         const int NUM_BITS_BLENDING = 4;
 
         const int NUM_BITS_MATERIAL = 8 - NUM_BITS_BLENDING;
@@ -42,6 +44,7 @@ namespace Gaia.SceneGraph.GameEntities
         public Color[] MaterialField;
 
         Gaia.Resources.Material terrainMaterial;
+        Gaia.Resources.Material terrainQuadMaterial;
 
         Matrix textureMatrix = Matrix.Identity;
         float TerrainSize = 768; 
@@ -64,7 +67,7 @@ namespace Gaia.SceneGraph.GameEntities
         public TerrainVoxel()
         {
             Transformation.SetScale(new Vector3(1, 0.25f, 1) * TerrainSize);
-            Transformation.SetPosition(Vector3.Up * TerrainSize * 0.25f);
+            Transformation.SetPosition(Vector3.Up * TerrainSize * 0.22f);
             //GenerateFloatingIslands(128);
             GenerateTerrainProcedurally();
             terrainMaterial = ResourceManager.Inst.GetMaterial("TerrainMaterial");
@@ -277,6 +280,19 @@ namespace Gaia.SceneGraph.GameEntities
             xPos = (int)MathHelper.Clamp(posObjSpace.X, 0, DensityFieldWidth - 1);
             yPos = (int)MathHelper.Clamp(posObjSpace.Y, 0, DensityFieldHeight - 1);
             zPos = (int)MathHelper.Clamp(posObjSpace.Z, 0, DensityFieldDepth - 1);
+        }
+
+        public void SetUnavailableRegion(BoundingBox region)
+        {
+            List<TriangleGraph> triangles;
+            if (GetTrianglesInRegion(RandomHelper.RandomGen, out triangles, region, true))
+            {
+                for (int i = 0; i < triangles.Count; i++)
+                {
+                    if (!usedLandmarkTriangles.ContainsKey(triangles[i].ID))
+                        usedLandmarkTriangles.Add(triangles[i].ID, (char)1);
+                }
+            }
         }
 
         public void GetLandmarkTransform(MapLandmark marker, Transform transform, BoundingBox meshBounds)
@@ -826,6 +842,12 @@ namespace Gaia.SceneGraph.GameEntities
                     }
                 }
             }
+
+            terrainQuadMaterial = ResourceManager.Inst.GetMaterial("TerrainQuadMaterial");
+            giantQuadElement = GFXPrimitives.Decal.GetRenderElement();
+            Matrix quadMatrix = Matrix.CreateScale(1.5f) * Matrix.CreateRotationX(MathHelper.Pi) * this.Transformation.GetTransform();
+            quadMatrix.Translation = Vector3.Up * this.Transformation.GetBounds().Min.Y;
+            giantQuadElement.Transform = new Matrix[1] { quadMatrix };
         }
 
         void GenerateCollisionMesh(VoxelGeometry geometry)
@@ -844,7 +866,10 @@ namespace Gaia.SceneGraph.GameEntities
             TriangleMesh collisionMesh = new TriangleMesh(vertices, indices);
             CollisionSkin collision = new CollisionSkin(null);
             collision.AddPrimitive(collisionMesh, (int)MaterialTable.MaterialID.NotBouncyRough);
+            CollisionSkin collision2 = new CollisionSkin(null);
+            collision2.AddPrimitive(new JigLibX.Geometry.Plane(Vector3.Up, Transformation.GetBounds().Min.Y-3f), (int)MaterialTable.MaterialID.NotBouncyRough);
             scene.GetPhysicsEngine().CollisionSystem.AddCollisionSkin(collision);
+            //scene.GetPhysicsEngine().CollisionSystem.AddCollisionSkin(collision2);
         }
 
         public override BoundingBox GetWorldSpaceBoundsAtPoint(Vector3 point, int size)
@@ -949,6 +974,7 @@ namespace Gaia.SceneGraph.GameEntities
         public override void OnRender(RenderView view)
         {
             BoundingFrustum frustum = view.GetFrustum();
+            view.AddElement(terrainQuadMaterial, giantQuadElement);
             for (int i = 0; i < Voxels.Length; i++)
             {
                 if (Voxels[i].CanRender && frustum.Contains(VoxelBounds[i]) != ContainmentType.Disjoint)
