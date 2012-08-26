@@ -190,7 +190,7 @@ namespace Gaia.SceneGraph.GameEntities
                 radianAngle = MathHelper.Clamp(radianAngle, -1, 1) * ((Vector3.Dot(strafeVec, moveDir) < 0) ? 1.0f : -1.0f);
                 rot.Y += radianAngle * 0.0015f;
             }
-            Transformation.SetRotation(rot);
+            //Transformation.SetRotation(rot);
             velocityVector = moveDir * speed;
         }
 

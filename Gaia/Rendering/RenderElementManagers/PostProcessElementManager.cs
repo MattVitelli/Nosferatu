@@ -323,11 +323,11 @@ namespace Gaia.Rendering
             GFX.Device.SetPixelShaderConstant(0, bumpCoords);
             GFX.Device.Textures[0] = mainRenderView.BackBufferTexture;
             GFX.Device.Textures[1] = mainRenderView.DepthMap.GetTexture();
-            GFX.Device.Textures[2] = oceanTexture.GetTexture();
-            GFX.Device.Textures[3] = mainRenderView.planarReflection.ReflectionMap.GetTexture();
-            GFX.Inst.SetTextureFilter(3, TextureFilter.Linear);
+            GFX.Device.Textures[2] = mainRenderView.planarReflection.ReflectionMap.GetTexture();
+            GFX.Device.Textures[3] = oceanTexture.GetTexture();
+            GFX.Inst.SetTextureFilter(2, TextureFilter.Linear);
             GFX.Inst.SetTextureAddressMode(3, TextureAddressMode.Clamp);
-            GFX.Inst.SetTextureFilter(2, TextureFilter.Anisotropic);
+            GFX.Inst.SetTextureFilter(3, TextureFilter.Anisotropic);
             GFX.Inst.SetTextureAddressMode(2, TextureAddressMode.Wrap);
             GFX.Inst.SetTextureAddressMode(1, TextureAddressMode.Wrap);
 
@@ -338,14 +338,14 @@ namespace Gaia.Rendering
             GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_INVTEXRES, Vector2.One / GFX.Inst.DisplayRes);
             GFX.Device.SetPixelShaderConstant(4, Vector4.One * waterScale);
             GFXPrimitives.Quad.Render();
+            GFX.Device.RenderState.AlphaBlendEnable = false;
 
             GFX.Device.RenderState.SourceBlend = Blend.SourceAlpha;
             GFX.Device.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
 
+            DepthStencilBuffer dsOld = GFX.Device.DepthStencilBuffer;
+            GFX.Device.DepthStencilBuffer = mainRenderView.depthStencilScene;
             GFX.Device.RenderState.DepthBufferEnable = true;
-            GFX.Device.Textures[0] = mainRenderView.ColorMap.GetTexture();
-            GFX.Device.Textures[1] = mainRenderView.DepthMap.GetTexture();
-            GFX.Device.Textures[2] = mainRenderView.planarReflection.ReflectionMap.GetTexture();
 
             GFX.Device.SetPixelShaderConstant(GFXShaderConstants.PC_LIGHTPOS, mainRenderView.scene.GetMainLightDirection());
             GFX.Device.SetPixelShaderConstant(0, bumpCoords);
@@ -367,6 +367,8 @@ namespace Gaia.Rendering
             GFXPrimitives.Decal.Render();
             GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_MODELVIEW, mainRenderView.GetInverseViewProjectionLocal());
             GFX.Device.RenderState.DepthBufferEnable = false;
+            GFX.Device.DepthStencilBuffer = dsOld;
+            GFX.Device.RenderState.AlphaBlendEnable = true;
             /*
             oceanScreenSpaceShader.SetupShader();
             GFXPrimitives.Quad.Render();
@@ -522,7 +524,7 @@ namespace Gaia.Rendering
 
             RenderCompositeParticles();
 
-            //RenderOcean();
+            RenderOcean();
 
             //RenderGodRays();
 

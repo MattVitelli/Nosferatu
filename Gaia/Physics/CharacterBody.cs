@@ -132,8 +132,10 @@ namespace Gaia.Physics
             AddBodyForce(deltaVel * Mass * dt * forceFactor);
 
             doJump = false;
-            if(this.Position.Y > 0)
+            if (this.Position.Y > 0)
                 AddGravityToExternalForce();
+            else
+                AddBodyForce(Vector3.Up * Mass * Math.Min(-this.Position.Y*0.5f,15));
         }
 
         public void RenderCollisionSkin(Gaia.Rendering.RenderViews.RenderView view)

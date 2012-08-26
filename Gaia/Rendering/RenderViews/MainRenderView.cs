@@ -25,7 +25,7 @@ namespace Gaia.Rendering.RenderViews
 
         public SceneRenderView[] reflectionViews;
 
-        DepthStencilBuffer depthStencilScene;
+        public DepthStencilBuffer depthStencilScene;
 
         int CubeMapSize = 32;
 
@@ -278,26 +278,18 @@ namespace Gaia.Rendering.RenderViews
             GFX.Device.SetRenderTarget(0, null);
 
 
-            
+            /*
             GFX.Device.Textures[0] = ColorMap.GetTexture();
             GFX.Device.Textures[1] = DepthMap.GetTexture();
             GFX.Device.Textures[2] = planarReflection.ReflectionMap.GetTexture();
             
             GFX.Device.SetRenderTarget(0, ColorMap);
-            /*
-            GFX.Device.SetRenderTarget(1, NormalMap);
-            GFX.Device.SetRenderTarget(2, DepthMap);
-            GFX.Device.SetRenderTarget(3, DataMap);
-            */
             GFX.Device.DepthStencilBuffer = depthStencilScene;
             ElementManagers[RenderPass.Water].Render();
             GFX.Device.SetRenderTarget(0, null);
             GFX.Device.DepthStencilBuffer = dsOld;
-            /*
-            GFX.Device.SetRenderTarget(1, null);
-            GFX.Device.SetRenderTarget(2, null);
-            GFX.Device.SetRenderTarget(3, null);
             */
+
             GFX.Device.Textures[0] = NormalMap.GetTexture();
             GFX.Device.Textures[1] = DepthMap.GetTexture();
             GFX.Device.Textures[2] = DataMap.GetTexture();
