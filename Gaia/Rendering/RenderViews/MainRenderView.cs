@@ -263,7 +263,14 @@ namespace Gaia.Rendering.RenderViews
             GFX.Device.Clear(Color.TransparentBlack);            
             
             ElementManagers[RenderPass.Scene].Render();
+            /*
+            GFX.Device.RenderState.AlphaTestEnable = true;
+            GFX.Device.RenderState.ReferenceAlpha = GFXShaderConstants.ALPHACUTOFF;
+            GFX.Device.RenderState.AlphaFunction = CompareFunction.Less;
+            GFX.Device.RenderState.TwoSidedStencilMode = true;
+            */
             ElementManagers[RenderPass.SceneNoCull].Render();
+            //GFX.Device.RenderState.AlphaTestEnable = false;
             ElementManagers[RenderPass.FirstPersonPrepass].Render();
             ElementManagers[RenderPass.Decal].Render();
             

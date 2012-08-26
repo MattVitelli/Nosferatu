@@ -122,7 +122,7 @@ namespace Gaia.SceneGraph.GameEntities
 
             float nearPlaneSky = 0.075f;
             float nearPlane = 0.175f;
-            float farPlane = 350;
+            float farPlane = 250;
 
             renderView.SetPosition(this.Transformation.GetPosition());
             renderView.SetView(Matrix.CreateLookAt(this.Transformation.GetPosition(), target, Vector3.Up));
