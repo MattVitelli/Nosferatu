@@ -34,8 +34,8 @@ namespace Gaia
         public GameCore()
         {
             graphics = new GraphicsDeviceManager(this);
-            graphics.PreferredBackBufferWidth = 1280;
-            graphics.PreferredBackBufferHeight = 720;
+            graphics.PreferredBackBufferWidth = 800;// 1280;
+            graphics.PreferredBackBufferHeight = 600;// 720;
             Content.RootDirectory = "Content";
         }
 

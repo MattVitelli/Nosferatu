@@ -9,7 +9,7 @@ namespace Gaia.SceneGraph.GameEntities
     public class ClusterManager : Entity
     {
         public static float CloudBlockScale = 32; //ClustersPerBlock * CloudRadius * 2;
-        public const int CloudBlocksH = 3; //Horizontal cloud blocks
+        public const int CloudBlocksH = 2; //Horizontal cloud blocks
         public const int CloudBlocksV = 2; //Vertical cloud blocks
 
         const long width = long.MaxValue >> 48;
@@ -69,7 +69,8 @@ namespace Gaia.SceneGraph.GameEntities
                             ForestManager cluster = new ForestManager(meshNames, clustersPerBlock, searchRegion);
                             cluster.alignToSurface = alignToSurface;
                             cluster.OnAdd(this.scene);
-                            cluster.SetImposterState(false);
+                            cluster.SetImposterDistance(60);
+                            cluster.SetImposterState(true);
                             clusterCollection.Add(idx, cluster);
                         }
                     }
