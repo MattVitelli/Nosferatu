@@ -21,6 +21,8 @@ namespace Gaia.SceneGraph.GameEntities
         protected RenderElement[] renderElements;
         protected AnimationNode[] rootNodes;
         protected AnimationNode[] orderedNodes;
+        protected Matrix[] transforms;
+        protected Matrix[] transformsIT;
         protected SortedList<string, AnimationNode> nodes;
         //protected SortedList<string, AnimationLayer> animationLayers = new SortedList<string, AnimationLayer>();
         protected SortedList<string, Vector3> defaultTranslations = new SortedList<string, Vector3>();
@@ -161,14 +163,20 @@ namespace Gaia.SceneGraph.GameEntities
                 Matrix root = Matrix.Identity;
                 for (int i = 0; i < rootNodes.Length; i++)
                     rootNodes[i].ApplyTransform(ref root);
-
+                /*
+                for (int i = 0; i < orderedNodes.Length; i++)
+                {
+                    transforms[i] = orderedNodes[i].Transform;
+                    transformsIT[i] = orderedNodes[i].TransformIT;
+                }
+                */
                 for (int i = 0; i < vertices.Length; i++)
                 {
                     VertexPNTTI currVertex = mesh.GetVertex(i);
                     int index = (int)currVertex.Index;
                     vertices[i].Position = Vector3.Transform(currVertex.Position, orderedNodes[index].Transform);
-                    vertices[i].Normal = Vector3.TransformNormal(currVertex.Normal, orderedNodes[index].TransformIT);
-                    vertices[i].Tangent = Vector3.TransformNormal(currVertex.Tangent, orderedNodes[index].TransformIT);
+                    vertices[i].Normal = Vector3.TransformNormal(currVertex.Normal, orderedNodes[index].Transform);//.TransformIT);
+                    vertices[i].Tangent = Vector3.TransformNormal(currVertex.Tangent, orderedNodes[index].Transform);//.TransformIT);
                     vertices[i].Index = 0;
                 }
                 vertexBuffer.SetData<VertexPNTTI>(vertices);
