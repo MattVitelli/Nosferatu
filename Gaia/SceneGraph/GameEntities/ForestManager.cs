@@ -144,6 +144,11 @@ namespace Gaia.SceneGraph.GameEntities
             return (axis == 0) ? new Vector2(bounds.Min.X, bounds.Max.X) : ((axis == 1) ? new Vector2(bounds.Min.Y, bounds.Max.Y) : new Vector2(bounds.Min.Z, bounds.Max.Z));
         }
 
+        static BoundingBox SceneBoundsEval(ForestElement element)
+        {
+            return element.Bounds;
+        }
+
         void RecursivelyBuildBounds(KDNode<ForestElement> node)
         {
             if (node == null)

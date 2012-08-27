@@ -30,6 +30,17 @@ namespace Gaia.SceneGraph.GameEntities
         VoxelGeometry[] Voxels;
         BoundingBox[] VoxelBounds;
         //VoxelCollision[] VoxelCollisions;
+        class VoxelElement
+        {
+            public VoxelGeometry geometry;
+            public BoundingBox bounds;
+            public VoxelElement(VoxelGeometry geometry, BoundingBox bounds)
+            {
+                this.geometry = geometry;
+                this.bounds = bounds;
+            }
+        }
+        KDTree<VoxelElement> voxelKDTree;
 
         RenderElement giantQuadElement;
 
@@ -812,6 +823,7 @@ namespace Gaia.SceneGraph.GameEntities
             int voxelCountZ = (DensityFieldDepth - 1) / VoxelGridSize;
             Voxels = new VoxelGeometry[voxelCountX * voxelCountY * voxelCountZ];
             VoxelBounds = new BoundingBox[Voxels.Length];
+            voxelKDTree = new KDTree<VoxelElement>(VoxelCompareFunction, VoxelBoundsFunction, false, true);
             Vector3 ratio = Vector3.One * 2.0f * (float)VoxelGridSize / new Vector3(DensityFieldWidth-1,DensityFieldHeight-1,DensityFieldDepth-1);
 
             for (int z = 0; z < voxelCountZ; z++)
@@ -834,12 +846,14 @@ namespace Gaia.SceneGraph.GameEntities
                         Vector3 geometryRatio = 2.0f*Vector3.One / new Vector3(DensityFieldWidth-1,DensityFieldHeight-1,DensityFieldDepth-1);
                         Voxels[idx].GenerateGeometry(ref DensityField, IsoValue, DensityFieldWidth, DensityFieldHeight, DensityFieldDepth, VoxelGridSize, VoxelGridSize, VoxelGridSize, x * VoxelGridSize, y * VoxelGridSize, z * VoxelGridSize, geometryRatio, this.Transformation.GetTransform());
 
-                        VoxelBounds[idx] = Voxels[idx].GetBounds();
-                        VoxelBounds[idx].Min = Vector3.Transform(VoxelBounds[idx].Min, Transformation.GetTransform());
-                        VoxelBounds[idx].Max = Vector3.Transform(VoxelBounds[idx].Max, Transformation.GetTransform());
+                        VoxelBounds[idx] = MathUtils.TransformBounds(Voxels[idx].GetBounds(), Transformation.GetTransform());
+                        if(Voxels[idx].CanRender)
+                            voxelKDTree.AddElement(new VoxelElement(Voxels[idx], VoxelBounds[idx]), false);
                     }
                 }
             }
+            voxelKDTree.BuildTree();
+            RecursivelyBuildBounds(voxelKDTree.GetRoot());
 
             terrainQuadMaterial = ResourceManager.Inst.GetMaterial("TerrainQuadMaterial");
             giantQuadElement = GFXPrimitives.Decal.GetRenderElement();
@@ -965,14 +979,138 @@ namespace Gaia.SceneGraph.GameEntities
         public override void OnUpdate()
         {
             //HandleCameraMotion();
-           
+            if (Input.InputManager.Inst.IsKeyDownOnce(Gaia.Input.GameKey.TurnLeft))
+                maxDepth = Math.Max(0, maxDepth - 1);
+            if (Input.InputManager.Inst.IsKeyDownOnce(Gaia.Input.GameKey.TurnRight))
+                maxDepth = maxDepth + 1;
             base.OnUpdate();
+        }
+
+        static int VoxelCompareFunction(VoxelElement elementA, VoxelElement elementB, int axis)
+        {
+            BoundingBox boundsA = elementA.bounds;//.Transform.TransformBounds(elementA.Mesh.GetBounds());
+
+            Vector3 posA = (boundsA.Max + boundsA.Min) * 0.5f;// elementA.Transform.GetPosition();
+            float valueA = (axis == 0) ? posA.X : (axis == 1) ? posA.Y : posA.Z;
+
+            BoundingBox boundsB = elementB.bounds;//.Transform.TransformBounds(elementB.Mesh.GetBounds());
+
+            Vector3 posB = (boundsB.Max + boundsB.Min) * 0.5f;//elementB.Transform.GetPosition();
+            float valueB = (axis == 0) ? posB.X : (axis == 1) ? posB.Y : posB.Z;
+
+            if (valueA < valueB)
+                return -1;
+            if (valueA > valueB)
+                return 1;
+
+            return 0;
+        }
+
+        static Vector2 VoxelBoundsFunction(VoxelElement element, int axis)
+        {
+            BoundingBox bounds = element.bounds;//.Transform.TransformBounds(element.Mesh.GetBounds());
+            return (axis == 0) ? new Vector2(bounds.Min.X, bounds.Max.X) : ((axis == 1) ? new Vector2(bounds.Min.Y, bounds.Max.Y) : new Vector2(bounds.Min.Z, bounds.Max.Z));
+        }
+
+        static BoundingBox VoxelBoundsEval(VoxelElement element)
+        {
+            return element.bounds;
+        }
+        
+        void RecursivelyBuildBounds(KDNode<VoxelElement> node)
+        {
+            if (node == null)
+                return;
+
+            RecursivelyBuildBounds(node.leftChild);
+            RecursivelyBuildBounds(node.rightChild);
+
+            if (node.element != null)
+            {
+                node.bounds = node.element.bounds;
+                const float extra = 1.000001f;
+                node.bounds.Min = node.bounds.Min * extra;
+                node.bounds.Max = node.bounds.Max * extra;
+            }
+            else
+            {
+                if (node.leftChild != null)
+                    node.bounds = node.leftChild.bounds;
+                else
+                {
+                    if (node.rightChild != null)
+                        node.bounds = node.rightChild.bounds;
+                    else
+                        node.bounds = new BoundingBox(Vector3.One * float.PositiveInfinity, Vector3.One * float.NegativeInfinity);
+                }
+            }
+            if (node.leftChild != null)
+            {
+                node.bounds.Min = Vector3.Min(node.leftChild.bounds.Min, node.bounds.Min);
+                node.bounds.Max = Vector3.Max(node.leftChild.bounds.Max, node.bounds.Max);
+            }
+
+            if (node.rightChild != null)
+            {
+                node.bounds.Min = Vector3.Min(node.rightChild.bounds.Min, node.bounds.Min);
+                node.bounds.Max = Vector3.Max(node.rightChild.bounds.Max, node.bounds.Max);
+            }
+        }
+        
+        void RecursivelyRender(KDNode<VoxelElement> node, RenderView view)
+        {
+            if (node == null || (view.GetFrustum().Contains(node.bounds) == ContainmentType.Disjoint))// && node.bounds.Contains(view.GetPosition()) == ContainmentType.Disjoint))
+                return;
+
+            if (node.element != null && (view.GetFrustum().Contains(node.element.bounds) != ContainmentType.Disjoint))
+            {
+                view.AddElement(terrainMaterial, node.element.geometry.renderElement);
+            }
+            RecursivelyRender(node.leftChild, view);
+            RecursivelyRender(node.rightChild, view);
+        }
+
+        Color[] nodeColors = new Color[] { Color.Red, Color.Green, Color.Blue };
+        Color[] nodeColorsLeft = new Color[] { Color.Purple, Color.Orange, Color.CornflowerBlue };
+        int maxDepth = 5;
+        void RecursivelyRenderDebug(KDNode<VoxelElement> node, RenderView view, int depth, bool isLeft)
+        {
+            if (node == null)// || view.GetFrustum().Contains(node.bounds) == ContainmentType.Disjoint)
+                return;
+            
+            {
+                
+                Gaia.Rendering.DebugElementManager debugMgr = (Gaia.Rendering.DebugElementManager)view.GetRenderElementManager(Gaia.Rendering.RenderPass.Debug);
+                Color currColor = (isLeft) ? nodeColorsLeft[depth % nodeColorsLeft.Length] : nodeColors[depth % nodeColors.Length];
+                if (depth == maxDepth)
+                    debugMgr.AddElements(DebugHelper.GetVerticesFromBounds(node.bounds, currColor));
+
+                if (node.element != null)
+                {
+                    debugMgr.AddElements(DebugHelper.GetVerticesFromBounds(node.element.bounds, Color.White));
+                }
+            }
+            depth++;
+            //if (depth < maxDepth)
+            {
+                RecursivelyRenderDebug(node.leftChild, view, depth, true);
+                RecursivelyRenderDebug(node.rightChild, view, depth, false);
+            }
         }
 
         public override void OnRender(RenderView view)
         {
             BoundingFrustum frustum = view.GetFrustum();
             view.AddElement(terrainQuadMaterial, giantQuadElement);
+            RecursivelyRender(voxelKDTree.GetRoot(), view);
+            /*
+            if (view.GetRenderType() == RenderViewType.MAIN)
+            {
+                RecursivelyRenderDebug(voxelKDTree.GetRoot(), view, 0, false);
+                GUIElementManager guiElem = GFX.Inst.GetGUI();
+                guiElem.AddElement(new GUITextElement(new Vector2(-0.85f, 0.95f), "Depth: " + maxDepth));
+            }
+            
             for (int i = 0; i < Voxels.Length; i++)
             {
                 if (Voxels[i].CanRender && frustum.Contains(VoxelBounds[i]) != ContainmentType.Disjoint)
@@ -980,6 +1118,7 @@ namespace Gaia.SceneGraph.GameEntities
                     view.AddElement(terrainMaterial, Voxels[i].renderElement);
                 }
             }
+            */
             base.OnRender(view);
         }
     }

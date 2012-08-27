@@ -22,6 +22,9 @@ namespace Gaia.Core
         public delegate int KDCmpFunction(T elemA, T elemB, int axis);
 
         public delegate Vector2 KDCmpFunctionMinMax(T elemA, int axis);
+
+        public delegate BoundingBox KDBoundsFunction(T element);
+
         KDNode<T> rootNode;
 
         int maxDimension = 3;
@@ -32,15 +35,18 @@ namespace Gaia.Core
 
         KDCmpFunctionMinMax adaptiveBoundsFunction;
 
+        //KDBoundsFunction boundsFunction;
+
         bool useAdaptiveSplits = false;
 
         bool resideAtLeafs = false;
 
-        public KDTree(KDCmpFunction compareFunction)
+        public KDTree(KDCmpFunction compareFunction)//, KDBoundsFunction boundsFunction)
         {
             this.rootNode = new KDNode<T>();
             this.elementCollection = new List<T>();
             this.compareFunction = compareFunction;
+            //this.boundsFunction = boundsFunction;
         }
 
         public KDTree(KDCmpFunction compareFunction, KDCmpFunctionMinMax adaptiveBoundsFunction, bool adaptiveSplitting, bool resideAtLeafs)
@@ -51,6 +57,7 @@ namespace Gaia.Core
             this.useAdaptiveSplits = adaptiveSplitting;
             this.resideAtLeafs = resideAtLeafs;
             this.adaptiveBoundsFunction = adaptiveBoundsFunction;
+            //this.boundsFunction = boundsFunction;
         }
 
         public KDNode<T> GetRoot()
@@ -136,11 +143,26 @@ namespace Gaia.Core
                 if (!insertedEntity)
                     sortedList.Add(entities[i]);
             }
-            int medianIndex = sortedList.Count / 2;
+
+            int medianIndex = Math.Max(0,(sortedList.Count / 2)-1);
+            /*
+            currNode.bounds = boundsFunction(sortedList[medianIndex]);
+            for (int i = 0; i < sortedList.Count; i++)
+            {
+                BoundingBox elemBounds = boundsFunction(sortedList[i]);
+                currNode.bounds.Min = Vector3.Min(currNode.bounds.Min, elemBounds.Min);
+                currNode.bounds.Max = Vector3.Max(currNode.bounds.Max, elemBounds.Max);
+            }
+            const float extra = 1.000001f;
+            currNode.bounds.Min = currNode.bounds.Min * extra;
+            currNode.bounds.Max = currNode.bounds.Max * extra;
+            */
+            
 
             if (sortedList.Count > 1)
             {
-                int leftCount = medianIndex - 1;
+                depth += 1;
+                int leftCount = medianIndex;
                 if (resideAtLeafs)
                     leftCount++;
                 if (leftCount > 0)
@@ -148,16 +170,16 @@ namespace Gaia.Core
                     T[] leftEntities = new T[leftCount];
                     sortedList.CopyTo(0, leftEntities, 0, leftCount);
                     currNode.leftChild = new KDNode<T>();
-                    ConstructKDTree(currNode.leftChild, depth++, leftEntities);
+                    ConstructKDTree(currNode.leftChild, depth, leftEntities);
                 }
 
                 int rightCount = sortedList.Count - (medianIndex + 1);
                 if (rightCount > 0)
                 {
                     T[] rightEntities = new T[rightCount];
-                    sortedList.CopyTo(medianIndex + 1, rightEntities, 0, rightEntities.Length);
+                    sortedList.CopyTo(medianIndex + 1, rightEntities, 0, rightCount);
                     currNode.rightChild = new KDNode<T>();
-                    ConstructKDTree(currNode.rightChild, depth++, rightEntities);
+                    ConstructKDTree(currNode.rightChild, depth, rightEntities);
                 }
             }
             if(!resideAtLeafs || sortedList.Count == 1)

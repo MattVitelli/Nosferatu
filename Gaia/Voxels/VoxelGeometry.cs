@@ -283,7 +283,7 @@ namespace Gaia.Voxels
                 renderElement.PrimitiveCount = PrimitiveCount;
             }
 
-            collisionTree = new KDTree<TriangleGraph>(TriangleCompareFunction);
+            collisionTree = new KDTree<TriangleGraph>(TriangleCompareFunction);//, CollisionNodesBoundsFunction);
             for (int i = 0; i < collisionGraph.Values.Count; i++)
             {
                 List<TriangleGraph> entries = collisionGraph.Values[i];
