@@ -105,7 +105,7 @@ namespace Gaia.Resources
 
         string hitboxData = string.Empty;
 
-        const float IMPOSTER_DISTANCE = 70;
+        const float IMPOSTER_DISTANCE = 90;
 
         public const float IMPOSTER_DISTANCE_SQUARED = IMPOSTER_DISTANCE * IMPOSTER_DISTANCE;
 

@@ -489,7 +489,7 @@ namespace Gaia.SceneGraph
 
             CreateLandmarks();
             
-            AddEntity("Grass", new ClusterManager(new string[]{"Bush", "Fern", "Phila01", "ElephantEar", "BirdsNest", "PalmPlant", "TropicalPlant"}, 96, true));//120, true));
+            AddEntity("Grass", new ClusterManager(new string[]{"Bush", "Fern", "Phila01", "ElephantEar", "BirdsNest", "PalmPlant", "TropicalPlant"}, 20, true));//120, true));
             
             /*
             ForestManager grassMgr = new ForestManager(new string[] { "Bush", "Fern", "Phila01", "ElephantEar", "BirdsNest", "PalmPlant", "TropicalPlant" }, 8192);
