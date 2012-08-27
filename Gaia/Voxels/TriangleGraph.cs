@@ -42,7 +42,7 @@ namespace Gaia.Voxels
             Normal = Vector3.Normalize(Vector3.Cross(p2 - p0, p1 - p0));
             Centroid = (p0 + p1 + p2) / 3.0f;
             D = -Vector3.Dot(Normal, Centroid);
-
+            /*
             Vector3 absNormal = new Vector3(Math.Abs(Normal.X), Math.Abs(Normal.Y), Math.Abs(Normal.Z));
             //if (absNormal.X > absNormal.Y && absNormal.X > absNormal.Z)
             DominantAxis = 0;
@@ -78,6 +78,7 @@ namespace Gaia.Voxels
             acDiff = new Vector2(p2.X - p0.X, p2.Y - p0.Y);
             invC = 1.0f / ((abDiff.Y * p2.X) + (abDiff.X * p2.Y) + abCrossDiff);
             invB = 1.0f / ((acDiff.Y * p1.X) + (acDiff.X * p1.Y) + acCrossDiff);
+            */
         }
 
         public TriangleGraph(ushort voxelIndex, ushort index0, ushort index1, ushort index2, Vector3 p0, Vector3 p1, Vector3 p2)
@@ -95,14 +96,25 @@ namespace Gaia.Voxels
 
         public Vector3 GeneratePointInTriangle(Random randGen)
         {
-            return Centroid;
+            //return Centroid;
+            /*
+            
+            float randAlpha = (float)randGen.NextDouble();
+            float randBeta = (float)randGen.NextDouble();
+            if (randBeta + randAlpha >= 1.0f)
+            {
+                randAlpha = 1.0f - randAlpha;
+                randBeta = 1.0f - randBeta;
+            }
+            */
+
             Vector3 diff1 = p1 - p0;
             Vector3 diff2 = p2 - p0;
-            
-            Vector2 weights = new Vector2((float)randGen.NextDouble(), (float)randGen.NextDouble());//, (float)randGen.NextDouble());
-            weights /= Vector2.Dot(weights, Vector2.One);
 
-            return p0 + diff1 * weights.X + diff2 * weights.Y;
+            Vector3 weights = new Vector3((float)randGen.NextDouble(), (float)randGen.NextDouble(), (float)randGen.NextDouble());
+            weights /= Vector3.Dot(weights, Vector3.One);
+
+            return p0 + weights.X * diff1 + weights.Y * diff2;// +diff1 * randAlpha + diff2 * randBeta;
         }
 
         public Vector3 GeneratePointInTriangle(Random randGen, Matrix transform)

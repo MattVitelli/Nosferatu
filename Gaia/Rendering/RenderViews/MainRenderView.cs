@@ -165,7 +165,7 @@ namespace Gaia.Rendering.RenderViews
             planarReflection.SetView(reflectMat*this.GetView());
             planarReflection.SetProjection(this.GetProjection());
             planarReflection.SetProjectionLocal(this.GetProjectionLocal());
-            planarReflection.enableClipPlanes = false;
+            planarReflection.enableClipPlanes = true;
 
             Vector3 cubemapPos = this.GetPosition();
 
