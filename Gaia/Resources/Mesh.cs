@@ -997,6 +997,17 @@ namespace Gaia.Resources
             }
         }
 
+        public void Render(Matrix[] animTransforms, RenderView view, bool performCulling)
+        {
+            for (int i = 0; i < parts.Length; i++)
+            {
+                RenderElement element = parts[i].renderElement;
+                element.Transform = animTransforms;
+                element.IsAnimated = true;
+                view.AddElement(parts[i].material, element);
+            }
+        }
+
         public void Render(Matrix transform, VertexBuffer animBuffer, RenderView view, bool performCulling)
         {
             if (performCulling)

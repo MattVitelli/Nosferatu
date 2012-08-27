@@ -31,7 +31,7 @@ namespace Gaia.SceneGraph.GameEntities
         {
             base.OnAdd(scene);
 
-            healthRechargeRate = 3;
+            healthRechargeRate = 5;
             camera = (Camera)scene.FindEntity("MainCamera");
             weapons.Add(new Weapon("Machete", this.body, camera.Transformation, scene));
             weapons.Add(new Weapon("Pistol", this.body, camera.Transformation, scene));

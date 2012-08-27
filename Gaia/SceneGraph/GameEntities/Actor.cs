@@ -25,7 +25,7 @@ namespace Gaia.SceneGraph.GameEntities
 
         protected float energyRechargeRate = 15;
 
-        protected float healthRechargeRate = 7;
+        protected float healthRechargeRate = 3;
 
         protected float sprintEnergyCost = 20;
 

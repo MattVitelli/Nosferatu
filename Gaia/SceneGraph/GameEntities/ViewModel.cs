@@ -95,13 +95,14 @@ namespace Gaia.SceneGraph.GameEntities
             mesh = ResourceManager.Inst.GetMesh(name);
             rootNodes = mesh.GetRootNodes(out nodes);
             CreateHitBoxes();
+            /*
             int vertexCount = 0;
             VertexBuffer origBuffer = mesh.GetVertexBuffer(out vertexCount);
             vertices = new VertexPNTTI[vertexCount];
             origBuffer.GetData<VertexPNTTI>(vertices);
             vertexBuffer = new VertexBuffer(GFX.Device, VertexPNTTI.SizeInBytes * vertexCount, BufferUsage.WriteOnly);
             vertexBuffer.SetData<VertexPNTTI>(vertices);
-
+            */
             List<AnimationNode> orderedNodes = new List<AnimationNode>();
             for (int i = 0; i < nodes.Count; i++)
             {
@@ -116,6 +117,7 @@ namespace Gaia.SceneGraph.GameEntities
                 orderedNodes.Add(nodes[tempNodes[i].Name]);
             }
             this.orderedNodes = orderedNodes.ToArray();
+            this.transforms = new Matrix[orderedNodes.Count];
 
             mainAnimationLayer = new AnimationLayer(this);
         }
@@ -160,16 +162,15 @@ namespace Gaia.SceneGraph.GameEntities
             mainAnimationLayer.UpdateAnimation(timeDT, this.nodes);
             if (renderAlways || (scene != null && scene.TestBoundsVisibility(worldBounds)))
             {
-                Matrix root = Matrix.Identity;
+                Matrix root = worldMat;// Matrix.Identity;
                 for (int i = 0; i < rootNodes.Length; i++)
                     rootNodes[i].ApplyTransform(ref root);
-                /*
+                
                 for (int i = 0; i < orderedNodes.Length; i++)
                 {
                     transforms[i] = orderedNodes[i].Transform;
-                    transformsIT[i] = orderedNodes[i].TransformIT;
                 }
-                */
+                /*
                 for (int i = 0; i < vertices.Length; i++)
                 {
                     VertexPNTTI currVertex = mesh.GetVertex(i);
@@ -180,7 +181,7 @@ namespace Gaia.SceneGraph.GameEntities
                     vertices[i].Index = 0;
                 }
                 vertexBuffer.SetData<VertexPNTTI>(vertices);
-
+                */
                 UpdateHitBoxes();
             }
         }
@@ -202,7 +203,7 @@ namespace Gaia.SceneGraph.GameEntities
                     int currKey = hitBoxes.Keys[i];
 
                     BoundingBox bounds = hitBoxes[currKey];
-                    hitBoxesTransformed[currKey] = MathUtils.TransformBounds(MathUtils.TransformBounds(bounds, orderedNodes[currKey].Transform), worldMat);
+                    hitBoxesTransformed[currKey] = MathUtils.TransformBounds(bounds, orderedNodes[currKey].Transform);// MathUtils.TransformBounds(MathUtils.TransformBounds(bounds, orderedNodes[currKey].Transform), worldMat);
                     if (i == 0)
                         hitBounds = hitBoxesTransformed[currKey];
                     else
@@ -260,9 +261,13 @@ namespace Gaia.SceneGraph.GameEntities
 
         public void OnRender(RenderView view, bool performCulling)
         {
+            if (performCulling && view.GetFrustum().Contains(hitBounds) == ContainmentType.Disjoint)
+                return;
+
             if (rootNodes != null && rootNodes.Length > 0)
             {
-                mesh.Render(worldMat, vertexBuffer, view, performCulling);
+                //mesh.Render(worldMat, vertexBuffer, view, performCulling);
+                mesh.Render(transforms, view, performCulling);
             }
             else
                 mesh.Render(worldMat, view, performCulling);
