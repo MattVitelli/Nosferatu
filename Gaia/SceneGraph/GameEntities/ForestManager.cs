@@ -176,11 +176,17 @@ namespace Gaia.SceneGraph.GameEntities
                 node.bounds.Max = Vector3.Max(node.rightChild.bounds.Max, node.bounds.Max);
             }
         }
-
+        int nodesRendered;
         public override void OnRender(RenderView view)
         {
+            nodesRendered = 0;
             if (isEnabled && view.GetRenderType() != RenderViewType.REFLECTIONS)
                 RecursivelyRender(visibleMeshes.GetRoot(), view);
+            if (view.GetRenderType() == RenderViewType.MAIN && visibleMeshes.GetRoot().bounds.Contains(view.GetPosition()) != ContainmentType.Disjoint && entityCount != 3000)
+            {
+                Gaia.Rendering.GUIElementManager guiMgr = Gaia.Rendering.GFX.Inst.GetGUI();
+                guiMgr.AddElement( new Gaia.Rendering.GUITextElement(new Vector2(0, 0.9f), "Nodes rendered: " + nodesRendered + "/" + entityCount));
+            }
             /*
             if (view.GetRenderType() == RenderViewType.MAIN && visibleMeshes.GetRoot().bounds.Contains(view.GetPosition()) != ContainmentType.Disjoint)
             {
@@ -238,6 +244,7 @@ namespace Gaia.SceneGraph.GameEntities
                 }
                 else
                     node.element.Mesh.Render(node.element.Transform.GetTransform(), view, false);
+                nodesRendered++;
             }
             RecursivelyRender(node.leftChild, view);
             RecursivelyRender(node.rightChild, view);

@@ -142,14 +142,12 @@ namespace Gaia.SceneGraph.GameEntities
 
         public override bool GetTrianglesInRegion(Random rand, out List<TriangleGraph> availableTriangles, BoundingBox region, bool isLandmark)
         {
-
-            Vector3 invRegionMin = Vector3.Transform(region.Min, this.Transformation.GetObjectSpace());
-            Vector3 invRegionMax = Vector3.Transform(region.Max, this.Transformation.GetObjectSpace());
+            BoundingBox invBounds = MathUtils.TransformBounds(region, Transformation.GetObjectSpace());
             //region.Min = invRegionMin;
             //region.Max = invRegionMax;
 
-            if (float.IsNaN(invRegionMax.X) || float.IsNaN(invRegionMax.Y) || float.IsNaN(invRegionMax.Z)
-                || float.IsNaN(invRegionMin.X) || float.IsNaN(invRegionMin.Y) || float.IsNaN(invRegionMin.Z))
+            if (float.IsNaN(invBounds.Max.X) || float.IsNaN(invBounds.Max.Y) || float.IsNaN(invBounds.Max.Z)
+                || float.IsNaN(invBounds.Min.X) || float.IsNaN(invBounds.Min.Y) || float.IsNaN(invBounds.Min.Z))
             {
                 Console.WriteLine("This is very bad");
             }
@@ -158,13 +156,13 @@ namespace Gaia.SceneGraph.GameEntities
             int voxelCountY = (DensityFieldHeight - 1) / VoxelGridSize;
             int voxelCountZ = (DensityFieldDepth - 1) / VoxelGridSize;
 
-            int voxelMinX = (int)MathHelper.Clamp((invRegionMin.X + 1.0f) * 0.5f * voxelCountX, 0, voxelCountX - 1);
-            int voxelMinY = (int)MathHelper.Clamp((invRegionMin.Y + 1.0f) * 0.5f * voxelCountY, 0, voxelCountY - 1);
-            int voxelMinZ = (int)MathHelper.Clamp((invRegionMin.Z + 1.0f) * 0.5f * voxelCountZ, 0, voxelCountZ - 1);
+            int voxelMinX = (int)MathHelper.Clamp((invBounds.Min.X + 1.0f) * 0.5f * voxelCountX, 0, voxelCountX - 1);
+            int voxelMinY = (int)MathHelper.Clamp((invBounds.Min.Y + 1.0f) * 0.5f * voxelCountY, 0, voxelCountY - 1);
+            int voxelMinZ = (int)MathHelper.Clamp((invBounds.Min.Z + 1.0f) * 0.5f * voxelCountZ, 0, voxelCountZ - 1);
 
-            int voxelMaxX = (int)MathHelper.Clamp((invRegionMax.X + 1.0f) * 0.5f * voxelCountX, 0, voxelCountX - 1);
-            int voxelMaxY = (int)MathHelper.Clamp((invRegionMax.Y + 1.0f) * 0.5f * voxelCountY, 0, voxelCountY - 1);
-            int voxelMaxZ = (int)MathHelper.Clamp((invRegionMax.Z + 1.0f) * 0.5f * voxelCountZ, 0, voxelCountZ - 1);
+            int voxelMaxX = (int)MathHelper.Clamp((invBounds.Max.X + 1.0f) * 0.5f * voxelCountX, 0, voxelCountX - 1);
+            int voxelMaxY = (int)MathHelper.Clamp((invBounds.Max.Y + 1.0f) * 0.5f * voxelCountY, 0, voxelCountY - 1);
+            int voxelMaxZ = (int)MathHelper.Clamp((invBounds.Max.Z + 1.0f) * 0.5f * voxelCountZ, 0, voxelCountZ - 1);
 
             availableTriangles = new List<TriangleGraph>();
 
