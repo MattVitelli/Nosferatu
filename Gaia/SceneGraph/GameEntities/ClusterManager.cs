@@ -69,7 +69,7 @@ namespace Gaia.SceneGraph.GameEntities
                             ForestManager cluster = new ForestManager(meshNames, clustersPerBlock, searchRegion);
                             cluster.alignToSurface = alignToSurface;
                             cluster.OnAdd(this.scene);
-                            cluster.SetImposterDistance(50);
+                            cluster.SetImposterDistance(80);
                             cluster.SetImposterState(true);
                             clusterCollection.Add(idx, cluster);
                         }

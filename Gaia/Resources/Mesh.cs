@@ -105,7 +105,7 @@ namespace Gaia.Resources
 
         string hitboxData = string.Empty;
 
-        const float IMPOSTER_DISTANCE = 50;
+        const float IMPOSTER_DISTANCE = 70;
 
         public const float IMPOSTER_DISTANCE_SQUARED = IMPOSTER_DISTANCE * IMPOSTER_DISTANCE;
 
@@ -1191,7 +1191,7 @@ namespace Gaia.Resources
 
             renderViewImposter.SetNearPlane(1.0f);
             renderViewImposter.SetFarPlane(rad * rad);
-            renderViewImposter.SetProjection(Matrix.CreateOrthographicOffCenter(-rad * 0.5f, rad * 0.5f, meshBounds.Min.Y, meshBounds.Max.Y, 1.0f, rad * rad));
+            renderViewImposter.SetProjection(Matrix.CreateOrthographicOffCenter(-rad * 0.5f, rad * 0.5f, -rad*0.5f, rad*0.5f, 1.0f, rad * rad));
 
             Viewport oldViewport = GFX.Device.Viewport;
             DepthStencilBuffer oldDSBuffer = GFX.Device.DepthStencilBuffer;
@@ -1207,7 +1207,7 @@ namespace Gaia.Resources
             for (int i = 0; i < numViews; i++)
             {
                 float theta = deltaTheta * i;
-                Vector3 offset = new Vector3((float)Math.Cos(theta), 0, (float)Math.Sin(theta)) * rad;
+                Vector3 offset = new Vector3((float)Math.Sin(theta), 0, (float)Math.Cos(theta)) * rad;
                 Vector3 camPos = centerPos + offset;
 
                 renderViewImposter.SetPosition(camPos);
