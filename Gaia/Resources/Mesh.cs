@@ -27,7 +27,16 @@ namespace Gaia.Resources
         public List<Matrix> transforms = new List<Matrix>();
         public Imposter(Mesh mesh)
         {
-            Element = GFXPrimitives.CreateBillboardElement();
+            Element = new RenderElement();
+            Element.IndexBuffer = GFXPrimitives.ImposterGeometry.GetInstanceIndexBuffer();
+            Element.IsAnimated = false;
+            Element.PrimitiveCount = 8;
+            Element.StartVertex = 0;
+            Element.VertexBuffer = GFXPrimitives.ImposterGeometry.GetInstanceVertexBuffer();
+            Element.VertexCount = 16;
+            Element.VertexDec = GFXVertexDeclarations.PTIDec;
+            Element.VertexStride = VertexPTI.SizeInBytes;
+            //GFXPrimitives.CreateBillboardElement();
             ImposterMaterial = new Material();
             Vector3 scale = (mesh.GetBounds().Max - mesh.GetBounds().Min);
             Scale = Matrix.CreateScale(scale);
@@ -96,7 +105,7 @@ namespace Gaia.Resources
 
         string hitboxData = string.Empty;
 
-        const float IMPOSTER_DISTANCE = 120;
+        const float IMPOSTER_DISTANCE = 50;
 
         public const float IMPOSTER_DISTANCE_SQUARED = IMPOSTER_DISTANCE * IMPOSTER_DISTANCE;
 
@@ -1182,7 +1191,7 @@ namespace Gaia.Resources
 
             renderViewImposter.SetNearPlane(1.0f);
             renderViewImposter.SetFarPlane(rad * rad);
-            renderViewImposter.SetProjection(Matrix.CreateOrthographicOffCenter(-rad * 0.5f, rad * 0.5f, -rad * 0.5f, rad * 0.5f, 1.0f, rad * rad));
+            renderViewImposter.SetProjection(Matrix.CreateOrthographicOffCenter(-rad * 0.5f, rad * 0.5f, meshBounds.Min.Y, meshBounds.Max.Y, 1.0f, rad * rad));
 
             Viewport oldViewport = GFX.Device.Viewport;
             DepthStencilBuffer oldDSBuffer = GFX.Device.DepthStencilBuffer;

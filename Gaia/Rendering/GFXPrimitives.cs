@@ -315,6 +315,178 @@ namespace Gaia.Rendering
         }
     }
 
+    public class ImposterMesh
+    {
+        VertexBuffer vertexBuffer;
+        IndexBuffer indexBuffer;
+
+        VertexBuffer vertexBufferInstanced;
+        IndexBuffer indexBufferInstanced;
+
+        IndexBuffer indexBufferInstancedDoubleSided;
+
+        public ImposterMesh()
+        {
+
+            VertexPositionTexture[] verts;
+            /*
+            int NUM_SIDES = 4;
+            verts = new VertexPositionTexture[4 * NUM_SIDES];
+            float tcOffset = 1.0f / (float)NUM_SIDES;
+            for (int i = 0; i < NUM_SIDES; i++)
+            {
+                int index = i * 4;
+                
+                verts[index] = new VertexPositionTexture(
+                            new Vector3(1, -1, 0),
+                            new Vector2((float)i * tcOffset, 1));
+                verts[index + 1] = 
+            }
+            */
+            verts = new VertexPositionTexture[]
+                    {
+                        new VertexPositionTexture(
+                            new Vector3(1,-1,0),
+                            new Vector2(0.25f,1)),
+                        new VertexPositionTexture(
+                            new Vector3(-1,-1,0),
+                            new Vector2(0,1)),
+                        new VertexPositionTexture(
+                            new Vector3(-1,1,0),
+                            new Vector2(0,0)),
+                        new VertexPositionTexture(
+                            new Vector3(1,1,0),
+                            new Vector2(0.25f,0)),
+
+                        new VertexPositionTexture(
+                            new Vector3(0,-1,1),
+                            new Vector2(0.5f,1)),
+                        new VertexPositionTexture(
+                            new Vector3(0,-1,-1),
+                            new Vector2(0.25f,1)),
+                        new VertexPositionTexture(
+                            new Vector3(0,1,-1),
+                            new Vector2(0.25f,0)),
+                        new VertexPositionTexture(
+                            new Vector3(0,1,1),
+                            new Vector2(0.5f,0)),
+
+                        new VertexPositionTexture(
+                            new Vector3(1,-1,0),
+                            new Vector2(0.75f,1)),
+                        new VertexPositionTexture(
+                            new Vector3(-1,-1,0),
+                            new Vector2(0.5f,1)),
+                        new VertexPositionTexture(
+                            new Vector3(-1,1,0),
+                            new Vector2(0.5f,0)),
+                        new VertexPositionTexture(
+                            new Vector3(1,1,0),
+                            new Vector2(0.75f,0)),
+
+                        new VertexPositionTexture(
+                            new Vector3(0,-1,1),
+                            new Vector2(1.0f,1)),
+                        new VertexPositionTexture(
+                            new Vector3(0,-1,-1),
+                            new Vector2(0.75f,1)),
+                        new VertexPositionTexture(
+                            new Vector3(0,1,-1),
+                            new Vector2(0.75f,0)),
+                        new VertexPositionTexture(
+                            new Vector3(0,1,1),
+                            new Vector2(1.0f,0)),
+                    };
+            vertexBuffer = new VertexBuffer(GFX.Device, verts.Length * VertexPositionTexture.SizeInBytes, BufferUsage.WriteOnly);
+            vertexBuffer.SetData<VertexPositionTexture>(verts);
+
+            short[] ib = new short[] { 0, 1, 2, 2, 3, 0, 4, 5, 6, 6, 7, 4, 10, 9, 8, 8, 11, 10, 14, 13, 12, 12, 15, 14};
+
+            indexBuffer = new IndexBuffer(GFX.Device, sizeof(short) * ib.Length, BufferUsage.WriteOnly, IndexElementSize.SixteenBits);
+            indexBuffer.SetData<short>(ib);
+            /*
+            renderElement = new RenderElement();
+            renderElement.IndexBuffer = indexBuffer;
+            renderElement.VertexBuffer = vertexBuffer;
+            renderElement.StartVertex = 0;
+            renderElement.PrimitiveCount = 2;
+            renderElement.IsAnimated = false;
+            renderElement.VertexCount = 4;
+            renderElement.VertexDec = GFXVertexDeclarations.PTDec;
+            renderElement.VertexStride = VertexPositionTexture.SizeInBytes;
+            */
+            CreateInstancedBuffers(verts, ib);
+        }
+
+        ~ImposterMesh()
+        {
+            vertexBuffer.Dispose();
+            indexBuffer.Dispose();
+        }
+
+        public VertexBuffer GetInstanceVertexBuffer()
+        {
+            return vertexBufferInstanced;
+        }
+
+        public IndexBuffer GetInstanceIndexBuffer()
+        {
+            return indexBufferInstanced;
+        }
+
+        public IndexBuffer GetInstanceIndexBufferDoubleSided()
+        {
+            return indexBufferInstancedDoubleSided;
+        }
+
+        void CreateInstancedBuffers(VertexPositionTexture[] verts, short[] ib)
+        {
+            VertexPTI[] instVerts = new VertexPTI[verts.Length * GFXShaderConstants.NUM_INSTANCES];
+            for (int i = 0; i < GFXShaderConstants.NUM_INSTANCES; i++)
+            {
+                for (int j = 0; j < verts.Length; j++)
+                {
+                    instVerts[i * verts.Length + j] = new VertexPTI(verts[j].Position, verts[j].TextureCoordinate, i);
+                }
+            }
+
+            ushort[] instIB = new ushort[ib.Length * GFXShaderConstants.NUM_INSTANCES];
+            for (int i = 0; i < GFXShaderConstants.NUM_INSTANCES; i++)
+            {
+                for (int j = 0; j < ib.Length; j++)
+                {
+                    instIB[i * ib.Length + j] = (ushort)(ib[j] + i * verts.Length);
+                }
+            }
+
+            //Our double-sided index buffer
+            ushort[] instIBDouble = new ushort[ib.Length * 2 * GFXShaderConstants.NUM_INSTANCES];
+            Array.Copy(instIB, instIBDouble, instIB.Length);
+            for (int i = 0; i < instIB.Length; i++)
+            {
+                instIBDouble[i + instIB.Length] = instIBDouble[instIB.Length - 1 - i];
+            }
+
+            vertexBufferInstanced = new VertexBuffer(GFX.Device, instVerts.Length * VertexPTI.SizeInBytes, BufferUsage.None);
+            vertexBufferInstanced.SetData<VertexPTI>(instVerts);
+
+            indexBufferInstanced = new IndexBuffer(GFX.Device, sizeof(ushort) * instIB.Length, BufferUsage.None, IndexElementSize.SixteenBits);
+            indexBufferInstanced.SetData<ushort>(instIB);
+
+            indexBufferInstancedDoubleSided = new IndexBuffer(GFX.Device, sizeof(ushort) * instIBDouble.Length, BufferUsage.None, IndexElementSize.SixteenBits);
+            indexBufferInstancedDoubleSided.SetData<ushort>(instIBDouble);
+        }
+
+
+        public void Render()
+        {
+            GFX.Device.VertexDeclaration = GFXVertexDeclarations.PTDec;
+            GFX.Device.Indices = indexBuffer;
+            GFX.Device.Vertices[0].SetSource(vertexBuffer, 0, VertexPositionTexture.SizeInBytes);
+            GFX.Device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, 8, 0, 4);
+        }
+    }
+
     public class RenderCube
     {
         VertexBuffer vertexBuffer;
@@ -537,6 +709,7 @@ namespace Gaia.Rendering
         public static Cylinder CylinderGeometry;
         public static Sphere SphereGeometry;
         public static Gem GemGeometry;
+        public static ImposterMesh ImposterGeometry;
 
         public static RenderElement CreateBillboardElement()
         {
@@ -562,6 +735,7 @@ namespace Gaia.Rendering
             Particle = new ParticleGeometry();
             CylinderGeometry = new Cylinder(12);
             SphereGeometry = new Sphere();
+            ImposterGeometry = new ImposterMesh();
             GemGeometry = new Gem();
         }
     }
