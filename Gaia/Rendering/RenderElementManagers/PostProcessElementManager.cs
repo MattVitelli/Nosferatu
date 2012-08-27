@@ -87,8 +87,8 @@ namespace Gaia.Rendering
             bumpCoords = new Vector4[] 
             {
                 new Vector4(0.264000f,0.178000f, 0.2f, 0.1f),
-                new Vector4(-0.506840f, -0.52640f, -1.0f, 0.23f),
-                new Vector4(0.0087920f, 0.00232f, 0.2f, 0.15f),
+                new Vector4(-2.06840f, -1.52640f, -1.0f, 0.23f),
+                new Vector4(1.87920f, 1.9232f, 0.2f, 0.15f),
                 new Vector4(0.096000f, 0.04f, -0.3f, 0.1f),
             };
             waveDirs = new Vector4[]

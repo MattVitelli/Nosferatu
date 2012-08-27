@@ -187,12 +187,13 @@ namespace Gaia.SceneGraph.GameEntities
             nodesRendered = 0;
             if (isEnabled && view.GetRenderType() != RenderViewType.REFLECTIONS)
                 RecursivelyRender(visibleMeshes.GetRoot(), view);
+            /*
             if (view.GetRenderType() == RenderViewType.MAIN && visibleMeshes.GetRoot().bounds.Contains(view.GetPosition()) != ContainmentType.Disjoint && entityCount != 3000)
             {
                 Gaia.Rendering.GUIElementManager guiMgr = Gaia.Rendering.GFX.Inst.GetGUI();
                 guiMgr.AddElement( new Gaia.Rendering.GUITextElement(new Vector2(0, 0.9f), "Nodes rendered: " + nodesRendered + "/" + entityCount));
             }
-            /*
+            
             if (view.GetRenderType() == RenderViewType.MAIN && visibleMeshes.GetRoot().bounds.Contains(view.GetPosition()) != ContainmentType.Disjoint)
             {
                 RecursivelyRenderDebug(visibleMeshes.GetRoot(), view, 0, false);
@@ -239,17 +240,17 @@ namespace Gaia.SceneGraph.GameEntities
                     node.element.RenderImposters = (distToCamera >= imposterDistanceSquared);
                 }
 
-                //if (view.GetFrustum().Contains(node.element.Bounds) != ContainmentType.Disjoint)
-                if(useImposters)
-                {
-                    if (node.element.RenderImposters)
-                        node.element.Mesh.RenderImposters(node.element.Transform.GetTransform(), view, false);
+                    if (useImposters)
+                    {
+                        if (node.element.RenderImposters)
+                            node.element.Mesh.RenderImposters(node.element.Transform.GetTransform(), view, false);
+                        else
+                            node.element.Mesh.Render(node.element.Transform.GetTransform(), view, false);
+                    }
                     else
                         node.element.Mesh.Render(node.element.Transform.GetTransform(), view, false);
-                }
-                else
-                    node.element.Mesh.Render(node.element.Transform.GetTransform(), view, false);
-                nodesRendered++;
+                
+                    nodesRendered++;
             }
             RecursivelyRender(node.leftChild, view);
             RecursivelyRender(node.rightChild, view);

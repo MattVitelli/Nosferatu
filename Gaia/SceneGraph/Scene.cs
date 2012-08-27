@@ -488,15 +488,21 @@ namespace Gaia.SceneGraph
             Entities.Add("AmbientLight", new Light(LightType.Ambient, new Vector3(0.15f, 0.35f, 0.55f), Vector3.Zero, false));
 
             CreateLandmarks();
-
-            AddEntity("Grass", new ClusterManager(new string[]{"Bush", "Fern", "Phila01", "ElephantEar", "BirdsNest", "PalmPlant", "TropicalPlant"}, 48, true));
+            
+            AddEntity("Grass", new ClusterManager(new string[]{"Bush", "Fern", "Phila01", "ElephantEar", "BirdsNest", "PalmPlant", "TropicalPlant"}, 96, true));//120, true));
+            
+            /*
+            ForestManager grassMgr = new ForestManager(new string[] { "Bush", "Fern", "Phila01", "ElephantEar", "BirdsNest", "PalmPlant", "TropicalPlant" }, 8192);
+            grassMgr.alignToSurface = true;
+            AddEntity("Grass", grassMgr);
+            */
             AddEntity("Forest", new ForestManager(new string[] { "Cecropia", "Palm02", "QueensPalm01", "Tree01", "Tree02", "Palm01", "BeachPalm"}, 3000));
             
             Raptor raptor = new Raptor(ResourceManager.Inst.GetDinosaurDatablock("AlphaRaptor"));
             raptor.SetSpawnPosition(FindEntity("Tent").Transformation.GetPosition());
             AddEntity("Raptor", raptor);
             
-            CreateTeams();          
+            CreateTeams();
             
             //Entities.Add("Light2", new Light(LightType.Directional, new Vector3(0.2797f, 0.344f, 0.43f), Vector3.Up, false));
 
