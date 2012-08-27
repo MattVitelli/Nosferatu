@@ -97,16 +97,6 @@ namespace Gaia.Voxels
         public Vector3 GeneratePointInTriangle(Random randGen)
         {
             //return Centroid;
-            /*
-            
-            float randAlpha = (float)randGen.NextDouble();
-            float randBeta = (float)randGen.NextDouble();
-            if (randBeta + randAlpha >= 1.0f)
-            {
-                randAlpha = 1.0f - randAlpha;
-                randBeta = 1.0f - randBeta;
-            }
-            */
 
             Vector3 diff1 = p1 - p0;
             Vector3 diff2 = p2 - p0;
@@ -114,7 +104,7 @@ namespace Gaia.Voxels
             Vector3 weights = new Vector3((float)randGen.NextDouble(), (float)randGen.NextDouble(), (float)randGen.NextDouble());
             weights /= Vector3.Dot(weights, Vector3.One);
 
-            return p0 + weights.X * diff1 + weights.Y * diff2;// +diff1 * randAlpha + diff2 * randBeta;
+            return p0 + weights.X * diff1 + weights.Y * diff2;
         }
 
         public Vector3 GeneratePointInTriangle(Random randGen, Matrix transform)
