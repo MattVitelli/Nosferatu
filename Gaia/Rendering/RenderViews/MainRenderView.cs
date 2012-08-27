@@ -160,7 +160,7 @@ namespace Gaia.Rendering.RenderViews
             Plane waterPlane = new Plane(Vector3.Up, 0);
             Matrix reflectMat = Matrix.CreateReflection(waterPlane);
             planarReflection.SetNearPlane(this.GetNearPlane());
-            planarReflection.SetFarPlane(this.GetFarPlane()*1.5f);
+            planarReflection.SetFarPlane(this.GetFarPlane());
             planarReflection.SetPosition(Vector3.Transform(this.GetPosition(), reflectMat));
             planarReflection.SetView(reflectMat*this.GetView());
             planarReflection.SetProjection(this.GetProjection());

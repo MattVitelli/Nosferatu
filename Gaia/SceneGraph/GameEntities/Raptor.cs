@@ -61,6 +61,8 @@ namespace Gaia.SceneGraph.GameEntities
         RaptorState prevState;
         Vector3 oldStrafeVec = Vector3.Zero;
 
+        Vector3 movementVector = Vector3.Forward;
+
         public Raptor(DinosaurDatablock datablock)
         {
             this.datablock = datablock;
@@ -114,9 +116,10 @@ namespace Gaia.SceneGraph.GameEntities
                         new Sound3D(datablock.AttackSoundEffect, this.Transformation.GetPosition());
                     }
                 }
-                //grounding.SetForwardVector(Vector3.Normalize(velocityVector));
-                if (velocityVector.Length() > 0.01f)
-                    grounding.SetForwardVector(Vector3.Normalize(velocityVector));
+                grounding.SetForwardVector(Vector3.Normalize(movementVector));
+
+                //if (velocityVector.Length() > 0.01f)
+                //    grounding.SetForwardVector(Vector3.Normalize(velocityVector));
 
                 
             }
@@ -180,6 +183,7 @@ namespace Gaia.SceneGraph.GameEntities
 
         void Move(Vector3 moveDir)
         {
+            /*
             Vector3 forwardVec = this.Transformation.GetTransform().Forward;
             Vector3 strafeVec = this.Transformation.GetTransform().Right;
 
@@ -188,10 +192,12 @@ namespace Gaia.SceneGraph.GameEntities
             if (Math.Abs(radianAngle) >= 0.075f)
             {
                 radianAngle = MathHelper.Clamp(radianAngle, -1, 1) * ((Vector3.Dot(strafeVec, moveDir) < 0) ? 1.0f : -1.0f);
-                rot.Y += radianAngle * 0.0015f;
+                rot.Y -= radianAngle * 0.015f;
             }
-            //Transformation.SetRotation(rot);
-            velocityVector = moveDir * speed;
+            Transformation.SetRotation(rot);
+            */
+            movementVector = Vector3.Lerp(moveDir, movementVector, 0.95f);
+            velocityVector = moveDir * speed;//, velocityVector, 0.95f);
         }
 
         void AcquireEnemy()

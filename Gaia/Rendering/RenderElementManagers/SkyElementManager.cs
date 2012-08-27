@@ -83,7 +83,7 @@ namespace Gaia.Rendering
             GFX.Device.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
 
             cloudShader.SetupShader();
-            Matrix[] matrices = new Matrix[2] { cloudMatrix, new Matrix(0.5f, 0.25f, 0.0024f, 0.0014f, 0.5f, 0.25f, 1.24f, 3.24f, 0.5f, 0.25f, 1.24f, 3.24f, 0.5f, 0.25f, 1.24f, 3.24f)};
+            Matrix[] matrices = new Matrix[2] { cloudMatrix, new Matrix(0.5f, 0.25f, 0.0024f, 0.0014f, 0.25f, 0.5f, 1.24f, 3.24f, 1.0f, 1.25f, 1.24f, 3.24f, 1.5f, 0.75f, 1.24f, 3.24f)};
             GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_WORLD, matrices);
 
 

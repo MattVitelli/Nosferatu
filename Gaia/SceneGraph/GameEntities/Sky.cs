@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Gaia.Rendering;
 using Gaia.Rendering.RenderViews;
 using Gaia.Rendering.Simulators;
+using Gaia.Resources;
 
 namespace Gaia.SceneGraph.GameEntities
 {
@@ -26,7 +27,8 @@ namespace Gaia.SceneGraph.GameEntities
             renderElement.mieGain = 16.199024f;
             SetColor(new Vector3(0.8353f, 0.6119f, 0.4780f));
             NoiseParameters cloudParams = new NoiseParameters(16, 0.49f, 0.018499f, 0.70999f);
-            renderElement.cloudTexture = GFX.Inst.PerlinNoiseGen.Generate2DNoise(cloudParams, 512, 512, 1);
+            renderElement.cloudTexture = (Texture2D)ResourceManager.Inst.GetTexture("Textures/Sky/cloud1.png").GetTexture();// GFX.Inst.PerlinNoiseGen.Generate2DNoise(cloudParams, 512, 512, 1);
+            GFX.Inst.PerlinNoiseGen.Generate2DNoise(cloudParams, 512, 512, 1).Save("NoiseTexture.dds", ImageFileFormat.Dds);
             //MieHeight = 15;
             //RayleighHeight = 55;
             //SetColor(new Vector3(0.65f, 0.57f, 0.475f));

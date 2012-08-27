@@ -9,8 +9,8 @@ namespace Gaia.SceneGraph.GameEntities
     public class ClusterManager : Entity
     {
         public static float CloudBlockScale = 32; //ClustersPerBlock * CloudRadius * 2;
-        public const int CloudBlocksH = 2; //Horizontal cloud blocks
-        public const int CloudBlocksV = 2; //Vertical cloud blocks
+        public const int CloudBlocksH = 3; //Horizontal cloud blocks
+        public const int CloudBlocksV = 3; //Vertical cloud blocks
 
         const long width = long.MaxValue >> 48;
         const long height = long.MaxValue >> 48;

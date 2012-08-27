@@ -232,7 +232,8 @@ namespace Gaia.Rendering
             float skyStart = farplane*0.6f;
             GFX.Device.SetPixelShaderConstant(0, new Vector4(fogStart, fogEnd, fogEnd, skyStart)); //Fog parameters 
             //Vector4 fogColor = (float)-Math.Log(2)*Vector4.One / new Vector4(0.0549f, 0.4534f, 0.8512f, 1.0f);
-            Vector4 fogColor = new Vector4(0.0960f, 0.3888f, 0.6280f, 1.0f);
+            float lerpAmount = (float)Math.Pow(MathHelper.Clamp(-mainRenderView.scene.GetMainLightDirection().Y+0.075f, 0.0f, 1.0f),0.15f);
+            Vector4 fogColor = Vector4.Lerp(new Vector4(0.0960f, 0.3888f, 0.6280f, 1.0f), new Vector4(Vector3.One*0.25f,1), lerpAmount);
             GFX.Device.SetPixelShaderConstant(1, fogColor);
             GFXPrimitives.Quad.Render();
             GFX.Inst.SetTextureFilter(1, TextureFilter.Point);
@@ -532,11 +533,15 @@ namespace Gaia.Rendering
 
             RenderMotionBlur();
 
+            RenderColorCorrection();
+
+            
+
             //RenderNormals();
 
             //RenderCompositeFirstPerson();
 
-            //RenderColorCorrection();
+            
 
             GFX.Inst.ResetState();
         }
