@@ -107,9 +107,11 @@ namespace Gaia.SceneGraph.GameEntities
                     moveDir -= transform.Right * strafeSpeed * Math.Min(1.0f, 0.2f + InputManager.Inst.GetPressTime(GameKey.MoveLeft) / 1.25f);
 
                 this.Transformation.SetPosition(this.Transformation.GetPosition() + moveDir * Time.GameTime.ElapsedTime * 5);
-            }
+            
             if ((cameraBitFlag & (int)CameraFlags.USETARGET) == 0)
                 target = transform.Forward + this.Transformation.GetPosition();
+            }
+            target = transform.Forward + this.Transformation.GetPosition();
             
         }
 

@@ -27,6 +27,10 @@ namespace Gaia.SceneGraph.GameEntities
 
         protected float healthRechargeRate = 3;
 
+        protected float healthTimeCountDown = 3;
+
+        protected float healthCountDownRemaining = 0;
+
         protected float sprintEnergyCost = 20;
 
         protected float sprintSpeedBoost = 5.5f;
@@ -71,6 +75,11 @@ namespace Gaia.SceneGraph.GameEntities
             return health / MAX_HEALTH;
         }
 
+        public float GetEnergyPercent()
+        {
+            return energy / MAX_ENERGY;
+        }
+
         public void ResetHealth()
         {
             health = MAX_HEALTH;
@@ -88,6 +97,7 @@ namespace Gaia.SceneGraph.GameEntities
             if (IsDead())
                 return;
             health -= damage;
+            healthCountDownRemaining = healthTimeCountDown;
             if (IsDead())
                 OnDeath();
         }
@@ -175,8 +185,13 @@ namespace Gaia.SceneGraph.GameEntities
         {
             if (!IsDead())
             {
-                health = MathHelper.Clamp(health + Time.GameTime.ElapsedTime * healthRechargeRate, 0, MAX_HEALTH);
-                energy = MathHelper.Clamp(energy + Time.GameTime.ElapsedTime * energyRechargeRate, 0, MAX_ENERGY);
+                if (healthCountDownRemaining > 0)
+                    healthCountDownRemaining -= Time.GameTime.ElapsedTime;
+                if (healthCountDownRemaining <= 0)
+                {
+                    health = MathHelper.Clamp(health + Time.GameTime.ElapsedTime * healthRechargeRate, 0, MAX_HEALTH);
+                    energy = MathHelper.Clamp(energy + Time.GameTime.ElapsedTime * energyRechargeRate, 0, MAX_ENERGY);
+                }
             }
             else
                 deathTime += Time.GameTime.ElapsedTime;

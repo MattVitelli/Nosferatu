@@ -25,6 +25,7 @@ namespace Gaia.SceneGraph.GameEntities
         const string deathSoundName = "HumanDeath";
         const float RespawnTime = 7;
         float timeTilRespawn = RespawnTime;
+        
         float gunCycleTimeRemaining = 0.0f;
 
         public override void OnAdd(Scene scene)
@@ -227,7 +228,9 @@ namespace Gaia.SceneGraph.GameEntities
         {
             if (isEnabled)
             {
-                camera.Transformation.SetPosition(this.Transformation.GetPosition() + Vector3.Up * this.standCapsule.Length);
+                Vector3 oldPos = camera.Transformation.GetPosition();
+                Vector3 newPos = this.Transformation.GetPosition() + Vector3.Up * this.standCapsule.Length;
+                camera.Transformation.SetPosition(Vector3.Lerp(newPos, oldPos, 0.85f));
             }
 
             UpdateControls();

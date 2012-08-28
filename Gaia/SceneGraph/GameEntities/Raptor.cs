@@ -345,6 +345,8 @@ namespace Gaia.SceneGraph.GameEntities
                         SetState(RaptorState.Chase);
                     break;
                 case RaptorState.BackOff:
+                    if (!datablock.CanBackoff)
+                        SetState(RaptorState.Chase);
                     if (animationDelay <= 0.0f)
                     {
                         if (prevState != RaptorState.BackOff)
@@ -366,7 +368,7 @@ namespace Gaia.SceneGraph.GameEntities
                             if (distToGoal*0.05f <= GOAL_POINT_THRESHOLD)
                                 EvaluateAttack(distanceToTarget);
 
-                            if (distToGoal <= GOAL_POINT_THRESHOLD || backOffTime > 3.0f)
+                            if (distToGoal <= GOAL_POINT_THRESHOLD || backOffTime > 2.5f)
                             {
                                 SetState(RaptorState.Chase);
                             }

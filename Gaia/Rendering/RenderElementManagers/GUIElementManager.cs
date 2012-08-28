@@ -16,12 +16,13 @@ namespace Gaia.Rendering
         public Vector4 ScaleOffset;
         public Texture Image;
         public Vector4 Color;
-
+        public bool UseAlphaOnly;
         public GUIElement(Vector2 min, Vector2 max, Texture image)
         {
             Color = Vector4.One;
             ScaleOffset = Vector4.Zero;
             Image = image;
+            UseAlphaOnly = false;
             SetDimensions(min, max);
         }
 
@@ -30,6 +31,7 @@ namespace Gaia.Rendering
             Color = new Vector4(color,1.0f);
             ScaleOffset = Vector4.Zero;
             Image = image;
+            UseAlphaOnly = false;
             SetDimensions(min, max);
         }
 
@@ -38,6 +40,16 @@ namespace Gaia.Rendering
             Color = color;
             ScaleOffset = Vector4.Zero;
             Image = image;
+            UseAlphaOnly = false;
+            SetDimensions(min, max);
+        }
+
+        public GUIElement(Vector2 min, Vector2 max, Texture image, Vector4 color, bool useAlphaOnly)
+        {
+            Color = color;
+            ScaleOffset = Vector4.Zero;
+            Image = image;
+            UseAlphaOnly = useAlphaOnly;
             SetDimensions(min, max);
         }
 
@@ -131,6 +143,7 @@ namespace Gaia.Rendering
     public class GUIElementManager
     {
         Shader basicImageShader;
+        Shader basicImageAlphaShader;
 
         CustomList<GUIElement> Elements = new CustomList<GUIElement>();
         CustomList<GUITextElement> TextElements = new CustomList<GUITextElement>();
@@ -149,6 +162,10 @@ namespace Gaia.Rendering
         {
             basicImageShader = new Shader();
             basicImageShader.CompileFromFiles("Shaders/PostProcess/GUIP.hlsl", "Shaders/PostProcess/GUIV.hlsl");
+
+            basicImageAlphaShader = new Shader();
+            basicImageAlphaShader.CompileFromFiles("Shaders/PostProcess/GUIPAlpha.hlsl", "Shaders/PostProcess/GUIV.hlsl");
+
             whiteTexture = new Texture2D(GFX.Device, 1, 1, 1, TextureUsage.None, SurfaceFormat.Color);
             Color[] color = new Color[] { Color.White };
             whiteTexture.SetData<Color>(color);
@@ -223,10 +240,23 @@ namespace Gaia.Rendering
 
             basicImageShader.SetupShader();
             GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_INVTEXRES, Vector2.Zero);
-
+            Shader activeShader = basicImageShader;
             for(int i = 0; i < Elements.Count; i++)
             {
                 GUIElement elem = Elements[i];
+                if (elem.UseAlphaOnly)
+                {
+                    if (activeShader != basicImageAlphaShader)
+                    {
+                        activeShader = basicImageAlphaShader;
+                        activeShader.SetupShader();
+                    }
+                }
+                else if (activeShader != basicImageShader)
+                {
+                    activeShader = basicImageShader;
+                    activeShader.SetupShader();
+                }
                 GFX.Device.Textures[0] = (elem.Image == null) ? whiteTexture : elem.Image;
                 GFX.Device.SetVertexShaderConstant(0, elem.ScaleOffset);
                 GFX.Device.SetPixelShaderConstant(0, elem.Color);

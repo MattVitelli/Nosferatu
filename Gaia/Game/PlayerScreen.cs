@@ -11,6 +11,7 @@ using Gaia.Sound;
 using Gaia.Rendering;
 
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 using JigLibX.Collision;
 using JigLibX.Geometry;
@@ -71,6 +72,9 @@ namespace Gaia.Game
 
         Sound2D bgSound;
 
+        Texture2D healthBarTexture;
+        Texture2D healthBarTexture2;
+
         public PlayerScreen() : base()
         {
             inst = this;
@@ -120,6 +124,9 @@ namespace Gaia.Game
             list.Items.AddRange(testStrings);
             list.SetColor(new Vector4(0.15f, 0.15f, 0.15f, 1.0f));
             //this.controls.Add(list);
+
+            healthBarTexture = (Texture2D)ResourceManager.Inst.GetTexture("UI/Game/healthBar.dds").GetTexture();
+            healthBarTexture2 = (Texture2D)ResourceManager.Inst.GetTexture("UI/Game/healthBar2.dds").GetTexture();
             
             this.controls.Add(crosshair);
             this.controls.Add(journalStatus);
@@ -341,9 +348,23 @@ namespace Gaia.Game
             base.OnUpdate(timeDT);
         }
 
+        void RenderHealth()
+        {
+            GUIElementManager guiMgr = GFX.Inst.GetGUI();
+            float posXHealth = MathHelper.Lerp(0.65f, 1.0f, MathHelper.Clamp(1-scene.MainPlayer.GetHealthPercent(),0,1));
+            float posXEnergy = MathHelper.Lerp(0.65f, 1.0f, MathHelper.Clamp(1 - scene.MainPlayer.GetEnergyPercent(), 0, 1));
+            guiMgr.AddElement(new GUIElement(new Vector2(posXHealth, 0.9f), new Vector2(1.0f, 1.0f), healthBarTexture2, new Vector4(1,0,0,1),true));
+            guiMgr.AddElement(new GUIElement(new Vector2(posXEnergy, 0.75f), new Vector2(1.0f, 0.85f), healthBarTexture2, new Vector4(0, 0.9f, 0.9f, 1), true));
+            guiMgr.AddElement(new GUIElement(new Vector2(0.65f, 0.9f), new Vector2(1.0f, 1.0f), healthBarTexture));
+            guiMgr.AddElement(new GUIElement(new Vector2(0.65f, 0.75f), new Vector2(1.0f, 0.85f), healthBarTexture));
+            
+        }
+
         public override void OnRender()
         {
             scene.Render();
+            if(isGameRunning)
+                RenderHealth();
             base.OnRender();
         }
     }

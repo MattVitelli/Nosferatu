@@ -16,6 +16,7 @@ namespace Gaia.Game
         int MAX_ENEMIES = 5;
         float timeTilWave = TIME_TIL_NEXT_WAVE;
         DinosaurDatablock raptorDatablock;
+        DinosaurDatablock[] dinoDatablocks;
         List<Raptor> activeDinosaurs = new List<Raptor>();
         List<Raptor> dinosaursToPrune = new List<Raptor>();
         int aliveDinosaurCount = 0;
@@ -28,7 +29,7 @@ namespace Gaia.Game
         public override void OnAdd(Scene scene)
         {
             base.OnAdd(scene);
-            raptorDatablock = ResourceManager.Inst.GetDinosaurDatablock("AlphaRaptor");
+            dinoDatablocks = ResourceManager.Inst.GetDinosaurDatablocks();
         }
 
         public void PruneAllDinosaurs()
@@ -58,7 +59,17 @@ namespace Gaia.Game
             {
                 for (int i = 0; i < spawnCount; i++)
                 {
-                    Raptor raptor = new Raptor(raptorDatablock);
+                    int randDinoIndex = RandomHelper.RandomGen.Next(dinoDatablocks.Length);
+                    if (dinoDatablocks[randDinoIndex].Name == "Allosaurus")
+                    {
+                        if (RandomHelper.RandomGen.NextDouble() < 0.75)
+                        {
+                            int oldIndex = randDinoIndex;
+                            while(randDinoIndex == oldIndex)
+                                randDinoIndex = RandomHelper.RandomGen.Next(dinoDatablocks.Length);
+                        }
+                    }
+                    Raptor raptor = new Raptor(dinoDatablocks[randDinoIndex]);
                     Vector3 spawnPos = availableTriangles[RandomHelper.RandomGen.Next(availableTriangles.Count)].Centroid + Vector3.Up * 3.0f;
                     raptor.SetSpawnPosition(spawnPos);
                     scene.AddEntity("Raptor", raptor);

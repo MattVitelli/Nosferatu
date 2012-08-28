@@ -90,8 +90,8 @@ namespace Gaia.Animation
         {
             if (frames[name].Count == 0)
             {
-                pos = Vector3.Zero;
-                rot = Vector3.Zero;
+                pos = prevFrames[name].Position;// Vector3.Zero;
+                rot = prevFrames[name].Rotation;// Vector3.Zero;
                 time = 0;
                 return;
             }

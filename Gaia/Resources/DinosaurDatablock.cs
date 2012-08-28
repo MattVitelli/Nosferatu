@@ -97,6 +97,8 @@ namespace Gaia.Resources
 
         public string BarkSoundEffect;
 
+        public bool CanBackoff = true;
+
         public string GetAnimation(DinosaurAnimations anim)
         {
             int index = (int)anim;
@@ -221,6 +223,9 @@ namespace Gaia.Resources
                         break;
                     case "maul":
                         MaulSoundEffect = attrib.Value;
+                        break;
+                    case "canbackoff":
+                        CanBackoff = bool.Parse(attrib.Value);
                         break;
                 }
             }

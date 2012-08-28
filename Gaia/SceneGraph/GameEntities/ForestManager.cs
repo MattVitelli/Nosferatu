@@ -27,7 +27,7 @@ namespace Gaia.SceneGraph.GameEntities
 
     public class ForestManager : Entity
     {
-        public KDTree<ForestElement> visibleMeshes = new KDTree<ForestElement>(SceneCompareFunction, SceneBoundsFunction, false, false);
+        public KDTree<ForestElement> visibleMeshes = new KDTree<ForestElement>(SceneCompareFunction, SceneBoundsFunction, true, false);
         Mesh[] meshes;
         const int defaultEntityCount = 1500;
 
