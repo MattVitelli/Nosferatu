@@ -320,7 +320,7 @@ namespace Gaia.Rendering.RenderViews
             mgr.DownsampleGlow(ColorMap, LightMap, DataMap, EmissiveMap);
             
             GFX.Device.Clear(Color.TransparentBlack);
-            GFX.Device.SetPixelShaderConstant(3, scene.GetMainLightDirection()); //Light Direction for sky
+            GFX.Device.SetPixelShaderConstant(3, scene.GetMainLightDirectionSky()); //Light Direction for sky
             ElementManagers[RenderPass.Sky].Render(); //This'll change the modelview
 
             ElementManagers[RenderPass.PostProcess].Render();

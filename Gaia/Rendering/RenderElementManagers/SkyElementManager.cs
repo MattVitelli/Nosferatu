@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Gaia.Resources;
 using Gaia.Rendering.RenderViews;
 using Gaia.Core;
+using Gaia.Game;
 
 namespace Gaia.Rendering
 {
@@ -42,6 +43,9 @@ namespace Gaia.Rendering
         CubeMapFace faceToRenderOn;
 
         Matrix cloudMatrix = Matrix.Identity;
+        TextureResource moonDiffuseTexture;
+        TextureResource moonNormalTexture;
+        Shader moonShader;
 
         public SkyElementManager(RenderView renderView)
             : base(renderView)
@@ -49,6 +53,9 @@ namespace Gaia.Rendering
             skyShaderPrepass = ResourceManager.Inst.GetShader("SkyShaderPrepass");
             skyShader = ResourceManager.Inst.GetShader("SkyShader");
             cloudShader = ResourceManager.Inst.GetShader("CloudShader");
+            moonShader = ResourceManager.Inst.GetShader("MoonShader");
+            moonDiffuseTexture = ResourceManager.Inst.GetTexture("Textures/Sky/moon_d.dds");
+            moonNormalTexture = ResourceManager.Inst.GetTexture("Textures/Sky/moon_n.dds");
 
             nightTexture = ResourceManager.Inst.GetTexture("Textures/Sky/StarrySky.dds");
 
@@ -101,6 +108,38 @@ namespace Gaia.Rendering
             GFX.Device.RenderState.AlphaBlendEnable = false;
         }
 
+        void RenderMoon()
+        {
+            GFX.Device.RenderState.AlphaBlendEnable = true;
+            GFX.Device.RenderState.SourceBlend = Blend.SourceAlpha;
+            GFX.Device.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+
+            Vector3 lightDir = GFX.Device.GetPixelShaderVector3Constant(3);
+            //if (lightDir.Y < 0.15f)
+            {
+                lightDir.Y *= -1;
+                Vector3 moonPos = Vector3.Normalize(lightDir);
+                Matrix moonMatrix = Matrix.CreateScale(Vector3.One * 0.15f) * Matrix.CreateBillboard(moonPos, Vector3.Zero, Vector3.Up, null);
+                moonMatrix.Translation = moonPos;
+
+                moonShader.SetupShader();
+               
+                GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_WORLD, moonMatrix);
+
+
+                GFX.Inst.SetTextureAddressMode(0, TextureAddressMode.Wrap);
+                GFX.Inst.SetTextureFilter(0, TextureFilter.Anisotropic);
+                GFX.Inst.SetTextureAddressMode(1, TextureAddressMode.Wrap);
+                GFX.Inst.SetTextureFilter(1, TextureFilter.Anisotropic);
+                GFX.Device.Textures[0] = moonDiffuseTexture.GetTexture();
+                GFX.Device.Textures[1] = moonNormalTexture.GetTexture();
+
+                GFXPrimitives.Quad.Render();
+            }
+
+            GFX.Device.RenderState.AlphaBlendEnable = false;
+        }
+
         public override void Render()
         {
             GFX.Device.RenderState.CullMode = CullMode.None;
@@ -146,6 +185,8 @@ namespace Gaia.Rendering
             GFXPrimitives.Cube.Render();
             
             RenderClouds();
+
+            RenderMoon();
 
             GFX.Inst.ResetState();
             Elements.Clear();

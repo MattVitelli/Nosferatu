@@ -28,6 +28,9 @@ namespace Gaia.Rendering
 
         TextureResource colorCorrectTexture;
 
+        Shader underwaterShader;
+        TextureResource underwaterRamp;
+
         TextureResource oceanTexture;
         Shader oceanShader;
         Shader oceanScreenSpaceShader;
@@ -79,6 +82,9 @@ namespace Gaia.Rendering
             gaussBlurVShader = ResourceManager.Inst.GetShader("GaussV");
             boxBlurHShader = ResourceManager.Inst.GetShader("BoxH");
             boxBlurVShader = ResourceManager.Inst.GetShader("BoxV");
+
+            underwaterRamp = ResourceManager.Inst.GetTexture("Textures/Water/underwater_color.dds");
+            underwaterShader = ResourceManager.Inst.GetShader("UnderwaterShader");
 
             oceanShader = ResourceManager.Inst.GetShader("Ocean");
             oceanScreenSpaceShader = ResourceManager.Inst.GetShader("OceanPP");
@@ -237,6 +243,17 @@ namespace Gaia.Rendering
             GFX.Device.SetPixelShaderConstant(1, fogColor);
             GFXPrimitives.Quad.Render();
             GFX.Inst.SetTextureFilter(1, TextureFilter.Point);
+        }
+
+        void RenderUnderwater()
+        {
+            GFX.Device.ResolveBackBuffer(mainRenderView.BackBufferTexture);
+
+            underwaterShader.SetupShader();
+            GFX.Device.Textures[0] = mainRenderView.BackBufferTexture;
+            GFX.Device.Textures[1] = mainRenderView.DepthMap.GetTexture();
+            GFX.Device.Textures[2] = underwaterRamp.GetTexture();
+            GFXPrimitives.Quad.Render();
         }
 
         void RenderMotionBlur()
@@ -530,6 +547,9 @@ namespace Gaia.Rendering
             //RenderGodRays();
 
             GFX.Device.RenderState.AlphaBlendEnable = false;
+
+            if (mainRenderView.GetPosition().Y < 0.0)
+                RenderUnderwater();
 
             RenderMotionBlur();
 

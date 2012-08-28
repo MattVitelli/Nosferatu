@@ -162,7 +162,7 @@ namespace Gaia.Rendering.RenderViews
             GFX.Device.ClipPlanes[0].IsEnabled = false;
 
             GFX.Device.Clear(Color.TransparentBlack);
-            GFX.Device.SetPixelShaderConstant(3, scene.MainLight.Transformation.GetPosition()); //Light Direction for sky
+            GFX.Device.SetPixelShaderConstant(3, scene.GetMainLightDirectionSky()); //Light Direction for sky
             SkyElementManager skyMgr = (SkyElementManager)ElementManagers[RenderPass.Sky];
             if (cubeMapRef == null)
             {
