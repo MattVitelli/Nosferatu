@@ -74,6 +74,11 @@ namespace Gaia.SceneGraph.GameEntities
         protected override void ResetState()
         {
             base.ResetState();
+            ResetAmmo();
+        }
+
+        public void ResetAmmo()
+        {
             for (int i = 0; i < weapons.Count; i++)
             {
                 weapons[i].ResetAmmo();

@@ -306,11 +306,21 @@ namespace Gaia.SceneGraph
             //Vector3 meshCenter = 0.5f * (gasStation.GetMesh().GetBounds().Max + gasStation.GetMesh().GetBounds().Min);
             for (int i = 0; i < nodes.Length; i++)
             {
-                InteractObject bed = new InteractObject(new BedNode(this), "Bed");
-                Vector3 bedPos = Vector3.Transform(nodes[i].Translation, worldMatrix);
-                bed.Transformation.SetPosition(bedPos);
-                bed.Transformation.SetRotation(tent.Transformation.GetRotation());
-                AddEntity("Bed", bed);
+                Vector3 nodePos = Vector3.Transform(nodes[i].Translation, worldMatrix);
+                if (nodes[i].Name == "Bed")
+                {
+                    InteractObject bed = new InteractObject(new BedNode(this), "Bed");
+                    bed.Transformation.SetPosition(nodePos);
+                    bed.Transformation.SetRotation(tent.Transformation.GetRotation());
+                    AddEntity("Bed", bed);
+                }
+                if(nodes[i].Name == "Ammo")
+                {
+                    InteractObject weaponBox = new InteractObject(new WeaponBoxNode(this), "AmmoBox");
+                    weaponBox.Transformation.SetPosition(nodePos);
+                    weaponBox.Transformation.SetRotation(tent.Transformation.GetRotation());
+                    AddEntity("WeaponBox", weaponBox);
+                }
             }
 
             SafeTrigger campTrigger = new SafeTrigger();
@@ -454,6 +464,23 @@ namespace Gaia.SceneGraph
             CreateStartZone();
 
             BoundingBox sandBounds = MainTerrain.Transformation.GetBounds();
+            sandBounds.Max.Y = 0;
+            (MainTerrain as TerrainVoxel).SetUnavailableRegion(sandBounds);
+
+            for (int i = 0; i < 50; i++)
+            {
+                Vector3 normalWeapon;
+                Vector3 posWeapon;
+                (MainTerrain as TerrainVoxel).GenerateRandomTransform(RandomHelper.RandomGen, out posWeapon, out normalWeapon);
+                InteractObject weaponBox = new InteractObject(new WeaponBoxNode(this), "AmmoBox");
+                NormalTransform transform = new NormalTransform();
+                weaponBox.Transformation = transform;
+                transform.ConformToNormal(normalWeapon);
+                transform.SetPosition(posWeapon);
+                AddEntity("WeaponBox", weaponBox);
+            }
+
+            sandBounds = MainTerrain.Transformation.GetBounds();
             sandBounds.Max.Y = 16;
             (MainTerrain as TerrainVoxel).SetUnavailableRegion(sandBounds);
         }

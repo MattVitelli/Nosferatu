@@ -42,6 +42,7 @@ namespace Gaia.SceneGraph.GameEntities
         const float FLANK_CHASE_DIST = 9.5f;
         const float MAX_IDLE_SOUNDTIME = 6.5f;
         float idleSoundTime = 0;
+        float backOffTime = 0;
 
         int wanderMovesCount;
         Vector3 wanderPosition;
@@ -348,6 +349,7 @@ namespace Gaia.SceneGraph.GameEntities
                     {
                         if (prevState != RaptorState.BackOff)
                         {
+                            backOffTime = 0;
                             //Choose goal point
                             Vector3 randDir = Vector3.Normalize(new Vector3((float)RandomHelper.RandomGen.NextDouble() * 2.0f - 1.0f, 0, (float)RandomHelper.RandomGen.NextDouble() * 2.0f - 1.0f)) * GOAL_DISTANCE;
                             wanderPosition = enemy.Transformation.GetPosition() + randDir;
@@ -356,6 +358,7 @@ namespace Gaia.SceneGraph.GameEntities
                         }
                         else
                         {
+                            backOffTime += Time.GameTime.ElapsedTime;
                             Move(Vector3.Normalize(wanderPosition - this.Transformation.GetPosition()));
                             Vector3 diff = wanderPosition - this.Transformation.GetPosition();
                             float distToGoal = diff.X * diff.X + diff.Z * diff.Z;
@@ -363,7 +366,7 @@ namespace Gaia.SceneGraph.GameEntities
                             if (distToGoal*0.05f <= GOAL_POINT_THRESHOLD)
                                 EvaluateAttack(distanceToTarget);
 
-                            if (distToGoal <= GOAL_POINT_THRESHOLD)
+                            if (distToGoal <= GOAL_POINT_THRESHOLD || backOffTime > 3.0f)
                             {
                                 SetState(RaptorState.Chase);
                             }

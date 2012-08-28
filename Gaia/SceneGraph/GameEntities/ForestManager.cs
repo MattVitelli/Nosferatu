@@ -162,14 +162,23 @@ namespace Gaia.SceneGraph.GameEntities
             if (node.element != null)
             {
                 node.bounds = node.element.Transform.TransformBounds(node.element.Mesh.GetBounds());
+                const float extra = 1.000001f;
+                node.bounds.Min = node.bounds.Min * extra;
+                node.bounds.Max = node.bounds.Max * extra;
                 node.element.Bounds = node.bounds;
+
             }
             else
             {
-                if(node.leftChild != null)
+                if (node.leftChild != null)
                     node.bounds = node.leftChild.bounds;
-                if (node.rightChild != null)
-                    node.bounds = node.rightChild.bounds;
+                else
+                {
+                    if (node.rightChild != null)
+                        node.bounds = node.rightChild.bounds;
+                    else
+                        node.bounds = new BoundingBox(Vector3.One * float.PositiveInfinity, Vector3.One * float.NegativeInfinity);
+                }
             }
             if (node.leftChild != null)
             {
@@ -183,6 +192,7 @@ namespace Gaia.SceneGraph.GameEntities
                 node.bounds.Max = Vector3.Max(node.rightChild.bounds.Max, node.bounds.Max);
             }
         }
+
         int nodesRendered;
         public override void OnRender(RenderView view)
         {

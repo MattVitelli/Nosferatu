@@ -126,6 +126,7 @@
     <Compile Include="Editors\ModelSelector.Designer.cs">
       <DependentUpon>ModelSelector.cs</DependentUpon>
     </Compile>
+    <Compile Include="Game\WeaponBoxNode.cs" />
     <Compile Include="Game\SafeTrigger.cs" />
     <Compile Include="Game\AIDirector.cs" />
     <Compile Include="Game\BedNode.cs" />
