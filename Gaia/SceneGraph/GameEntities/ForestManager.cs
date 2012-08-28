@@ -6,14 +6,22 @@ using Gaia.Resources;
 using Gaia.Core;
 using Gaia.Rendering.RenderViews;
 using Microsoft.Xna.Framework.Graphics;
+using Gaia.Rendering;
 
 namespace Gaia.SceneGraph.GameEntities
 {
+    public enum ImposterState
+    {
+        Disabled,
+        Enabled,
+        Both,
+        None,
+    };
     public class ForestElement
     {
         public Mesh Mesh;
         public Transform Transform;
-        public bool RenderImposters = true;
+        public ImposterState RenderImposters = ImposterState.Enabled;
         public BoundingBox Bounds;
     };
 
@@ -31,7 +39,6 @@ namespace Gaia.SceneGraph.GameEntities
         public bool randomizeScale = false;
         bool useRegion = false;
         bool useImposters = true;
-        float imposterDistanceSquared = Mesh.IMPOSTER_DISTANCE_SQUARED;
         public bool randomizeOrientation = true;
         public bool alignToSurface = false;
 
@@ -46,11 +53,6 @@ namespace Gaia.SceneGraph.GameEntities
         public void SetImposterState(bool enabled)
         {
             useImposters = enabled;
-        }
-
-        public void SetImposterDistance(float distance)
-        {
-            imposterDistanceSquared = distance * distance;
         }
 
         public ForestManager(string[] names, int clusterCount, BoundingBox region)
@@ -237,15 +239,24 @@ namespace Gaia.SceneGraph.GameEntities
                 if (view.GetRenderType() == RenderViewType.MAIN && useImposters)
                 {
                     float distToCamera = Vector3.DistanceSquared(node.element.Transform.GetPosition(), view.GetPosition());
-                    node.element.RenderImposters = (distToCamera >= imposterDistanceSquared);
+                    node.element.RenderImposters = (distToCamera >= GFXShaderConstants.IMPOSTERDISTANCESQUARED) ? ImposterState.Enabled : ImposterState.Disabled;
+                    if (node.element.RenderImposters == ImposterState.Enabled && distToCamera <= GFXShaderConstants.IMPOSTER_DISTANCE_FALLOFF)
+                    {
+                        node.element.RenderImposters = ImposterState.Both;
+                    }
+                    if (distToCamera > GFXShaderConstants.GRASS_FADE_SQUARED)
+                        node.element.RenderImposters = ImposterState.None;
                 }
 
                     if (useImposters)
                     {
-                        if (node.element.RenderImposters)
-                            node.element.Mesh.RenderImposters(node.element.Transform.GetTransform(), view, false);
-                        else
-                            node.element.Mesh.Render(node.element.Transform.GetTransform(), view, false);
+                        if (node.element.RenderImposters != ImposterState.None)
+                        {
+                            if (node.element.RenderImposters == ImposterState.Enabled || node.element.RenderImposters == ImposterState.Both)
+                                node.element.Mesh.RenderImposters(node.element.Transform.GetTransform(), view, false);
+                            if (node.element.RenderImposters == ImposterState.Disabled || node.element.RenderImposters == ImposterState.Both)
+                                node.element.Mesh.Render(node.element.Transform.GetTransform(), view, false);
+                        }
                     }
                     else
                         node.element.Mesh.Render(node.element.Transform.GetTransform(), view, false);

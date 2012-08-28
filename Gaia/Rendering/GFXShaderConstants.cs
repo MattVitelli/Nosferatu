@@ -27,6 +27,18 @@ namespace Gaia.Rendering
         public static int PC_LIGHTPARAMS = 12;
         public static int PC_LIGHTPARAMS2 = 13;
 
+
+        public static float GRASS_FADE = 120;
+
+        public static float GRASS_FADE_SQUARED = GRASS_FADE * GRASS_FADE*1.005f;
+
+        const float IMPOSTER_DISTANCE = 130;
+        public static float IMPOSTER_DISTANCE_FADE = IMPOSTER_DISTANCE*1.075f;
+
+        public static float IMPOSTER_DISTANCE_FALLOFF = IMPOSTER_DISTANCE * IMPOSTER_DISTANCE * 1.35f;
+
+        public static float IMPOSTERDISTANCESQUARED = IMPOSTER_DISTANCE * IMPOSTER_DISTANCE;
+
         public static float VOXEL_FALLOFF = 90;
 
         public static int GRASSFALLOFF = 200;
@@ -99,6 +111,10 @@ namespace Gaia.Rendering
                     wr.WriteLine("#ifndef _SHADER_CONST_");
                     wr.WriteLine("#define _SHADER_CONST_");
 
+                    WriteDefine(wr, "GRASS_FADE", GRASS_FADE);
+                    WriteDefine(wr, "IMPOSTER_DISTANCE_FALLOFF", IMPOSTER_DISTANCE_FALLOFF);
+                    WriteDefine(wr, "IMPOSTER_DISTANCE", IMPOSTER_DISTANCE);
+                    WriteDefine(wr, "IMPOSTER_DISTANCE_FADE", IMPOSTER_DISTANCE_FADE);
                     WriteDefine(wr, "VOXEL_FALLOFF", VOXEL_FALLOFF);
                     WriteDefine(wr, "MAX_PARTICLES", MAX_PARTICLES);
                     WriteDefine(wr, "MAX_PARTICLECOLORS", MAX_PARTICLECOLORS);
