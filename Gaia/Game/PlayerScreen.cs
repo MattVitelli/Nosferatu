@@ -155,7 +155,7 @@ namespace Gaia.Game
             compass.SetVisible(false);
             interactButton.SetVisible(false);
             interactStatus.SetVisible(false);
-            //crosshair.SetVisible(false);
+            crosshair.SetVisible(false);
         }
 
         public void AddMarker(Transform transform)

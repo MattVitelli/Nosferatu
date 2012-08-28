@@ -188,6 +188,7 @@ namespace Gaia.SceneGraph
             MainPlayer.SetEnabled(true);
             MainPlayer.SetControllable(true);
             MainPlayer.SetSpawnPosition(FindEntity("Tent").Transformation.GetPosition());
+            //MainPlayer.SetSpawnPosition(FindEntity("Tent").Transformation.GetPosition());
             Entities.Add("Player", MainPlayer);
             MainDirector = new AIDirector();
             Entities.Add("AIDirector", MainDirector);
