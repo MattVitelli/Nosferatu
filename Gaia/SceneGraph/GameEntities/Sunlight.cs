@@ -8,7 +8,7 @@ namespace Gaia.SceneGraph.GameEntities
     public class Sunlight : Light
     {
         float theta = 0;
-        float phi = MathHelper.Pi;///2.0f;
+        float phi = MathHelper.Pi/4.0f;
 
         const float PhiCycle = MathHelper.Pi / 600.0f;
         const float ThetaCycle = MathHelper.TwoPi / 600.0f;

@@ -76,7 +76,7 @@ namespace Gaia.SceneGraph.GameEntities
             if ((cameraBitFlag & (int)CameraFlags.USETARGET) == 0)
             {
                 Vector3 rotation = this.Transformation.GetRotation();
-                if (InputManager.Inst.IsRightMouseDown())
+                //if (InputManager.Inst.IsRightMouseDown())
                 {
                     Vector2 delta = InputManager.Inst.GetMouseDisplacement();
                     rotation.Y += delta.X;
