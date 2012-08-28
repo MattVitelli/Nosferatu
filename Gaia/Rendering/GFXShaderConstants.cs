@@ -28,7 +28,7 @@ namespace Gaia.Rendering
         public static int PC_LIGHTPARAMS2 = 13;
 
 
-        public static float GRASS_FADE = 120;
+        public static float GRASS_FADE = 96;
 
         public static float GRASS_FADE_SQUARED = GRASS_FADE * GRASS_FADE*1.25f;
 

@@ -43,6 +43,7 @@ namespace Gaia.Game
                 {
                     new Sound3D("PlaneEngine", scene.FindEntity("Plane").Transformation.GetPosition());
                     playerScreen.AddJournalEntry("It won't start. Search outside for a tool.");
+                    playerScreen.RemoveMarker(scene.FindEntity("Plane").Transformation);
                     trex = (AnimatedModel)scene.FindEntity("TRex");
                     trex.SetVisible(true);
                     trex.Model.GetAnimationLayer().SetActiveAnimation("TRexIdle", false);
@@ -54,6 +55,12 @@ namespace Gaia.Game
             else
             {
                 playerScreen.AddJournalEntry("It's out of fuel. If only there were a gas station here.");
+                if (!playerScreen.HasAlertedGasStation)
+                {
+                    playerScreen.RemoveMarker(scene.FindEntity("Plane").Transformation);
+                    playerScreen.AddMarker(scene.FindEntity("GasStation").Transformation);
+                    playerScreen.HasAlertedGasStation = true;
+                }
             }
         }
 

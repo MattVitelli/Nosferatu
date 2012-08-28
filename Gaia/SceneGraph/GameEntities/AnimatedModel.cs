@@ -12,6 +12,8 @@ namespace Gaia.SceneGraph.GameEntities
 
         bool isVisible = true;
 
+        bool performCulling = true;
+
         public AnimatedModel(string name)
         {
             Model = new ViewModel(name);
@@ -20,6 +22,11 @@ namespace Gaia.SceneGraph.GameEntities
         public void SetVisible(bool visible)
         {
             isVisible = visible;
+        }
+
+        public void SetCulling(bool performCulling)
+        {
+            this.performCulling = performCulling;
         }
 
         public override void OnAdd(Scene scene)
@@ -39,7 +46,7 @@ namespace Gaia.SceneGraph.GameEntities
         {
             base.OnRender(view);
             if(isVisible)
-                Model.OnRender(view, true);
+                Model.OnRender(view, performCulling);
         }
     }
 }

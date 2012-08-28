@@ -37,6 +37,8 @@ namespace Gaia.Game
                     hasStarted = true;
                     fillSound = new Sound3D("GasFill", parent.Transformation.GetPosition());
                     fillSound.Looped = true;
+                    if (playerScreen.HasAlertedGasStation)
+                        playerScreen.RemoveMarker(parent.GetScene().FindEntity("GasStation").Transformation);
                 }
                 else
                 {
@@ -55,6 +57,7 @@ namespace Gaia.Game
                 {
                     playerScreen.HasFuel = true;
                     playerScreen.AddJournalEntry("Proceed to the Hangar");
+                    playerScreen.AddMarker(parent.GetScene().FindEntity("Plane").Transformation);
                 }
                 playerScreen.HasFuel = true;
                 InteractObject door = (InteractObject)this.parent.GetScene().FindEntity("HangarDoor");

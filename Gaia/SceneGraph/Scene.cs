@@ -408,6 +408,7 @@ namespace Gaia.SceneGraph
                         break;
                     case "DinoSpawn":
                         AnimatedModel trex = new AnimatedModel("TRex");
+                        trex.SetCulling(false);
                         trex.Transformation.SetPosition(nodePos);
                         trex.Model.GetAnimationLayer().SetActiveAnimation("TRexIdle", true);//.SetAnimationLayer("AlphaRaptorIdle", 1.0f);
                         trex.Model.SetCustomMatrix(Matrix.CreateScale(0.1f) * Matrix.CreateRotationX(-MathHelper.PiOver2) * Matrix.CreateRotationY(-MathHelper.PiOver2));
@@ -532,11 +533,11 @@ namespace Gaia.SceneGraph
             AddEntity("Grass", grassMgr);
             */
             AddEntity("Forest", new ForestManager(new string[] { "Cecropia", "Palm02", "QueensPalm01", "Tree01", "Tree02", "Palm01", "BeachPalm"}, 3000));
-            
+            /*
             Raptor raptor = new Raptor(ResourceManager.Inst.GetDinosaurDatablock("Allosaurus"));
             raptor.SetSpawnPosition(FindEntity("Tent").Transformation.GetPosition());
             AddEntity("Raptor", raptor);
-            
+            */            
             CreateTeams();
             
             //Entities.Add("Light2", new Light(LightType.Directional, new Vector3(0.2797f, 0.344f, 0.43f), Vector3.Up, false));

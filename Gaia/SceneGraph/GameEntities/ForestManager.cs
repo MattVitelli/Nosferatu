@@ -43,6 +43,7 @@ namespace Gaia.SceneGraph.GameEntities
         public bool alignToSurface = false;
 
         bool isEnabled = false;
+        bool performRender = false;
 
         public ForestManager(string[] names, int clusterCount)
         {

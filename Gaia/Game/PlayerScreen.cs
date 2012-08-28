@@ -58,6 +58,10 @@ namespace Gaia.Game
 
         public bool HasFuel = false;
 
+        public bool HasAlertedHangar = false;
+
+        public bool HasAlertedGasStation = false;
+
         bool isGameRunning = true;
 
         const float timeTilCredits = 5;
@@ -325,6 +329,13 @@ namespace Gaia.Game
             */
             if(journalEntryAdded)
                 DisplayJournalStatus(timeDT);
+
+            if (ActivatedPower && !HasAlertedHangar && !journalEntryAdded)
+            {
+                AddJournalEntry("Find a way off the island", -4);
+                HasAlertedHangar = true;
+                AddMarker(scene.FindEntity("Plane").Transformation);
+            }
 
             UpdateBlinkTime();
 
