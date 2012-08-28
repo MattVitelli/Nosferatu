@@ -30,7 +30,7 @@ namespace Gaia.Rendering
 
         public static float GRASS_FADE = 120;
 
-        public static float GRASS_FADE_SQUARED = GRASS_FADE * GRASS_FADE*1.005f;
+        public static float GRASS_FADE_SQUARED = GRASS_FADE * GRASS_FADE*1.25f;
 
         const float IMPOSTER_DISTANCE = 130;
         public static float IMPOSTER_DISTANCE_FADE = IMPOSTER_DISTANCE*1.075f;
